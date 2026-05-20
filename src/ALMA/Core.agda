@@ -164,6 +164,42 @@ record ≈-hetero {A B : Set} (s₁ : Stream A) (s₂ : Stream B) (f : A → B) 
     head≈ : f (Stream.head s₁) ≡ Stream.head s₂
     tail≈ : ≈-hetero (Stream.tail s₁) (Stream.tail s₂) f
 open ≈-hetero public
+≈-hetero-refl : ∀ {A : Set} (s : Stream A) → ≈-hetero s s id
+≈-hetero-refl s .head≈ = refl
+≈-hetero-refl s .tail≈ = ≈-hetero-refl (Stream.tail s)
+≈-hetero-sym : ∀ {A B : Set} (f : A → B) (g : B → A)
+              → (∀ x → g (f x) ≡ x)
+              → (s₁ : Stream A) (s₂ : Stream B)
+              → ≈-hetero s₁ s₂ f
+              → ≈-hetero s₂ s₁ g
+≈-hetero-sym f g inv s₁ s₂ eq .head≈ =
+  begin
+    g (Stream.head s₂)
+      ≡⟨ cong g (sym (eq .head≈)) ⟩
+    g (f (Stream.head s₁))
+      ≡⟨ inv (Stream.head s₁) ⟩
+    Stream.head s₁
+  ∎
+≈-hetero-sym f g inv s₁ s₂ eq .tail≈ =
+  ≈-hetero-sym f g inv (Stream.tail s₁) (Stream.tail s₂) (eq .tail≈)
+≈-hetero-trans : ∀ {A B C : Set} (f : A → B) (g : B → C)
+                → (s₁ : Stream A) (s₂ : Stream B) (s₃ : Stream C)
+                → ≈-hetero s₁ s₂ f
+                → ≈-hetero s₂ s₃ g
+                → ≈-hetero s₁ s₃ (g ∘ f)
+≈-hetero-trans f g s₁ s₂ s₃ eq1 eq2 .head≈ =
+  begin
+    (g ∘ f) (Stream.head s₁)
+      ≡⟨ refl ⟩
+    g (f (Stream.head s₁))
+      ≡⟨ cong g (eq1 .head≈) ⟩
+    g (Stream.head s₂)
+      ≡⟨ eq2 .head≈ ⟩
+    Stream.head s₃
+  ∎
+≈-hetero-trans f g s₁ s₂ s₃ eq1 eq2 .tail≈ =
+  ≈-hetero-trans f g (Stream.tail s₁) (Stream.tail s₂) (Stream.tail s₃)
+    (eq1 .tail≈) (eq2 .tail≈)
 record ≈ₚ-hetero {O₁ C₁ O₂ C₂ : Set}
                   (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂)
                   (f-O : O₁ → O₂) (f-C : C₁ → C₂) : Set where
@@ -171,8 +207,7 @@ record ≈ₚ-hetero {O₁ C₁ O₂ C₂ : Set}
     stream≈ : ≈-hetero (stream p₁) (stream p₂) (comb f-O f-C)
 open ≈ₚ-hetero public
 ≈ₚ-hetero-refl : ∀ {O C : Set} (p : Process O C) → ≈ₚ-hetero p p id id
-≈ₚ-hetero-refl p .stream≈ .head≈ = refl
-≈ₚ-hetero-refl p .stream≈ .tail≈ = ≈ₚ-hetero-refl (next p) .stream≈
+≈ₚ-hetero-refl p .stream≈ = ≈-hetero-refl (stream p)
 -- 对称幺半范畴结构（同构）
 UnitProcess : Process ⊤ ⊤
 UnitProcess = mkStandardProcess ⊤ ⊤ tt tt
@@ -306,7 +341,6 @@ observe-iter p n =
              s₁ ≈ s₁' → merge-stream s₁ s₂ ≈ merge-stream s₁' s₂
     helper s₁ s₁' s₂ eq ._≈_.head≈ = cong (λ x → merge-state x (Stream.head s₂)) (_≈_.head≈ eq)
     helper s₁ s₁' s₂ eq ._≈_.tail≈ = helper (Stream.tail s₁) (Stream.tail s₁') (Stream.tail s₂) (_≈_.tail≈ eq)
-
 ⊗-functor₂ : ∀ {O₁ C₁ O₂ C₂}
              (p₁ : Process O₁ C₁)
              (p₂ p₂' : Process O₂ C₂)
@@ -361,16 +395,31 @@ observe-iter p n =
                            (proj₁ (Stream.head (stream-tail-n s₁ n)) , proj₁ (Stream.head (stream-tail-n s₂ n)))
     merge-stream-observe s₁ s₂ zero = refl
     merge-stream-observe s₁ s₂ (suc n) = merge-stream-observe (Stream.tail s₁) (Stream.tail s₂) n
--- 对称幺半范畴的引理
-⊗-assoc : ∀ {O₁ C₁ O₂ C₂ O₃ C₃} (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂) (p₃ : Process O₃ C₃) →
-          ≈ₚ-hetero ((p₁ ⊗ p₂) ⊗ p₃) (p₁ ⊗ (p₂ ⊗ p₃)) assoc-iso-O assoc-iso-C
-⊗-assoc = ⊗-assoc-hetero
-⊗-left-unit : ∀ {O C} (p : Process O C) →
-              ≈ₚ-hetero (UnitProcess ⊗ p) p left-unit-O left-unit-C
-⊗-left-unit = ⊗-left-unit-hetero
-⊗-right-unit : ∀ {O C} (p : Process O C) →
-               ≈ₚ-hetero (p ⊗ UnitProcess) p right-unit-O right-unit-C
-⊗-right-unit = ⊗-right-unit-hetero
-⊗-comm : ∀ {O₁ C₁ O₂ C₂} (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂) →
-         ≈ₚ-hetero (p₁ ⊗ p₂) (p₂ ⊗ p₁) swap-O swap-C
-⊗-comm = ⊗-comm-hetero
+-- 对称幺半范畴一致性定理
+pentagon-theorem : ∀ {O₁ C₁ O₂ C₂ O₃ C₃ O₄ C₄}
+                  (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂)
+                  (p₃ : Process O₃ C₃) (p₄ : Process O₄ C₄)
+                  → ≈ₚ-hetero
+                      (((p₁ ⊗ p₂) ⊗ p₃) ⊗ p₄)
+                      (p₁ ⊗ (p₂ ⊗ (p₃ ⊗ p₄)))
+                      (assoc-iso-O ∘ assoc-iso-O)
+                      (assoc-iso-C ∘ assoc-iso-C)
+pentagon-theorem p₁ p₂ p₃ p₄ .stream≈ =
+  ≈-hetero-trans
+    (comb assoc-iso-O assoc-iso-C)
+    (comb assoc-iso-O assoc-iso-C)
+    (stream (((p₁ ⊗ p₂) ⊗ p₃) ⊗ p₄))
+    (stream ((p₁ ⊗ p₂) ⊗ (p₃ ⊗ p₄)))
+    (stream (p₁ ⊗ (p₂ ⊗ (p₃ ⊗ p₄))))
+    (merge-stream-assoc (merge-stream (stream p₁) (stream p₂)) (stream p₃) (stream p₄))
+    (merge-stream-assoc (stream p₁) (stream p₂) (merge-stream (stream p₃) (stream p₄)))
+triangle-theorem : ∀ {O₁ C₁ O₂ C₂}
+                  (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂)
+                  → ≈ₚ-hetero
+                      (p₁ ⊗ (UnitProcess ⊗ p₂))
+                      ((p₁ ⊗ UnitProcess) ⊗ p₂)
+                      (λ (o1 , (tt , o2)) → ((o1 , tt) , o2))
+                      (λ (c1 , (tt , c2)) → ((c1 , tt) , c2))
+triangle-theorem p₁ p₂ .stream≈ .head≈ = refl
+triangle-theorem p₁ p₂ .stream≈ .tail≈ =
+  triangle-theorem (next p₁) (next p₂) .stream≈
