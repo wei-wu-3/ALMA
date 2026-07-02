@@ -4,8 +4,8 @@
 基础存在形式 → 两种构造模式 → 过程同一性 → 核心存在论定理 → 唯一性定理 → 历史路径与本体论过程同一 → 认识论等价与本体论同一的区分
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.Indestructibility where
-open import ALMA.Cosmos public
+module ALMA.LegacyFlat.Indestructibility where
+open import ALMA.LegacyFlat.strictCosmos public
 -- 基础存在形式：永恒流与持存谓词
 record Stream {ℓ} (A : Set ℓ) : Set ℓ where
   coinductive
@@ -31,14 +31,14 @@ ana : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂} → (X → StreamF A
 ana α x .head = proj₁ (α x)
 ana α x .tail = ana α (proj₂ (α x))
 -- 函子结构与 ana 融合律（技术基础）
-record Functor {ℓ₁ ℓ₂} (F : Set ℓ₁ → Set ℓ₂) : Set (lsuc ℓ₁ ⊔ ℓ₂) where
+record Functor' {ℓ₁ ℓ₂} (F : Set ℓ₁ → Set ℓ₂) : Set (lsuc ℓ₁ ⊔ ℓ₂) where
   field
     imap : ∀ {A B : Set ℓ₁} → (A → B) → F A → F B
     imap-id : ∀ {A : Set ℓ₁} → imap {A} id ≡ id
     imap-comp : ∀ {A B C : Set ℓ₁} {f : A → B} {g : B → C} → imap (g ∘ f) ≡ imap g ∘ imap f
-open Functor ⦃...⦄ public using (imap)
+open Functor' ⦃...⦄ public using (imap)
 instance
-  StreamF-Functor : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} → Functor {ℓ₁ = ℓ₂} {ℓ₂ = ℓ₁ ⊔ ℓ₂} (StreamF A)
+  StreamF-Functor : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} → Functor' {ℓ₁ = ℓ₂} {ℓ₂ = ℓ₁ ⊔ ℓ₂} (StreamF A)
   StreamF-Functor {ℓ₁} {ℓ₂} {A} = record
     { imap = λ { f (a , x) → (a , f x) }
     ; imap-id = refl

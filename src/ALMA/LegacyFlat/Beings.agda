@@ -4,8 +4,8 @@
 过程及其张量积范畴结构、相干模式、演化与不可逆定理
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.Beings where
-open import ALMA.Indestructibility public
+module ALMA.LegacyFlat.Beings where
+open import ALMA.LegacyFlat.Indestructibility public
 -- 过程：动态存在者的基本结构（O：偶性，C：本质）
 record Process {ℓ₁ ℓ₂} (O : Set ℓ₁) (C : Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
   coinductive

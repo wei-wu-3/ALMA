@@ -4,8 +4,8 @@
 宇宙结构、投影与不可重构定理、非均匀性必然定理、交互、耦合与共同本质
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.Universe where
-open import ALMA.Beings public
+module ALMA.LegacyFlat.Universe where
+open import ALMA.LegacyFlat.Beings public
 -- 不可消减性与宇宙的基本定义
 record IsIndestructible {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃}
                        (essence : C) (stream : Stream ((I → A) × C)) : Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃) where

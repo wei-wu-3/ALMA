@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.StandardModel where
-open import ALMA.Universe public
+module ALMA.LegacyFlat.StandardModel where
+open import ALMA.LegacyFlat.Universe public
 -- 基础类型
 Attr2D : Set
 Attr2D = Fin 2 → ℕ

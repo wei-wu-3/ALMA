@@ -1,3 +1,4 @@
 name: ALMA
 depend: standard-library
+        agda-categories
 include: src
