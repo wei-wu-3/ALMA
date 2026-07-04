@@ -9,17 +9,19 @@
 
 module ALMA.Cosmos.ContCatEquiv where
 
-open import Agda.Primitive using (lsuc; Level)
-open import Categories.Category using (Category)
-open import Categories.Functor using (Functor)
+open import Agda.Primitive using (Level; lsuc)
+open import Relation.Binary using (IsEquivalence)
 open import Data.Container.Core using (_⇒_)
 open import Data.Container.Morphism using (id; _∘_)
-open import Relation.Binary using (IsEquivalence)
+open import Categories.Category using (Category)
+open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.Iso
-open import ALMA.Cosmos.ObjEquivCat
 open import ALMA.Cosmos.ContCategory
+  using (_≈M_; ≈M-sym; ≈M-trans; module ≈M-Reasoning; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat)
+open import ALMA.Cosmos.Iso
+open import ALMA.Cosmos.ObjEquivCat using (ObjEquivCat)
 
+-- Functor from the base category to the category of containers
 record ContCatEquiv (ℓ : Level) : Set (lsuc (lsuc ℓ)) where
   field
     base : ObjEquivCat (lsuc ℓ) (lsuc ℓ) (lsuc ℓ)
@@ -52,7 +54,7 @@ module _ {ℓ : Level}
     -- Transport of morphisms along isomorphisms (defined as to ∘ f ∘ from)
     transport' : ∀ {A₁ A₂ B₁ B₂} → A₁ ≅ A₂ → B₁ ≅ B₂ → (A₁ C.⇒ B₁) → (A₂ C.⇒ B₂)
     transport' A≅ B≅ f = to B≅ C.∘ f C.∘ from A≅
-     -- proofs of ObjEquivCat fields
+    -- Proofs of ObjEquivCat coherence laws
     transport-resp-≈' : ∀ {A₁ A₂ B₁ B₂}
                       → (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂)
                       → ∀ {f g : A₁ C.⇒ B₁}
@@ -100,82 +102,63 @@ module _ {ℓ : Level}
       ; transport-id     = transport-id'
       }
     open ObjEquivCat isoObjEquiv
+
     -- Container transport via functor action on "to"
     transportContainer : ∀ {A₁ A₂} → A₁ ≈ₒ A₂ → F.₀ A₁ ⇒ F.₀ A₂
     transportContainer eq = F.₁ (to eq)
-    -- Proofs of container transport properties
+    -- Proofs of container transport properties (refl, sym, trans)
     transportContainer-refl : ∀ {A}
       → transportContainer (IsEquivalence.refl ≈ₒ-isEquiv {A}) ≈M id (F.₀ A)
     transportContainer-refl = F.identity
+    transportContainer-sym : ∀ {A B} (eq : A ≅ B)
+                          → transportContainer (isoSym eq) ∘ transportContainer eq ≈M id (F.₀ A)
+    transportContainer-sym eq = ≈M-trans
+      (≈M-sym F.homomorphism)
+      (≈M-trans (F.F-resp-≈ (isoˡ eq)) F.identity)
     transportContainer-trans : ∀ {A₁ A₂ A₃}
       → (eq1 : A₁ ≈ₒ A₂) (eq2 : A₂ ≈ₒ A₃)
       → transportContainer (IsEquivalence.trans ≈ₒ-isEquiv eq1 eq2)
         ≈M (transportContainer eq2 ∘ transportContainer eq1)
     transportContainer-trans eq1 eq2 = F.homomorphism
-    -- The crucial naturality proof, with explicit expansion of transport
+    -- Naturality of transportContainer: FtB ∘ F₁f ≈M F₁(transport eqA eqB f) ∘ FtA
     act-natural : ∀ {A₁ A₂ B₁ B₂}
                 → (eqA : A₁ ≈ₒ A₂) (eqB : B₁ ≈ₒ B₂)
                 → (f : C._⇒_ A₁ B₁)
                 → (transportContainer eqB ∘ F.₁ f)
                   ≈M
                   (F.₁ (transport eqA eqB f) ∘ transportContainer eqA)
-    act-natural {A₁} {A₂} {B₁} {B₂} eqA eqB f =
-      let
-        X = F.₀ A₁
-        Y = F.₀ A₂
-        Z = F.₀ B₁
-        W = F.₀ B₂
-        Ff : X ⇒ Z
-        Ff = F.₁ f
-        Ffrom : Y ⇒ X
-        Ffrom = F.₁ (from eqA)
-        Fto : X ⇒ Y
-        Fto = F.₁ (to eqA)
-        g' = f C.∘ from eqA
-        h' = to eqB C.∘ g'
-        Ft : Z ⇒ W
-        Ft = transportContainer eqB
-        L : X ⇒ W
-        L = Ft ∘ Ff
-        Fh' : Y ⇒ W
-        Fh' = F.₁ h'
-        R : X ⇒ W
-        R = Fh' ∘ Fto
-        open Functor F
-        -- F preserves the isomorphism condition: F(from) ∘ F(to) ≈ id
-        isoCond : Ffrom ∘ Fto ≈M id X
-        isoCond = ≈M-trans (≈M-sym (homomorphism {f = to eqA} {g = from eqA}))
-                          (≈M-trans (F-resp-≈ (isoˡ eqA)) identity)
-        step1 : R ≈M Fh' ∘ Fto
-        step1 = ≈M-refl
-        step2 : Fh' ≈M Ft ∘ F.₁ g'
-        step2 = homomorphism {f = g'} {g = to eqB}
-        step3 : Fh' ∘ Fto ≈M (Ft ∘ F.₁ g') ∘ Fto
-        step3 = ∘M-resp-≈ step2 (≈M-refl {f = Fto})
-        step4 : (Ft ∘ F.₁ g') ∘ Fto ≈M Ft ∘ (F.₁ g' ∘ Fto)
-        step4 = ∘M-assoc {A = X} {B = Y} {C = Z} {D = W}
-                         {f = Fto} {g = F.₁ g'} {h = Ft}
-        step5 : F.₁ g' ≈M Ff ∘ Ffrom
-        step5 = homomorphism {f = from eqA} {g = f}
-        step6 : F.₁ g' ∘ Fto ≈M (Ff ∘ Ffrom) ∘ Fto
-        step6 = ∘M-resp-≈ step5 (≈M-refl {f = Fto})
-        step7 : (Ff ∘ Ffrom) ∘ Fto ≈M Ff ∘ (Ffrom ∘ Fto)
-        step7 = ∘M-assoc {A = X} {B = Y} {C = X} {D = Z}
-                         {f = Fto} {g = Ffrom} {h = Ff}
-        step8 : Ff ∘ (Ffrom ∘ Fto) ≈M Ff ∘ id X
-        step8 = ∘M-resp-≈ (≈M-refl {f = Ff}) isoCond
-        step9 : Ff ∘ id X ≈M Ff
-        step9 = ∘M-identityʳ {A = X} {B = Z} {f = Ff}
-        step10 : F.₁ g' ∘ Fto ≈M Ff
-        step10 = ≈M-trans step6 (≈M-trans step7 (≈M-trans step8 step9))
-        step11 : Ft ∘ (F.₁ g' ∘ Fto) ≈M Ft ∘ Ff
-        step11 = ∘M-resp-≈ (≈M-refl {f = Ft}) step10
-        R≈L : R ≈M L
-        R≈L = ≈M-trans step1 (≈M-trans step3 (≈M-trans step4 step11))
-      in
-        ≈M-sym R≈L
+    act-natural {A₁} {A₂} {B₁} {B₂} eqA eqB f = ≈M-sym R≈L
+      where
+        FtA  : F.₀ A₁ ⇒ F.₀ A₂
+        FtA  = transportContainer eqA
+        Ff   : F.₀ A₁ ⇒ F.₀ B₁
+        Ff   = F.₁ f
+        FtB  : F.₀ B₁ ⇒ F.₀ B₂
+        FtB  = transportContainer eqB
+        Ff∘from : F.₀ A₂ ⇒ F.₀ B₁
+        Ff∘from = F.₁ (f C.∘ from eqA)
+        open ≈M-Reasoning
+        R≈L : F.₁ (transport eqA eqB f) ∘ FtA ≈M FtB ∘ Ff
+        R≈L = begin
+          F.₁ (transport eqA eqB f) ∘ FtA
+            ≈⟨ ∘M-resp-≈ˡ {f = FtA} (F.homomorphism {f = f C.∘ from eqA} {g = to eqB}) ⟩
+          (FtB ∘ Ff∘from) ∘ FtA
+            ≈⟨ ∘M-assoc {f = FtA} {g = Ff∘from} {h = FtB} ⟩
+          FtB ∘ (Ff∘from ∘ FtA)
+            ≈⟨ ∘M-resp-≈ʳ {g = FtB}
+                (∘M-resp-≈ˡ {f = FtA} (F.homomorphism {f = from eqA} {g = f})) ⟩
+          FtB ∘ ((Ff ∘ F.₁ (from eqA)) ∘ FtA)
+            ≈⟨ ∘M-resp-≈ʳ {g = FtB}
+                (∘M-assoc {f = FtA} {g = F.₁ (from eqA)} {h = Ff}) ⟩
+          FtB ∘ (Ff ∘ (F.₁ (from eqA) ∘ FtA))
+            ≈⟨ ∘M-resp-≈ʳ {g = FtB}
+                (∘M-resp-≈ʳ {g = Ff} (transportContainer-sym eqA)) ⟩
+          FtB ∘ (Ff ∘ id (F.₀ A₁))
+            ≈⟨ ∘M-resp-≈ʳ {g = FtB} (∘M-identityʳ {f = Ff}) ⟩
+          FtB ∘ Ff
+            ∎
 
-  -- The final ContCatEquiv instance (as a normal function)
+  -- Construct a ContCatEquiv from a category C and a container functor F : C → ContCat
   contCatEquivFromIso : ContCatEquiv ℓ
   contCatEquivFromIso = record
     { base                = isoObjEquiv

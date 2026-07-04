@@ -126,3 +126,14 @@ objEquivCatFromIso C =
   ; transport-∘      = transport-∘'
   ; transport-id     = transport-id'
   }
+
+-- Equational reasoning for object equivalence _≈ₒ_
+module ≈ₒ-Reasoning {o ℓ e : Level} (C : ObjEquivCat o ℓ e) where
+  open ObjEquivCat C
+  open Category cat using (Obj)
+  open import Relation.Binary.Reasoning.Setoid 
+    (record
+      { Carrier       = Obj
+      ; _≈_           = _≈ₒ_
+      ; isEquivalence = ≈ₒ-isEquiv
+      }) public

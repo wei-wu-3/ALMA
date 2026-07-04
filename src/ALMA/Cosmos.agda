@@ -26,6 +26,7 @@ open import ALMA.Cosmos.UnfoldingObject
 open import ALMA.Cosmos.UnfoldingMorphism
 open import ALMA.Cosmos.MorphismObject
 open import ALMA.Cosmos.MorphismMorphism
+open import ALMA.Cosmos.ContCategoryLemmas
 
 -- Core definitions — CosmosLayer and Cosmos as terminal coalgebra
 record CosmosLayer (ℓ : Level) (X : Set (lsuc (lsuc ℓ))) : Set (lsuc (lsuc ℓ)) where

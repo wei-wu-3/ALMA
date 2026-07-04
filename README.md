@@ -14,6 +14,15 @@ ALMA 是基于类型论、范畴论、容器、余代数的形式化框架。其
 实现宇宙构造的可组合性。项目核心 Cosmos —— 无限无界动态自指涉宇宙，
 为哲学本体论研究提供数学模型。
 
+This modular design separates concerns across layers, allowing each layer's
+proofs and combinators to be reused independently. Compared to a flat Cosmos
+definition, the layered architecture reduces proof burden for composition
+and coherence laws by distributing them into single-layer components.
+
+分层设计将关注点按层次分离，各层的证明和组合子可独立复用。
+相较扁平 Cosmos 定义，分层架构将复合与相干律的证明负担分散到各单层组件中，
+显著降低了高层构造的证明复杂度。
+
 ## Preprint / 预印本
 
 <https://philpeople.org/profiles/wei-wu-3>
@@ -29,32 +38,33 @@ src/ALMA/
 ├── Cosmos/
 │   ├── Iso.agda                  -- Object isomorphisms
 │   ├── ContCategory.agda         -- Container category
+│   ├── ContCategoryLemmas.agda   -- Algebraic lemmas for container morphism equivalence
 │   ├── ObjEquivCat.agda          -- Categories with object equivalence
 │   ├── ObjEquivFunctor.agda      -- Functors preserving object equivalence
 │   ├── ContCatEquiv.agda         -- Base category + container functor
 │   ├── ContCatEquivFunctor.agda  -- Morphisms between ContCatEquivs
 │   ├── UnfoldingObject.agda      -- Object-level unfolding structure
 │   ├── UnfoldingMorphism.agda    -- Morphism-level unfolding structure
-│   ├── MorphismObject.agda       -- Object-level components of coalgebra homomorphisms
-│   └── MorphismMorphism.agda     -- Action compatibility for coalgebra homomorphisms
+│   ├── MorphismObject.agda       -- Object-level homomorphisms (onPos, onunfold-obj, onPos-to-shape)
+│   └── MorphismMorphism.agda     -- Action compatibility (onActP)
 └── Cosmos.agda                   -- Terminal coalgebra: Cosmos, _⇒ℱ_, id⇒ℱ, _∘⇒ℱ_, UnitCosmos
 
 ### Dependency order (bottom-up)
 
-Iso → ContCategory → ObjEquivCat → ObjEquivFunctor
-                                    ↓
-ContCatEquiv → ContCatEquivFunctor ──────────────┐
-       ↓                                         ↓
-UnfoldingObject → UnfoldingMorphism              │
-       ↓                  ↓                      │
-MorphismObject ──→ MorphismMorphism              │
-       ↓                  ↓                      ↓
-       └──────────────────┴──────────────────────┘
-                          ↓
-     Cosmos (terminal coalgebra) + UnitCosmos (instance)
+Iso → ContCategory → ContCategoryLemmas → ObjEquivCat → ObjEquivFunctor
+                                               ↓
+ContCatEquiv → ContCatEquivFunctor ─────────────────────┐
+       ↓                                                ↓
+UnfoldingObject → UnfoldingMorphism                     │
+       ↓                  ↓                             │
+MorphismObject ──→ MorphismMorphism                     │
+       ↓                  ↓                             ↓
+       └──────────────────┴─────────────────────────────┘
+                            ↓
+       Cosmos (terminal coalgebra) + UnitCosmos (instance)
 
 ## Contributing / 贡献指南
 
 Discussions, proof ideas, literature references and code contributions 
-are all welcome.
-欢迎讨论交流、证明思路、文献指引与代码贡献。
+are all welcome
+欢迎讨论交流、证明思路、文献指引与代码贡献

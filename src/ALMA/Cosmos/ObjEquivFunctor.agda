@@ -33,6 +33,23 @@ record ObjEquivFunctor {o ℓ e : Level} (C D : ObjEquivCat o ℓ e) : Set (o �
                        (D.transport (≈ₒ-homo eqA) (≈ₒ-homo eqB) (BF.₁ f))
                        (BF.₁ (C.transport eqA eqB f))
 
+-- Identity ObjEquivFunctor
+idObjEquivFunctor : ∀ {o ℓ e} {C : ObjEquivCat o ℓ e} → ObjEquivFunctor C C
+idObjEquivFunctor {C = C} = record
+  { baseFunctor    = record
+    { F₀           = λ x → x
+    ; F₁           = λ f → f
+    ; identity     = Cat.Equiv.refl
+    ; homomorphism = Cat.Equiv.refl
+    ; F-resp-≈     = λ eq → eq
+    }
+  ; ≈ₒ-homo        = λ eq → eq
+  ; transport-comm = λ eqA eqB {f} → OE.transport-resp-≈ eqA eqB (Cat.Equiv.refl {x = f})
+  }
+  where
+    module OE  = ObjEquivCat C
+    module Cat = Category OE.cat
+
 -- Composition of ObjEquivFunctors
 compObjEquivFunctor : ∀ {o ℓ e} {C D E : ObjEquivCat o ℓ e}
   → ObjEquivFunctor D E → ObjEquivFunctor C D → ObjEquivFunctor C E

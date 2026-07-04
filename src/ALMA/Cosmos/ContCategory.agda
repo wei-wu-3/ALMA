@@ -3,21 +3,22 @@
 --
 -- Defines the equivalence _≈M_ on containers (polynomial functors)
 -- (propositional equality of shapes, heterogeneous equality of positions
--- via transport), verifies the category laws, and constructs a Category instance.
+-- via transport), verifies the category laws, and constructs a Category instance
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.ContCategory where
 
-open import Agda.Primitive using (_⊔_; lsuc; Level)
-open import Categories.Category using (Category)
-open import Data.Container using (_⇒_; Container; Position; Shape)
-open import Data.Container.Morphism using (_∘_; id)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; subst; sym; trans)
+  using (_≡_; refl; sym; trans; cong; subst; module ≡-Reasoning)
+open ≡-Reasoning
+open import Relation.Binary.Structures using (IsEquivalence)
 open import Relation.Binary.PropositionalEquality.Properties
   using (subst-subst; subst-subst-sym)
+open import Data.Container.Core using (Container; _⇒_; Shape; Position)
+open import Data.Container.Morphism using (id; _∘_)
+open import Categories.Category using (Category)
 
 -- The equivalence relation on morphisms: equal on shapes, and on positions up to transport
 infix 4 _≈M_
@@ -37,63 +38,40 @@ record _≈M_ {s p : Level} {C D : Container s p} (f g : C ⇒ D) : Set (s ⊔ p
 -- Symmetry of _≈M_
 ≈M-sym : ∀ {s p} {C D : Container s p} {f g : C ⇒ D} → f ≈M g → g ≈M f
 ≈M-sym {s} {p} {C} {D} {f} {g} eq = record
-  { shape-eq = shape-sym
-  ; pos-eq   = pos-sym
+  { shape-eq = λ s → sym (eq.shape-eq s)
+  ; pos-eq   = λ s q → sym (begin
+      F.position {s} (subst (Position D) (sym (eq.shape-eq s)) q)
+        ≡⟨ eq.pos-eq s (subst (Position D) (sym (eq.shape-eq s)) q) ⟩
+      G.position {s} (subst (Position D) (eq.shape-eq s) (subst (Position D) (sym (eq.shape-eq s)) q))
+        ≡⟨ cong (G.position {s}) (subst-subst-sym (eq.shape-eq s)) ⟩
+      G.position {s} q
+        ∎)
   }
   where
-    module f = _⇒_ f
-    module g = _⇒_ g
-    open _≈M_ eq
-    shape-sym : ∀ (s : Shape C) → g.shape s ≡ f.shape s
-    shape-sym s = sym (shape-eq s)
-    pos-sym : ∀ (s : Shape C) (q : Position D (g.shape s))
-              → g.position {s} q ≡ f.position {s} (subst (Position D) (shape-sym s) q)
-    pos-sym s q =
-      let
-        p : Position D (f.shape s)
-        p = subst (Position D) (sym (shape-eq s)) q
-        eq-fwd : f.position {s} p ≡ g.position {s} (subst (Position D) (shape-eq s) p)
-        eq-fwd = pos-eq s p
-        subst-cancel : subst (Position D) (shape-eq s) p ≡ q
-        subst-cancel = subst-subst-sym (shape-eq s)
-        eq-g-cong : g.position {s} (subst (Position D) (shape-eq s) p) ≡ g.position {s} q
-        eq-g-cong = cong (g.position {s}) subst-cancel
-        eq-f-to-g : f.position {s} p ≡ g.position {s} q
-        eq-f-to-g = trans eq-fwd eq-g-cong
-      in
-      sym eq-f-to-g
+    module F  = _⇒_ f
+    module G  = _⇒_ g
+    module eq = _≈M_ eq
 
 -- Transitivity of _≈M_
 ≈M-trans : ∀ {s p} {C D : Container s p} {f g h : C ⇒ D} → f ≈M g → g ≈M h → f ≈M h
 ≈M-trans {s} {p} {C} {D} {f} {g} {h} eq-fg eq-gh = record
-  { shape-eq = shape-trans
-  ; pos-eq   = pos-trans
+  { shape-eq = λ s → trans (FG.shape-eq s) (GH.shape-eq s)
+  ; pos-eq   = λ s p → begin
+      F.position {s} p
+        ≡⟨ FG.pos-eq s p ⟩
+      G.position {s} (subst (Position D) (FG.shape-eq s) p)
+        ≡⟨ GH.pos-eq s (subst (Position D) (FG.shape-eq s) p) ⟩
+      H.position {s} (subst (Position D) (GH.shape-eq s) (subst (Position D) (FG.shape-eq s) p))
+        ≡⟨ cong (H.position {s}) (subst-subst (FG.shape-eq s) {y≡z = GH.shape-eq s}) ⟩
+      H.position {s} (subst (Position D) (trans (FG.shape-eq s) (GH.shape-eq s)) p)
+        ∎
   }
   where
-    module f = _⇒_ f
-    module g = _⇒_ g
-    module h = _⇒_ h
-    open _≈M_ eq-fg renaming (shape-eq to shape-fg; pos-eq to pos-fg)
-    open _≈M_ eq-gh renaming (shape-eq to shape-gh; pos-eq to pos-gh)
-    shape-trans : ∀ (s : Shape C) → f.shape s ≡ h.shape s
-    shape-trans s = trans (shape-fg s) (shape-gh s)
-    pos-trans : ∀ (s : Shape C) (p : Position D (f.shape s))
-                → f.position {s} p ≡ h.position {s} (subst (Position D) (shape-trans s) p)
-    pos-trans s p =
-      let
-        q : Position D (g.shape s)
-        q = subst (Position D) (shape-fg s) p
-        step1 : f.position {s} p ≡ g.position {s} q
-        step1 = pos-fg s p
-        step2 : g.position {s} q ≡ h.position {s} (subst (Position D) (shape-gh s) q)
-        step2 = pos-gh s q
-        subst-merge : subst (Position D) (shape-trans s) p ≡ subst (Position D) (shape-gh s) q
-        subst-merge = sym (subst-subst (shape-fg s) {shape-gh s})
-        step3 : h.position {s} (subst (Position D) (shape-gh s) q)
-                ≡ h.position {s} (subst (Position D) (shape-trans s) p)
-        step3 = cong (h.position {s}) (sym subst-merge)
-      in
-      trans step1 (trans step2 step3)
+    module F  = _⇒_ f
+    module G  = _⇒_ g
+    module H  = _⇒_ h
+    module FG = _≈M_ eq-fg
+    module GH = _≈M_ eq-gh
 
 -- _≈M_ is an equivalence relation
 ≈M-isEquiv : ∀ {s p} {C D : Container s p} → IsEquivalence (_≈M_ {s} {p} {C} {D})
@@ -102,6 +80,14 @@ record _≈M_ {s p : Level} {C D : Container s p} (f g : C ⇒ D) : Set (s ⊔ p
   ; sym   = ≈M-sym
   ; trans = ≈M-trans
   }
+
+-- Equational reasoning combinators for container morphism equivalence _≈M_
+module ≈M-Reasoning {s p} {C D : Container s p} where
+  open import Relation.Binary.Reasoning.Setoid (record
+    { Carrier       = C ⇒ D
+    ; _≈_           = _≈M_ {s} {p} {C} {D}
+    ; isEquivalence = ≈M-isEquiv
+    }) public
 
 -- Associativity of composition
 ∘M-assoc : ∀ {s p} {A B C D : Container s p}
@@ -123,53 +109,31 @@ record _≈M_ {s p : Level} {C D : Container s p} (f g : C ⇒ D) : Set (s ⊔ p
           → g₁ ≈M g₂ → f₁ ≈M f₂ → g₁ ∘ f₁ ≈M g₂ ∘ f₂
 ∘M-resp-≈ {s} {p} {A} {B} {C} {g₁} {g₂} {f₁} {f₂} eq-g eq-f = record
   { shape-eq = shape-compat
-  ; pos-eq   = pos-compat
+  ; pos-eq   = λ s p → begin
+      F1.position {s} (G1.position {F1.shape s} p)
+        ≡⟨ F.pos-eq s (G1.position {F1.shape s} p) ⟩
+      F2.position {s} (subst (Position B) (F.shape-eq s) (G1.position {F1.shape s} p))
+        ≡⟨ cong (F2.position {s}) (cong (subst (Position B) (F.shape-eq s)) (G.pos-eq (F1.shape s) p)) ⟩
+      F2.position {s} (subst (Position B) (F.shape-eq s) (G2.position {F1.shape s} (subst (Position C) (G.shape-eq (F1.shape s)) p)))
+        ≡⟨ cong (F2.position {s}) (swap-onPos (F.shape-eq s) (subst (Position C) (G.shape-eq (F1.shape s)) p)) ⟩
+      F2.position {s} (G2.position {F2.shape s} (subst (Position C) (cong G2.shape (F.shape-eq s)) (subst (Position C) (G.shape-eq (F1.shape s)) p)))
+        ≡⟨ cong (F2.position {s}) (cong (G2.position {F2.shape s}) (subst-subst (G.shape-eq (F1.shape s)) {y≡z = cong G2.shape (F.shape-eq s)})) ⟩
+      F2.position {s} (G2.position {F2.shape s} (subst (Position C) (shape-compat s) p))
+        ∎
   }
   where
-    module f₁ = _⇒_ f₁
-    module f₂ = _⇒_ f₂
-    module g₁ = _⇒_ g₁
-    module g₂ = _⇒_ g₂
-    open _≈M_ eq-g renaming (shape-eq to g-shape; pos-eq to g-pos)
-    open _≈M_ eq-f renaming (shape-eq to f-shape; pos-eq to f-pos)
-    shape-compat : ∀ (s : Shape A) → g₁.shape (f₁.shape s) ≡ g₂.shape (f₂.shape s)
-    shape-compat s = trans (g-shape (f₁.shape s)) (cong g₂.shape (f-shape s))
-    swap-onPos : ∀ {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂) (q : Position C (g₂.shape t₁))
-                → subst (Position B) eq (g₂.position {t₁} q)
-                ≡ g₂.position {t₂} (subst (Position C) (cong g₂.shape eq) q)
+    module F1 = _⇒_ f₁
+    module F2 = _⇒_ f₂
+    module G1 = _⇒_ g₁
+    module G2 = _⇒_ g₂
+    module F  = _≈M_ eq-f
+    module G  = _≈M_ eq-g
+    shape-compat : ∀ (s : Shape A) → G1.shape (F1.shape s) ≡ G2.shape (F2.shape s)
+    shape-compat s = trans (G.shape-eq (F1.shape s)) (cong G2.shape (F.shape-eq s))
+    swap-onPos : ∀ {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂) (q : Position C (G2.shape t₁))
+                → subst (Position B) eq (G2.position {t₁} q)
+                ≡ G2.position {t₂} (subst (Position C) (cong G2.shape eq) q)
     swap-onPos refl q = refl
-    pos-compat : ∀ (s : Shape A) (p : Position C (g₁.shape (f₁.shape s)))
-                → f₁.position {s} (g₁.position {f₁.shape s} p)
-                ≡ f₂.position {s} (g₂.position {f₂.shape s} (subst (Position C) (shape-compat s) p))
-    pos-compat s p =
-      let
-        t₁ : Shape B
-        t₁ = f₁.shape s
-        t₂ : Shape B
-        t₂ = f₂.shape s
-        eq-t : t₁ ≡ t₂
-        eq-t = f-shape s
-        step-g : g₁.position {t₁} p ≡ g₂.position {t₁} (subst (Position C) (g-shape t₁) p)
-        step-g = g-pos t₁ p
-        q1 : Position C (g₂.shape t₁)
-        q1 = subst (Position C) (g-shape t₁) p
-        step-swap : subst (Position B) eq-t (g₂.position {t₁} q1)
-                   ≡ g₂.position {t₂} (subst (Position C) (cong g₂.shape eq-t) q1)
-        step-swap = swap-onPos eq-t q1
-        q2 : Position C (g₂.shape t₂)
-        q2 = subst (Position C) (cong g₂.shape eq-t) q1
-        subst-merge : subst (Position C) (shape-compat s) p ≡ q2
-        subst-merge = sym (subst-subst (g-shape t₁) {cong g₂.shape eq-t} {p})
-        g-eq : subst (Position B) eq-t (g₁.position {t₁} p)
-               ≡ g₂.position {t₂} (subst (Position C) (shape-compat s) p)
-        g-eq = trans
-                (cong (subst (Position B) eq-t) step-g)
-                (trans step-swap (cong (g₂.position {t₂}) (sym subst-merge)))
-        step-f : f₁.position {s} (g₁.position {t₁} p)
-                ≡ f₂.position {s} (subst (Position B) eq-t (g₁.position {t₁} p))
-        step-f = f-pos s (g₁.position {t₁} p)
-      in
-      trans step-f (cong (f₂.position {s}) g-eq)
 
 -- Left whiskering: g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
 ∘M-resp-≈ˡ : ∀ {s p} {A B C : Container s p} {g₁ g₂ : B ⇒ C} {f : A ⇒ B}

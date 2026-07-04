@@ -17,14 +17,8 @@ open import Relation.Binary.PropositionalEquality using (_≡_; subst)
 open import ALMA.Cosmos.ObjEquivCat
 open import ALMA.Cosmos.ContCategory
 open import ALMA.Cosmos.ContCatEquiv
+open import ALMA.Cosmos.ContCategoryLemmas
 
-ShapeOf : ∀ {o ℓ e s p} {C : Category o ℓ e}
-        → Functor C (ContCat s p) → Category.Obj C → Set s
-ShapeOf F A = Container.Shape (Functor.₀ F A)
-PosOf : ∀ {o ℓ e s p} {C : Category o ℓ e}
-      → (F : Functor C (ContCat s p)) {A : Category.Obj C}
-      → ShapeOf F A → Set p
-PosOf F {A} s = Container.Position (Functor.₀ F A) s
 
 record UnfoldingObject (ℓ : Level) (CE : ContCatEquiv ℓ) (X : Set (lsuc (lsuc ℓ))) 
   : Set (lsuc (lsuc ℓ)) where

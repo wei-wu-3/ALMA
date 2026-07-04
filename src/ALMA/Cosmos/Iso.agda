@@ -9,14 +9,15 @@
 
 module ALMA.Cosmos.Iso where
 
-open import Agda.Primitive using (_⊔_; Level)
-open import Categories.Category using (Category)
+open import Agda.Primitive using (Level; _⊔_)
 open import Relation.Binary using (IsEquivalence)
+open import Categories.Category using (Category)
 
 -- Isomorphism in a category
 module Iso {o ℓ e : Level} (C : Category o ℓ e) where
   open Category C
   open Equiv
+  open HomReasoning
   -- Object isomorphism: two-sided inverse up to ≈
   infix 4 _≅_
   record _≅_ (A B : Obj) : Set (ℓ ⊔ e) where
@@ -37,33 +38,32 @@ module Iso {o ℓ e : Level} (C : Category o ℓ e) where
   isoTrans {A} {B} {D} i j = iso
     (to j ∘ to i)
     (from i ∘ from j)
-    left-inverse
-    right-inverse
-    where
-      left-inverse : (from i ∘ from j) ∘ (to j ∘ to i) ≈ id {A = A}
-      left-inverse =
-        let
-          inner-step1 = sym-assoc
-          inner-step2 = ∘-resp-≈ˡ (isoˡ j)
-          inner-step3 = identityˡ
-          inner-eq    = trans inner-step1 (trans inner-step2 inner-step3)
-          step1 = assoc
-          step2 = ∘-resp-≈ʳ inner-eq
-          step3 = isoˡ i
-        in
-        trans step1 (trans step2 step3)
-      right-inverse : (to j ∘ to i) ∘ (from i ∘ from j) ≈ id {A = D}
-      right-inverse =
-        let
-          inner-step1 = sym-assoc
-          inner-step2 = ∘-resp-≈ˡ (isoʳ i)
-          inner-step3 = identityˡ
-          inner-eq    = trans inner-step1 (trans inner-step2 inner-step3)
-          step1 = assoc
-          step2 = ∘-resp-≈ʳ inner-eq
-          step3 = isoʳ j
-        in
-        trans step1 (trans step2 step3)
+    (begin
+      (from i ∘ from j) ∘ (to j ∘ to i)
+        ≈⟨ assoc ⟩
+      from i ∘ (from j ∘ (to j ∘ to i))
+        ≈⟨ refl⟩∘⟨ sym-assoc ⟩
+      from i ∘ ((from j ∘ to j) ∘ to i)
+        ≈⟨ refl⟩∘⟨ isoˡ j ⟩∘⟨refl ⟩
+      from i ∘ (id ∘ to i)
+        ≈⟨ refl⟩∘⟨ identityˡ ⟩
+      from i ∘ to i
+        ≈⟨ isoˡ i ⟩
+      id
+        ∎)
+    (begin
+      (to j ∘ to i) ∘ (from i ∘ from j)
+        ≈⟨ assoc ⟩
+      to j ∘ (to i ∘ (from i ∘ from j))
+        ≈⟨ refl⟩∘⟨ sym-assoc ⟩
+      to j ∘ ((to i ∘ from i) ∘ from j)
+        ≈⟨ refl⟩∘⟨ isoʳ i ⟩∘⟨refl ⟩
+      to j ∘ (id ∘ from j)
+        ≈⟨ refl⟩∘⟨ identityˡ ⟩
+      to j ∘ from j
+        ≈⟨ isoʳ j ⟩
+      id
+        ∎)
   isoEquiv : IsEquivalence _≅_
   isoEquiv = record
     { refl  = isoRefl
