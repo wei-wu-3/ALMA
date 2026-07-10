@@ -1,11 +1,17 @@
 {-
+Fundamental Structure, Composition, and Irreducible Accidental Reconfiguration & Evolutionary Irreversibility of Dynamic Beings
 动态存在者基本结构、复合方式及本质不可消减的偶性形态重构与演化不可逆性
 --
+Processes, Tensor Product Categorical Structure, Coherent Patterns, Evolution, and Irreversibility Theorems
 过程及其张量积范畴结构、相干模式、演化与不可逆定理
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.LegacyFlat.Beings where
-open import ALMA.LegacyFlat.Indestructibility public
+
+module ALMA.ProofOfConcept.Beings where
+
+open import ALMA.ProofOfConcept.Indestructibility public
+
+-- Process: Fundamental structure of dynamic beings (O: Accident, C: Essence)
 -- 过程：动态存在者的基本结构（O：偶性，C：本质）
 record Process {ℓ₁ ℓ₂} (O : Set ℓ₁) (C : Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
   coinductive
@@ -22,6 +28,8 @@ processToCosmos : {ℓ₁ ℓ₂ : Level} {O : Set ℓ₁} {C : Set ℓ₂}
 processToCosmos p = streamToCosmos (stream p) (o p) (c p)
 core : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → Process O C → C
 core = c
+
+-- Process equivalence: Stream bisimulation
 -- 过程等价：流互模拟
 _≈ₚ_ : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → Process O C → Process O C → Set (ℓ₁ ⊔ ℓ₂)
 _≈ₚ_ p q = stream p ≈ stream q
@@ -32,6 +40,8 @@ infix 4 _≈ₚ_
 ≈ₚ-sym = ≈-sym
 ≈ₚ-trans : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} {p q r : Process O C} → p ≈ₚ q → q ≈ₚ r → p ≈ₚ r
 ≈ₚ-trans = ≈-trans
+
+-- Standard process construction (Epistemological perspective: Direct coinduction)
 -- 标准过程构造（认识论视角：直接余归纳）
 mkStandardProcess : ∀ {ℓ₁ ℓ₂} (O : Set ℓ₁) (C : Set ℓ₂) → O → C → Process O C
 mkStandardProcess O C o c = mkProc o c standard-stream standard-essence-const refl
@@ -40,6 +50,8 @@ mkStandardProcess O C o c = mkProc o c standard-stream standard-essence-const re
     standard-stream = constStream (o , c)
     standard-essence-const : Always (λ x → proj₂ x ≡ c) standard-stream
     standard-essence-const = constStream-always-gen (o , c) refl
+
+-- Standard process construction (Ontological perspective: Coalgebraic)
 -- 标准过程构造（本体论视角：余代数式）
 mkProcessViaAna : ∀ {ℓ₁ ℓ₂} (O : Set ℓ₁) (C : Set ℓ₂) → O → C → Process O C
 mkProcessViaAna O C o c = mkProc o c ana-stream ana-essence-const refl
@@ -48,10 +60,14 @@ mkProcessViaAna O C o c = mkProc o c ana-stream ana-essence-const refl
     ana-stream = ana (const-coalg o c) tt
     ana-essence-const : Always (λ x → proj₂ x ≡ c) ana-stream
     ana-essence-const = const-stream-always-constant o c
+
+-- Unification of epistemology and ontology
 -- 认识论与本体论的统一
 standard-processes-equivalent : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (o : O) (c : C) →
   mkStandardProcess O C o c ≈ₚ mkProcessViaAna O C o c
 standard-processes-equivalent o c = ≈-sym (const-stream-≈ o c)
+
+-- Finite observation and essence conservation
 -- 有限观察与本质守恒
 always-implies-all-n : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {P : A → Set ℓ₂} {s : Stream A} →
                        Always P s → ∀ (n : ℕ) → P (Stream.head (stream-tail-n s n))
@@ -89,6 +105,8 @@ observe-preserves-≈ₚ p q n p≈q = aux-observe (stream p) (stream q) p≈q n
     aux-observe s1 s2 e (suc n) = aux-observe (Stream.tail s1) (Stream.tail s2) (_≈_.tail≈ e) n
 next-preserves-≈ₚ : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} {p q : Process O C} → p ≈ₚ q → next p ≈ₚ next q
 next-preserves-≈ₚ p≈q = _≈_.tail≈ p≈q
+
+-- Lemmas for the next operation
 -- next 操作的引理
 stream-tail-n-tail : ∀ {ℓ} {A : Set ℓ} (s : Stream A) (n : ℕ) →
                      Stream.tail (stream-tail-n s n) ≡ stream-tail-n (Stream.tail s) n
@@ -102,6 +120,8 @@ next-iter p (suc n) =
 observe-iter : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (p : Process O C) (n : ℕ) →
                observe p n ≡ observe (iter n next p) 0
 observe-iter p n = cong (proj₁ ∘ Stream.head) (sym (next-iter p n))
+
+-- Morphological reconfiguration: Accidents are mutable, essence is invariant
 -- 形态重构：偶性可变，本质不变
 AccidentalReconfiguration : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → Process O C → Set (ℓ₁ ⊔ ℓ₂)
 AccidentalReconfiguration p =
@@ -113,6 +133,8 @@ reconfiguration-theorem :
   → AccidentalReconfiguration p
 reconfiguration-theorem p morph-change =
   (global-c-constancy p , morph-change)
+
+-- Alternating process example
 -- 交替过程示例
 mkAlternatingProcess : ∀ {ℓ} (C : Set ℓ) → C → Process Bool C
 mkAlternatingProcess C c₀ = mkProc true c₀ alt-stream alt-essence-const refl
@@ -131,6 +153,8 @@ mkAlternatingProcess C c₀ = mkProc true c₀ alt-stream alt-essence-const refl
         alt-step-const : Always (λ x → proj₂ x ≡ c₀) (Stream.tail alt-stream)
         alt-step-const .Always.head = refl
         alt-step-const .Always.tail = alt-essence-const
+
+-- Tensor product: Parallel composition of processes
 -- 张量积：过程的并行复合
 merge-state : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} {O₁ : Set ℓ₁} {C₁ : Set ℓ₂} {O₂ : Set ℓ₃} {C₂ : Set ℓ₄}
             → (O₁ × C₁) → (O₂ × C₂) → ((O₁ × O₂) × (C₁ × C₂))
@@ -175,6 +199,8 @@ infixl 6 _⊗_
   (mkStandardProcess _ _ o₁ c₁ ⊗ mkStandardProcess _ _ o₂ c₂) ≈ₚ
   mkStandardProcess _ _ (o₁ , o₂) (c₁ , c₂)
 ⊗-preserves-standard o₁ c₁ o₂ c₂ = merge-const-lemma (o₁ , c₁) (o₂ , c₂)
+
+-- Heterogeneous process bisimulation
 -- 异类型过程互模拟
 ≈-hetero-sym : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂} (f : A → B) (g : B → A)
               → (∀ x → g (f x) ≡ x)
@@ -193,6 +219,8 @@ record ≈ₚ-hetero {ℓ₁ ℓ₂ ℓ₃ ℓ₄} {O₁ : Set ℓ₁} {C₁ : S
 open ≈ₚ-hetero public
 ≈ₚ-hetero-refl : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (p : Process O C) → ≈ₚ-hetero p p id id
 ≈ₚ-hetero-refl p .stream≈ = ≈-hetero-refl (stream p)
+
+-- Symmetric monoidal category structure (Isomorphisms)
 -- 对称幺半范畴结构（同构）
 UnitProcess : Process (⊤ {0ℓ}) (⊤ {0ℓ})
 UnitProcess = mkStandardProcess (⊤ {0ℓ}) (⊤ {0ℓ}) (tt {0ℓ}) (tt {0ℓ})
@@ -256,6 +284,8 @@ merge-stream-comm s₁ s₂ .tail≈ = merge-stream-comm (Stream.tail s₁) (Str
                 (p₁ : Process O₁ C₁) (p₂ : Process O₂ C₂)
                 → ≈ₚ-hetero (p₁ ⊗ p₂) (p₂ ⊗ p₁) swap-O swap-C
 ⊗-comm-hetero p₁ p₂ .stream≈ = merge-stream-comm (stream p₁) (stream p₂)
+
+-- Process Uniqueness Theorem: Two processes with identical cores, identical initial observations, and respective constancy are necessarily bisimilar
 -- 过程唯一性定理：核心相同、初始观察相同且各自恒常的两个过程必然互模拟等价
 Process-Uniqueness : Setω
 Process-Uniqueness =
@@ -281,6 +311,8 @@ process-uniqueness-proof {O = O} {C = C} o₀ c₀ p q cp≡c₀ cq≡c₀ op≡
     q≈const = both-const-implies-≈-constStream o₀ c₀ (stream q) q-both-const
   in
   ≈-trans p≈const (≈-sym q≈const)
+
+-- Lemmas for the ⊗ tensor product
 -- ⊗ 张量积的引理
 private
   merge-stream-cong : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
@@ -317,6 +349,8 @@ private
       ≡⟨ merge-stream-observe (stream p₁) (stream p₂) n ⟩
     (observe p₁ n , observe p₂ n)
   ∎
+
+-- Symmetric monoidal category coherence theorems
 -- 对称幺半范畴一致性定理
 pentagon-theorem : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄ ℓ₅ ℓ₆ ℓ₇ ℓ₈}
                   {O₁ : Set ℓ₁} {C₁ : Set ℓ₂} {O₂ : Set ℓ₃} {C₂ : Set ℓ₄}
@@ -348,6 +382,8 @@ triangle-theorem : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
 triangle-theorem p₁ p₂ .stream≈ .head≈ = refl
 triangle-theorem p₁ p₂ .stream≈ .tail≈ =
   triangle-theorem (next p₁) (next p₂) .stream≈
+
+-- Process category: Morphism composition and identity morphisms
 -- 过程范畴：态射复合与恒等态射
 _∘ₚ_ : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄ ℓ₅ ℓ₆}
         {O₁ : Set ℓ₁} {C₁ : Set ℓ₂}
@@ -365,6 +401,8 @@ infixr 9 _∘ₚ_
 idₚ : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} {p : Process O C}
      → ≈ₚ-hetero p p id id
 idₚ = ≈ₚ-hetero-refl _
+
+-- Coherent pattern:阶段性 snapshots of processes
 -- 相干模式：过程阶段性快照
 record CoherentPattern {ℓ₁ ℓ₂} (O : Set ℓ₁) (C : Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
   constructor mkPattern
@@ -404,6 +442,8 @@ Broken≢Alive : Broken ≢ Alive
 Broken≢Alive = Alive≢Broken ∘ sym
 Broken≢Faded : Broken ≢ Faded
 Broken≢Faded = Faded≢Broken ∘ sym
+
+-- Feedback gain: Difference between intrinsic drive and external resistance
 -- 反馈增益：内禀驱动力与外部阻力之差
 feedback-gain : ℕ → ℕ → ℕ
 feedback-gain i e = i ∸ e
@@ -451,6 +491,8 @@ feedback-gain-additive-coherent : ∀ {i1 e1 i2 e2}
                                 → feedback-gain i1 e1 + feedback-gain i2 e2 ≡ feedback-gain (i1 + i2) (e1 + e2)
 feedback-gain-additive-coherent {i1} {e1} {i2} {e2} i1>e1 i2>e2 =
   ∸-additive (suc≤→≤ i1>e1) (suc≤→≤ i2>e2)
+
+-- Coherence determination and evolution progression
 -- 相干性判定与演化推进
 is-coherent : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → CoherentPattern O C → Set 0ℓ
 is-coherent cp = internal cp > external cp
@@ -465,6 +507,8 @@ next-coherent env cp = mkPattern
   (step-process cp)
   (next-internal env cp)
   (env (observe (step-process cp) 0))
+
+-- Dynamic coherence: Local transition laws of evolution streams
 -- 动态一致性：演化流的局部转换律
 record DynamicCoherent {ℓ} {O : Set ℓ} (env : O → ℕ) (s : Stream (CoherentPattern O (⊤ {ℓ}))) : Set ℓ where
   coinductive
@@ -476,6 +520,8 @@ record DynamicCoherent {ℓ} {O : Set ℓ} (env : O → ℕ) (s : Stream (Cohere
 open DynamicCoherent public
 AlwaysCoherent : ∀ {ℓ} {O : Set ℓ} → Stream (CoherentPattern O (⊤ {ℓ})) → Set ℓ
 AlwaysCoherent {ℓ = ℓ} s = Always {ℓ = ℓ} {ℓ' = 0ℓ} is-coherent s
+
+-- Evolution coalgebra: Generating coherent streams from initial processes and internal drive (Ontological perspective)
 -- 演化余代数：从初始过程与内部驱动力生成相干流（本体论视角）
 module Evolution {ℓ} (O : Set ℓ) (env : O → ℕ) (init-proc : Process O (⊤ {ℓ})) (init-int : ℕ) where
   State = Process O (⊤ {ℓ}) × ℕ
@@ -497,6 +543,8 @@ module _ {ℓ} (O : Set ℓ) (env : O → ℕ) (init-proc : Process O (⊤ {ℓ}
   dynamic-consistent st .external-step = refl
   dynamic-consistent st .process-step = refl
   dynamic-consistent st .tail-ok = dynamic-consistent (proj₂ (coalgebra st))
+
+-- Coherence stage determination
 -- 相干阶段判定
 CoherentStage : ∀ {ℓ} {O : Set ℓ} → CoherentPattern O (⊤ {ℓ}) → CoherenceStage
 CoherentStage cp =
@@ -574,6 +622,8 @@ faded-iff-internal-zero : ∀ {ℓ} {O : Set ℓ} (cp : CoherentPattern O (⊤ {
 faded-iff-internal-zero cp = faded→internal-zero cp , internal-zero→faded cp
 mkFaded : ∀ {ℓ} {O : Set ℓ} (cp : CoherentPattern O (⊤ {ℓ})) → internal cp ≡ 0 → external cp ≡ 0 → CoherentStage cp ≡ Faded
 mkFaded cp i≡0 _ = internal-zero→faded cp i≡0
+
+-- Irreversibility theorem for the Faded stage
 -- Faded 阶段的不可逆定理
 module _ {ℓ} (O : Set ℓ) (env : O → ℕ) where
   zero-internal-persist : (cp : CoherentPattern O (⊤ {ℓ}))
@@ -599,6 +649,8 @@ module _ {ℓ} (O : Set ℓ) (env : O → ℕ) where
       i1≡0 = trans (dyn .internal-step) (zero-internal-persist head-cp i0≡0)
       next-cp = Stream.head (Stream.tail s)
     in internal-zero→faded next-cp i1≡0
+
+-- Auxiliary lemmas for the Broken stage
 -- Broken 阶段的辅助引理
 broken→¬i>e : ∀ {ℓ} {O : Set ℓ} (cp : CoherentPattern O (⊤ {ℓ}))
             → CoherentStage cp ≡ Broken
@@ -653,6 +705,8 @@ broken-internal-non-increasing {env = env} cp broken =
     eq : next-internal env cp ≡ i
     eq = trans (cong (i +_) gain-zero) (+-identityʳ i)
   in subst (λ x → x ≤ i) (sym eq) ≤-refl
+
+-- Stream combinators and ⊤-tensor product
 -- 流组合子与 ⊤-张量积
 zipWith : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Set ℓ₁} {B : Set ℓ₂} {C : Set ℓ₃}
         → (A → B → C) → Stream A → Stream B → Stream C
@@ -681,10 +735,13 @@ simplify-essence p = mkProc (o p) tt
   (simplify-stream (stream p))
   (simplify-essence-always (stream p) (essence-const p))
   (init-consistent p)
+
 infixl 6 _⊗⊤_
 _⊗⊤_ : ∀ {ℓO₁ ℓ₁ ℓO₂ ℓ₂} {O₁ : Set ℓO₁} {O₂ : Set ℓO₂}
      → Process O₁ (⊤ {ℓ₁}) → Process O₂ (⊤ {ℓ₂}) → Process (O₁ × O₂) (⊤ {ℓ₁ ⊔ ℓ₂})
 _⊗⊤_ p1 p2 = simplify-essence (p1 ⊗ p2)
+
+-- Tensor product composition of coherent patterns
 -- 相干模式的张量积复合
 infixl 6 _⊗coh_
 _⊗coh_ : ∀ {ℓ₁ ℓ₂} {O₁ : Set ℓ₁} {O₂ : Set ℓ₂}
@@ -697,6 +754,8 @@ _⊗coh_ {ℓ₁ = ℓ₁} {ℓ₂ = ℓ₂} cp₁ cp₂ = mkPattern
              (p1 : Process O₁ (⊤ {ℓ₁})) (p2 : Process O₂ (⊤ {ℓ₂}))
              → next (p1) ⊗⊤ next (p2) ≡ next (p1 ⊗⊤ p2)
 ⊗⊤-next-comm p1 p2 = refl
+
+-- Composition preserves coherence and dynamic consistency
 -- 复合保持相干性与动态一致性
 ⊗coh-preserves-coherence : ∀ {ℓ₁ ℓ₂} {O₁ : Set ℓ₁} {O₂ : Set ℓ₂}
                          (cp₁ : CoherentPattern O₁ (⊤ {ℓ₁})) (cp₂ : CoherentPattern O₂ (⊤ {ℓ₂}))
@@ -748,12 +807,16 @@ _⊗coh_ {ℓ₁ = ℓ₁} {ℓ₂ = ℓ₂} cp₁ cp₂ = mkPattern
 ⊗coh-preserves-dynamic env₁ env₂ s₁ s₂ dyn₁ dyn₂ coh₁ coh₂ .tail-ok =
   ⊗coh-preserves-dynamic env₁ env₂ (Stream.tail s₁) (Stream.tail s₂)
     (dyn₁ .tail-ok) (dyn₂ .tail-ok) (coh₁ .Always.tail) (coh₂ .Always.tail)
+
+-- Bridge: Reduction of coherent patterns to processes
 -- 桥梁：相干模式还原为过程
 coherent-to-process : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → CoherentPattern O C → Process O C
 coherent-to-process = base
 coherent-core-conservation : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (cp : CoherentPattern O C)
                           → core (coherent-to-process cp) ≡ c (base cp)
 coherent-core-conservation cp = refl
+
+-- DynamicCoherent preservation and stepping lemmas
 -- DynamicCoherent 保持性与步进引理
 next-preserves-dynamic : ∀ {ℓ} {O : Set ℓ} {env : O → ℕ} {s : Stream (CoherentPattern O ⊤)}
                          → DynamicCoherent env s → DynamicCoherent env (Stream.tail s)
@@ -788,6 +851,8 @@ dynamic-implies-steps {ℓ = ℓ} {O = O} {env = env} {s = s} dyn =
                   env (observe ((Stream.head (stream-tail-n (Stream.tail s') n)) .base) 0)
     go-external s' dyn' zero    = dyn' .external-step
     go-external s' dyn' (suc n) = go-external (Stream.tail s') (dyn' .tail-ok) n
+
+-- AlwaysCoherent preservation lemmas
 -- AlwaysCoherent 保持性引理
 next-preserves-always-coherent : ∀ {ℓ} {O : Set ℓ} {s : Stream (CoherentPattern O ⊤)}
                                  → AlwaysCoherent s → AlwaysCoherent (Stream.tail s)

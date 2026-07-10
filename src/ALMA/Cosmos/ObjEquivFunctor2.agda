@@ -6,14 +6,13 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ObjEquivFunctor where
+module ALMA.Cosmos.ObjEquivFunctor2 where
 
-open import Agda.Primitive using (_⊔_; Level)
+open import Agda.Primitive using (Level; _⊔_)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor; _∘F_)
 
-open import ALMA.Cosmos.Iso
-open import ALMA.Cosmos.ObjEquivCat
+open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat; objEquivCatFromIso)
 
 -- ObjEquivFunctor: functor between categories with object equivalence
 record ObjEquivFunctor {o ℓ e : Level} (C D : ObjEquivCat o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
@@ -76,18 +75,25 @@ module _ {o ℓ e : Level} {C D : Category o ℓ e} (F : Functor C D) where
     module C = Category C
     module D = Category D
     module F = Functor F
-    module IsoC = Iso C
-    module IsoD = Iso D
+    import Categories.Morphism C as MC
+    import Categories.Morphism D as MD
     CE = objEquivCatFromIso C
     DE = objEquivCatFromIso D
     module CE = ObjEquivCat CE
     module DE = ObjEquivCat DE
   -- Functor F lifts isomorphisms in C to isomorphisms in D
-  F-iso : ∀ {A B} → IsoC._≅_ A B → IsoD._≅_ (F.₀ A) (F.₀ B)
-  F-iso i = IsoD.iso (F.₁ (IsoC.to i)) (F.₁ (IsoC.from i))
-    (trans (D.Equiv.sym F.homomorphism) (trans (F.F-resp-≈ (IsoC.isoˡ i)) F.identity))
-    (trans (D.Equiv.sym F.homomorphism) (trans (F.F-resp-≈ (IsoC.isoʳ i)) F.identity))
-    where open D.Equiv
+  F-iso : ∀ {A B} → A MC.≅ B → F.₀ A MD.≅ F.₀ B
+  F-iso i = record
+    { from = F.₁ from
+    ; to   = F.₁ to
+    ; iso  = record
+      { isoˡ = trans (D.Equiv.sym F.homomorphism) (trans (F.F-resp-≈ isoˡ) F.identity)
+      ; isoʳ = trans (D.Equiv.sym F.homomorphism) (trans (F.F-resp-≈ isoʳ) F.identity)
+      }
+    }
+    where
+      open MC._≅_ i
+      open D.Equiv
 
   -- Main constructor
   objEquivFunctorFromIso : ObjEquivFunctor CE DE
@@ -96,12 +102,15 @@ module _ {o ℓ e : Level} {C D : Category o ℓ e} (F : Functor C D) where
     ; ≈ₒ-homo        = F-iso
     ; transport-comm = λ eqA eqB {f} →
         let
+          open MC._≅_ eqA renaming (from to frA; to to toA)
+          open MC._≅_ eqB renaming (from to fromB; to to toB)
           open D
+          open HomReasoning
           open Equiv
-          t  = IsoC.to eqB
-          fr = IsoC.from eqA
-        in
-        trans (sym (assoc {f = F.₁ fr} {g = F.₁ f} {h = F.₁ t}))
-        (trans (∘-resp-≈ˡ (sym (F.homomorphism {f = f} {g = t})))
-        (trans (sym (F.homomorphism {f = fr} {g = t C.∘ f})) (F.F-resp-≈ C.assoc)))
+        in begin
+          F.₁ fromB ∘ F.₁ f ∘ F.₁ toA   ≈⟨ sym assoc ⟩
+          (F.₁ fromB ∘ F.₁ f) ∘ F.₁ toA ≈⟨ ∘-resp-≈ˡ (sym F.homomorphism) ⟩
+          F.₁ (fromB C.∘ f) ∘ F.₁ toA   ≈⟨ sym F.homomorphism ⟩
+          F.₁ ((fromB C.∘ f) C.∘ toA)    ≈⟨ F.F-resp-≈ C.assoc ⟩
+          F.₁ (fromB C.∘ f C.∘ toA)      ∎
     }

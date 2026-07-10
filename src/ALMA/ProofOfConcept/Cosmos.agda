@@ -1,15 +1,22 @@
 {-
 ALMA — Infinite, Unbounded, Self-Referential Dynamic Cosmos
---
+ALMA —— 无限、无界、自指的动态宇宙
+
 Built with type theory, category theory, containers, and coalgebraic unfolding
+基于类型论、范畴论、容器（containers）和余代数展开（coalgebraic unfolding）构建
+
 Cosmos is the terminal coalgebra of a polynomial functor internalized in type theory
+Cosmos 是在类型论中内部化的多项式函子的终余代数
 -}
+
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.LegacyFlat.strictCosmos where
+module ALMA.ProofOfConcept.Cosmos where
 
-open import ALMA.LegacyFlat.Prelude public
+open import ALMA.ProofOfConcept.Prelude public
 
+-- The core record: Cosmos is the largest universe-like structure closed under unfolding
+-- 核心记录：Cosmos 是一个在展开运算下封闭的最大的类宇宙结构
 record Cosmos (ℓ : Level) : Set (lsuc (lsuc ℓ)) where
   coinductive
   field
@@ -50,6 +57,8 @@ record Cosmos (ℓ : Level) : Set (lsuc (lsuc ℓ)) where
                     → pos-to-shape (actS f s) p ≡ actS (unfold-hom f s) (pos-to-shape s (actP f s p))
 open Cosmos public
 
+-- Functor between Cosmos: a homomorphism of these coinductive structures
+-- Cosmos 之间的函子：这些余归纳结构的同态
 record _⇒ℱ_ {ℓ} (F G : Cosmos ℓ) : Set (lsuc ℓ) where
   coinductive
   private
@@ -75,6 +84,7 @@ record _⇒ℱ_ {ℓ} (F G : Cosmos ℓ) : Set (lsuc ℓ) where
 open _⇒ℱ_ public
 
 -- The unit Cosmos: the trivial one-object Cosmos
+-- 单位 Cosmos：平凡的单对象 Cosmos
 UnitCosmos : ∀ {ℓ} → Cosmos ℓ
 UnitCosmos {ℓ} = λ where
   .Obj → ⊤
@@ -101,6 +111,7 @@ UnitCosmos {ℓ} = λ where
   .pos-actS-compat _ _ _ → refl
 
 -- Identity morphism F ⇒ℱ F
+-- 恒等态射 F ⇒ℱ F
 id⇒ℱ : ∀ {ℓ} {F : Cosmos ℓ} → F ⇒ℱ F
 id⇒ℱ {ℓ} {F} = λ where
   .onObj x → x
@@ -116,6 +127,7 @@ id⇒ℱ {ℓ} {F} = λ where
   .onPos-to-shape _ → refl
 
 -- Vertical composition of Cosmos homomorphisms and associated transport lemmas
+-- Cosmos 同态的垂直复合及相关的传输引理
 infixr 9 _∘⇒ℱ_
 _∘⇒ℱ_ : ∀ {ℓ} {F G H : Cosmos ℓ} → G ⇒ℱ H → F ⇒ℱ G → F ⇒ℱ H
 onPos-subst-comm : ∀ {ℓ} {G H : Cosmos ℓ} (m : G ⇒ℱ H)
@@ -191,14 +203,19 @@ _∘⇒ℱ_ m n .onunfold s = onunfold m (onShape n s) ∘⇒ℱ onunfold n s
 _∘⇒ℱ_ m n .onunfold-obj s = trans (cong (onObj m) (onunfold-obj n s)) (onunfold-obj m (onShape n s))
 _∘⇒ℱ_ m n .onPos-to-shape {A} {s} p = onPos-to-shape-proof m n {A} {s} p
 
--- 2-cells of the bicategory: equivalences between homomorphisms F ⇒ℱ G
+-- Transport operation for positions
+-- 位置的传输操作
 subst-pos : ∀ {ℓ} (C : Cosmos ℓ) {X Y : Obj C} (eq : X ≡ Y) (s : Shape C X)
           → Pos C s → Pos C (subst (Shape C) eq s)
 subst-pos C refl s p = p
+-- Transport compatibility for unfold
+-- 展开操作的传输一致性
 subst-unfold : ∀ {ℓ} (C : Cosmos ℓ) {X Y : Obj C} (eq : X ≡ Y) (s : Shape C X)
             → unfold C s ≡ unfold C (subst (Shape C) eq s)
 subst-unfold C refl s = refl
 
+-- 2-cells of the bicategory: equivalences between homomorphisms F ⇒ℱ G
+-- 双范畴的2-胞腔：同态 F ⇒ℱ G 之间的等价关系
 infix 4 _≃⇒ℱ_
 record _≃⇒ℱ_ {ℓ} {F G : Cosmos ℓ} (m₁ m₂ : F ⇒ℱ G) : Set (lsuc ℓ) where
   coinductive
@@ -226,6 +243,7 @@ record _≃⇒ℱ_ {ℓ} {F G : Cosmos ℓ} (m₁ m₂ : F ⇒ℱ G) : Set (lsuc
 open _≃⇒ℱ_ public
 
 -- Reflexivity
+-- 自反性
 refl-≃⇒ℱ : ∀ {ℓ} {F G : Cosmos ℓ} {m : F ⇒ℱ G} → m ≃⇒ℱ m
 refl-≃⇒ℱ .onObj-eq A = refl
 refl-≃⇒ℱ .onShape-eq s = refl
@@ -234,10 +252,12 @@ refl-≃⇒ℱ .onHom-eq f = refl
 refl-≃⇒ℱ .onunfold-eq s = refl-≃⇒ℱ
 
 -- Strict equality implies equivalence
+-- 严格相等蕴含等价
 ≡→≃⇒ℱ : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ : F ⇒ℱ G} → m₁ ≡ m₂ → m₁ ≃⇒ℱ m₂
 ≡→≃⇒ℱ refl = refl-≃⇒ℱ
 
 -- Symmetry
+-- 对称性
 sym-≃⇒ℱ : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ : F ⇒ℱ G}
         → m₁ ≃⇒ℱ m₂ → m₂ ≃⇒ℱ m₁
 sym-Field₁ : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ : F ⇒ℱ G}
@@ -619,8 +639,12 @@ sym-≃⇒ℱ {ℓ} {F} {G} {m₁} {m₂} h .onunfold-eq {A} s =
   in
     sym-≃⇒ℱ {ℓ = ℓ} {F = unfold F s} {G = unfold G (m₂ .onShape s)} step3
 
+-- Transitivity
+-- 传递性
 trans-≃⇒ℱ : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ m₃ : F ⇒ℱ G}
           → m₁ ≃⇒ℱ m₂ → m₂ ≃⇒ℱ m₃ → m₁ ≃⇒ℱ m₃
+-- Combination lemma for shape/position/unfold path equations
+-- 形状/位置/展开路径等式的组合引理
 combine-shape-eqs : ∀ {ℓ} (G : Cosmos ℓ) {O1 O2 O3 : Obj G}
                     {S1 : Shape G O1} {S2 : Shape G O2} {S3 : Shape G O3}
                     {pO1 : O1 ≡ O2} {pO2 : O2 ≡ O3}
@@ -899,6 +923,8 @@ trans-≃⇒ℱ {ℓ} {F} {G} {m₁} {m₂} {m₃} h1 h2 .onunfold-eq {A} s =
   in
     trans-≃⇒ℱ {ℓ = ℓ} {F = unfold F s} {G = unfold G (m₁ .onShape s)} bisim1 bisim2_final
 
+-- Associativity of homomorphism composition (up to equivalence)
+-- 同态复合的结合律（up to equivalence）
 assoc-⇒ℱ : ∀ {ℓ} {F G H I : Cosmos ℓ} 
            (f : F ⇒ℱ G) (g : G ⇒ℱ H) (h : H ⇒ℱ I)
          → ((h ∘⇒ℱ g) ∘⇒ℱ f) ≃⇒ℱ (h ∘⇒ℱ (g ∘⇒ℱ f))
@@ -916,6 +942,8 @@ assoc-⇒ℱ {ℓ} {F} {G} {H} {I} f g h .onunfold-eq s =
     (onunfold g (onShape f s)) 
     (onunfold h (onShape g (onShape f s)))
 
+-- Left/Right unit law (up to equivalence)
+-- 左/右单位律（up to equivalence）
 id-l-≃⇒ℱ : ∀ {ℓ} {F G : Cosmos ℓ} (f : F ⇒ℱ G)
          → id⇒ℱ ∘⇒ℱ f ≃⇒ℱ f
 id-l-≃⇒ℱ f .onObj-eq A   = refl
@@ -932,6 +960,8 @@ id-r-≃⇒ℱ f .onPos-eq p   = refl
 id-r-≃⇒ℱ f .onHom-eq h   = refl
 id-r-≃⇒ℱ f .onunfold-eq s = id-r-≃⇒ℱ (onunfold f s)
 
+-- Bisimulation equivalence between Cosmos structures
+-- Cosmos 之间的双模拟等价关系
 record _≃_ {ℓ} (C D : Cosmos ℓ) : Set (lsuc (lsuc ℓ)) where
   coinductive
   field
@@ -1000,6 +1030,8 @@ record _≃_ {ℓ} (C D : Cosmos ℓ) : Set (lsuc (lsuc ℓ)) where
                  → unfold C s ≃ unfold D s'
 open _≃_ public
 
+-- Reflexivity / Symmetry / Transitivity of bisimulation equivalence
+-- 双模拟等价的自反性 / 对称性 / 传递性
 refl-≃ : ∀ {ℓ} (C : Cosmos ℓ) → C ≃ C
 refl-≃ C = λ where
   .Obj-R                A  A' → A ≡ A'
@@ -1138,6 +1170,8 @@ trans-≃ {C = C} {D = D} {E = E} h1 h2 .unfold-bisim A A' (B , rel1 , rel2) s s
   trans-≃ (h1 .unfold-bisim A B rel1 s t Rs1)
           (h2 .unfold-bisim B A' rel2 t s' Rs2)
 
+-- Base functor definition for Cosmos
+-- Cosmos 的基础函子定义
 module CosmosF-Definition where
   record CosmosF (ℓ : Level) (X : Set (lsuc (lsuc ℓ))) : Set (lsuc (lsuc ℓ)) where
     field
@@ -1190,6 +1224,9 @@ module CosmosF-Definition where
                     → (eq : f ≡ f') (p : Pos C (actS C f s))
                     → actP C f s p ≡ actP C f' s (subst (Pos C {B}) (cong (λ g → actS C g s) eq) p)
   subst-cong-actP-f ℓ X C A B f .f s refl p = refl
+
+  -- Mapping operation on CosmosF
+  -- CosmosF 上的映射操作
   imap-cosmosF : ∀ {ℓ X Y} → (X → Y) → CosmosF ℓ X → CosmosF ℓ Y
   imap-cosmosF f fx = record
     { Obj = Obj fx
@@ -1221,6 +1258,8 @@ module CosmosF-Definition where
                     → imap-cosmosF {ℓ} (g ∘ f) ≡ imap-cosmosF g ∘ imap-cosmosF f
   imap-cosmosF-comp = refl
 
+  -- Extract one layer of structure from Cosmos (Out map)
+  -- 从 Cosmos 提取一层结构（Out 映射）
   out : ∀ {ℓ} → Cosmos ℓ → CosmosF ℓ (Cosmos ℓ)
   out C = record
     { Obj = Obj C
@@ -1247,6 +1286,8 @@ module CosmosF-Definition where
     ; pos-actS-compat = pos-actS-compat C
     }
 
+  -- Embed one layer of structure as Cosmos (In map)
+  -- 将一层结构嵌入为 Cosmos（In 映射）
   inF : ∀ {ℓ} → CosmosF ℓ (Cosmos ℓ) → Cosmos ℓ
   inF F = record
     { Obj = Obj F
@@ -1276,6 +1317,8 @@ module CosmosF-Definition where
   out∘inF : ∀ {ℓ} (fx : CosmosF ℓ (Cosmos ℓ)) → out (inF fx) ≡ fx
   out∘inF _ = refl
 
+  -- Coalgebraic unfolding (Anamorphism): generate Cosmos from seed
+  -- 余代数展开（Anamorphism）：从种子生成 Cosmos
   module _ {ℓ : Level} where
     ana : ∀ {X : Set (lsuc (lsuc ℓ))}
         → (α : X → CosmosF ℓ X)
@@ -1346,6 +1389,8 @@ module CosmosF-Definition where
   pos-to-shape-cong ℓ X cf1 .cf1 refl A s p = refl
 
   module _ {ℓ : Level} where
+    -- Homomorphism condition for CosmosF-algebras
+    -- CosmosF-代数的同态条件
     record CosmosHomo
              {X : Set (lsuc (lsuc ℓ))}
              (α : X → CosmosF ℓ X)
@@ -1360,6 +1405,9 @@ module CosmosF-Definition where
     unfold-cong : ∀ {ℓ X} {C1 C2 : CosmosF ℓ X} (p : C1 ≡ C2) {A : C1 .Obj} (s : C1 .Shape A)
       → C1 .unfold s ≡ C2 .unfold (subst id (shape-cong ℓ X C1 C2 p A) s)
     unfold-cong refl s = refl
+
+    -- Uniqueness theorem for homomorphisms
+    -- 同态的唯一性定理
     unique-homo : ∀ {X : Set (lsuc (lsuc ℓ))}
                   (α : X → CosmosF ℓ X)
                   (φ : X → Cosmos ℓ)
@@ -1476,8 +1524,12 @@ module CosmosF-Definition where
           rewrite unfold-cong eqF s | sym hs
           = aux (unfold (α x) (cast-shape A s))
 
+-- Final coalgebra property module
+-- 终余代数性质模块
 module Finality where
   open CosmosF-Definition renaming (out to outF; ana to anaF; unique-homo to unique-homoF)
+  -- Formal definition of final coalgebra
+  -- 终余代数的形式化定义
   record IsFinal (ℓ : Level) : Set (lsuc (lsuc (lsuc ℓ))) where
     field
       out    : Cosmos ℓ → CosmosF ℓ (Cosmos ℓ)
@@ -1485,6 +1537,8 @@ module Finality where
       unique : {X : Set (lsuc (lsuc ℓ))} (α : X → CosmosF ℓ X) (φ : X → Cosmos ℓ)
              → (∀ x → out (φ x) ≡ imap-cosmosF φ (α x))
              → ∀ x → φ x ≃ ana α x
+  -- Proof that Cosmos is the final coalgebra of CosmosF
+  -- 证明 Cosmos 是 CosmosF 的终余代数
   Cosmos-is-final : ∀ {ℓ} → IsFinal ℓ
   Cosmos-is-final = record
     { out   = outF

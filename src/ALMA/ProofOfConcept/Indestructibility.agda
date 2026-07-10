@@ -1,22 +1,32 @@
 {-
+Eternity and Indestructibility
 永恒性与不可消减性
 --
+Fundamental Forms of Existence → Two Construction Modes → Process Identity → Core Ontological Theorem → Uniqueness Theorem
+ → Historical Paths and Ontological Process Identity → Distinction Between Epistemic Equivalence and Ontological Identity
 基础存在形式 → 两种构造模式 → 过程同一性 → 核心存在论定理 → 唯一性定理 → 历史路径与本体论过程同一 → 认识论等价与本体论同一的区分
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.LegacyFlat.Indestructibility where
-open import ALMA.LegacyFlat.strictCosmos public
+
+module ALMA.ProofOfConcept.Indestructibility where
+
+open import ALMA.ProofOfConcept.Cosmos public
+
+-- Fundamental forms of existence: Eternal streams and persistence predicates
 -- 基础存在形式：永恒流与持存谓词
 record Stream {ℓ} (A : Set ℓ) : Set ℓ where
   coinductive
   field head : A
         tail : Stream A
 open Stream public
+
 record Always {ℓ ℓ'} {A : Set ℓ} (P : A → Set ℓ') (s : Stream A) : Set (ℓ ⊔ ℓ') where
   coinductive
   field head : P (Stream.head s)
         tail : Always P (Stream.tail s)
 open Always public
+
+-- Construction Mode 1: Epistemic perspective — Direct coinductive definition of constant streams
 -- 构造模式一：认识论视角 —— 直接余归纳定义常量流
 constStream : ∀ {ℓ} {A : Set ℓ} → A → Stream A
 constStream a .Stream.head = a
@@ -24,12 +34,16 @@ constStream a .Stream.tail = constStream a
 constStream-always-gen : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {P : A → Set ℓ₂} (a : A) → P a → Always P (constStream a)
 constStream-always-gen a p .head = p
 constStream-always-gen a p .tail = constStream-always-gen a p
+
+-- Construction Mode 2: Ontological perspective — Coalgebra + anamorphism
 -- 构造模式二：本体论视角 —— 余代数 + ana
 StreamF : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Set ℓ₂ → Set (ℓ₁ ⊔ ℓ₂)
 StreamF A X = A × X
 ana : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂} → (X → StreamF A X) → X → Stream A
 ana α x .head = proj₁ (α x)
 ana α x .tail = ana α (proj₂ (α x))
+
+-- Functor structure and ana fusion law (technical foundation)
 -- 函子结构与 ana 融合律（技术基础）
 record Functor' {ℓ₁ ℓ₂} (F : Set ℓ₁ → Set ℓ₂) : Set (lsuc ℓ₁ ⊔ ℓ₂) where
   field
@@ -44,12 +58,15 @@ instance
     ; imap-id = refl
     ; imap-comp = refl
     }
+
+-- Stream equivalence relation (bisimulation)
 -- 流等价关系（互模拟）
 record _≈_ {ℓ} {A : Set ℓ} (s t : Stream A) : Set ℓ where
   coinductive
   field head≈ : Stream.head s ≡ Stream.head t
         tail≈ : Stream.tail s ≈ Stream.tail t
 open _≈_ public
+
 IsBisimulation : ∀ {ℓ} {A : Set ℓ} → (Stream A → Stream A → Set ℓ) → Set ℓ
 IsBisimulation R = ∀ {s t} → R s t → 
   (Stream.head s ≡ Stream.head t) × R (Stream.tail s) (Stream.tail t)
@@ -61,21 +78,26 @@ bisimulation-principle {A = A} {R = R} isBisim {s} {t} r = aux s t r
     aux : (s' t' : Stream A) → R s' t' → s' ≈ t'
     aux s' t' r' ._≈_.head≈ = proj₁ (isBisim r')
     aux s' t' r' ._≈_.tail≈ = aux (Stream.tail s') (Stream.tail t') (proj₂ (isBisim r'))
+
 ≈-refl : ∀ {ℓ} {A : Set ℓ} {s : Stream A} → s ≈ s
 ≈-refl .head≈ = refl
 ≈-refl .tail≈ = ≈-refl
+
 ≈-sym : ∀ {ℓ} {A : Set ℓ} {s t : Stream A} → s ≈ t → t ≈ s
 ≈-sym s≈t .head≈ = sym (s≈t .head≈)
 ≈-sym s≈t .tail≈ = ≈-sym (s≈t .tail≈)
+
 ≈-trans : ∀ {ℓ} {A : Set ℓ} {s t u : Stream A} → s ≈ t → t ≈ u → s ≈ u
 ≈-trans s≈t t≈u .head≈ = trans (s≈t .head≈) (t≈u .head≈)
 ≈-trans s≈t t≈u .tail≈ = ≈-trans (s≈t .tail≈) (t≈u .tail≈)
+
 record ≈-hetero {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂} (s₁ : Stream A) (s₂ : Stream B) (f : A → B) : Set (ℓ₁ ⊔ ℓ₂) where
   coinductive
   field
     head≈ : f (Stream.head s₁) ≡ Stream.head s₂
     tail≈ : ≈-hetero (Stream.tail s₁) (Stream.tail s₂) f
 open ≈-hetero public
+
 IsHeteroBisimulation : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂}
                      → (A → B) → (Stream A → Stream B → Set (ℓ₁ ⊔ ℓ₂)) → Set (ℓ₁ ⊔ ℓ₂)
 IsHeteroBisimulation f R = ∀ {s t} → R s t →
@@ -89,6 +111,8 @@ hetero-bisimulation-principle {A = A} {B = B} {f = f} {R = R} isHeteroBisim {s} 
     aux : (s' : Stream A) (t' : Stream B) → R s' t' → ≈-hetero s' t' f
     aux s' t' r' .≈-hetero.head≈ = proj₁ (isHeteroBisim r')
     aux s' t' r' .≈-hetero.tail≈ = aux (Stream.tail s') (Stream.tail t') (proj₂ (isHeteroBisim r'))
+
+-- Basic stream operations
 -- 流的基础操作
 stream-tail-n : ∀ {ℓ} {A : Set ℓ} → Stream A → ℕ → Stream A
 stream-tail-n s zero    = s
@@ -132,6 +156,8 @@ map-stream-tail-n : ∀ {A B : Set} (f : A → B) (s : Stream A) (n : ℕ)
                   → head (stream-tail-n (map-stream f s) n) ≡ f (head (stream-tail-n s n))
 map-stream-tail-n f s zero = refl
 map-stream-tail-n f s (suc n) = map-stream-tail-n f (tail s) n
+
+-- Transitivity of heterogeneous bisimulation
 -- 异质互模拟传递性
 ≈-hetero-trans : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Set ℓ₁} {B : Set ℓ₂} {C : Set ℓ₃} (f : A → B) (g : B → C)
                 → (s₁ : Stream A) (s₂ : Stream B) (s₃ : Stream C)
@@ -143,6 +169,8 @@ map-stream-tail-n f s (suc n) = map-stream-tail-n f (tail s) n
     aux : ∀ {s1 s2 s3} → ≈-hetero s1 s2 f → ≈-hetero s2 s3 g → ≈-hetero s1 s3 (g ∘ f)
     aux eq1' eq2' .≈-hetero.head≈ = trans (cong g (eq1' .head≈)) (eq2' .head≈)
     aux eq1' eq2' .≈-hetero.tail≈ = aux (eq1' .tail≈) (eq2' .tail≈)
+
+-- Bisimulation relation for heterogeneous bisimulation proofs
 -- 异质互模拟证明的互模拟关系
 record _≈ₚᵣₒₒբ_ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂} {f : A → B} {s : Stream A} {t : Stream B}
                 (e1 e2 : ≈-hetero s t f) : Set (ℓ₁ ⊔ ℓ₂) where
@@ -151,6 +179,7 @@ record _≈ₚᵣₒₒբ_ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂} {f 
     head≈ₚ : ≈-hetero.head≈ e1 ≡ ≈-hetero.head≈ e2
     tail≈ₚ : (≈-hetero.tail≈ e1) ≈ₚᵣₒₒբ (≈-hetero.tail≈ e2)
 open _≈ₚᵣₒₒբ_ public
+
 ≈ₚᵣₒₒբ-refl : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : Set ℓ₂} {f : A → B} {s : Stream A} {t : Stream B}
              → {e : ≈-hetero s t f}
              → e ≈ₚᵣₒₒբ e
@@ -169,6 +198,7 @@ open _≈ₚᵣₒₒբ_ public
              → e1 ≈ₚᵣₒₒբ e3
 ≈ₚᵣₒₒբ-trans eq1 eq2 .head≈ₚ = trans (eq1 .head≈ₚ) (eq2 .head≈ₚ)
 ≈ₚᵣₒₒբ-trans eq1 eq2 .tail≈ₚ = ≈ₚᵣₒₒբ-trans (eq1 .tail≈ₚ) (eq2 .tail≈ₚ)
+
 ≈-hetero-trans-assoc-head
   : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
     {A : Set ℓ₁} {B : Set ℓ₂} {C : Set ℓ₃} {D : Set ℓ₄}
@@ -187,6 +217,8 @@ open _≈ₚᵣₒₒբ_ public
       (trans-assoc' (cong h (cong g eq1)) (cong h eq2) eq3)
       (cong (λ p → trans p (trans (cong h eq2) eq3))
         (sym (cong-∘ eq1))))
+
+-- Associativity of heterogeneous bisimulation transitivity
 -- 异质互模拟传递性的结合律
 ≈-hetero-trans-assoc
   : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
@@ -203,6 +235,8 @@ open _≈ₚᵣₒₒբ_ public
   ≈-hetero-trans-assoc f g h
     (Stream.tail s) (Stream.tail t) (Stream.tail u) (Stream.tail v)
     (≈-hetero.tail≈ e1) (≈-hetero.tail≈ e2) (≈-hetero.tail≈ e3)
+
+-- Unit laws of heterogeneous bisimulation
 -- 异质互模拟的单位律
 ≈-hetero-refl : ∀ {ℓ} {A : Set ℓ} (s : Stream A) → ≈-hetero s s id
 ≈-hetero-refl s .head≈ = refl
@@ -220,6 +254,8 @@ open _≈ₚᵣₒₒբ_ public
     → ≈-hetero-trans id f s s t (≈-hetero-refl s) eq ≈ₚᵣₒₒբ eq
 ≈-hetero-trans-right-unit eq .head≈ₚ = transReflˡ _
 ≈-hetero-trans-right-unit eq .tail≈ₚ = ≈-hetero-trans-right-unit (eq .tail≈)
+
+-- Category of heterogeneous bisimulations
 -- 异质互模拟范畴
 HeteroObj : ∀ ℓ → Set (lsuc ℓ)
 HeteroObj ℓ = Σ (Set ℓ) (λ A → Stream A)
@@ -252,6 +288,8 @@ hetero-comp-right-unit : ∀ {ℓ₁ ℓ₂} {X : HeteroObj ℓ₁} {Y : HeteroO
                        → hetero-eq (hetero-comp f hetero-id) f
 hetero-comp-right-unit {X = (A , s)} {Y = (B , t)} (f , eq) =
   (refl , ≈-hetero-trans-right-unit eq)
+
+-- Indexed streams + Terminal coalgebra section
 -- 索引流 + 终结余代数部分
 anaH : ∀ {ℓA ℓB ℓX : Level} {A : Set ℓA} {B : Set ℓB} {X : Set ℓX}
        → (α : X → A × X) → (f : A → B) → X → Stream B
@@ -282,6 +320,8 @@ terminal : ∀ {ℓA ℓB ℓX : Level} {A : Set ℓA} {B : Set ℓB} {X : Set �
            → Σ (X → Stream B) λ h →
              Homo α f h × (∀ φ → Homo α f φ → ∀ x → φ x ≈ h x)
 terminal α f = anaH α f , anaH-homo α f , unique-hom α f
+
+-- Indexed streams
 -- 索引流
 record IStream {ℓI ℓF : Level}
                (I : Set ℓI)
@@ -294,6 +334,8 @@ record IStream {ℓI ℓF : Level}
     hd : F i
     tl : IStream I F next (next i)
 open IStream public
+
+-- Indexed stream bisimulation
 -- 索引流互模拟
 record _≈ᵢ_ {ℓI ℓF : Level}
             {I : Set ℓI}
@@ -307,6 +349,8 @@ record _≈ᵢ_ {ℓI ℓF : Level}
     hd≈ : hd s ≡ hd t
     tl≈ : _≈ᵢ_ (tl s) (tl t)
 open _≈ᵢ_ public
+
+-- Indexed stream destructor
 -- 索引流析构函数
 IStream-β : ∀ {ℓI ℓF : Level}
             → (I : Set ℓI)
@@ -316,6 +360,8 @@ IStream-β : ∀ {ℓI ℓF : Level}
             → IStream I F next i
             → F i × IStream I F next (next i)
 IStream-β I F next i s = hd s , tl s
+
+-- Indexed coalgebras
 -- 索引余代数
 record ICoalgebra {ℓI ℓF ℓX : Level}
                   (I : Set ℓI)
@@ -326,6 +372,8 @@ record ICoalgebra {ℓI ℓF ℓX : Level}
   field
     𝛂 : (i : I) → X i → F i × X (next i)
 open ICoalgebra public
+
+-- Indexed coalgebra homomorphisms
 -- 索引余代数同态
 record IHomo {ℓI ℓF ℓX : Level}
              (I : Set ℓI)
@@ -340,6 +388,8 @@ record IHomo {ℓI ℓF ℓX : Level}
          → IStream-β I F next i (φ i x)
          ≡ (proj₁ (𝛂 C i x) , φ (next i) (proj₂ (𝛂 C i x)))
 open IHomo public
+
+-- Indexed stream anamorphism anaᵢ
 -- 索引流展开函数anaᵢ
 anaᵢ : ∀ {ℓI ℓF ℓX : Level}
        → (I : Set ℓI)
@@ -352,6 +402,8 @@ anaᵢ : ∀ {ℓI ℓF ℓX : Level}
        → IStream I F next i
 anaᵢ I F next X C i x .hd = proj₁ (𝛂 C i x)
 anaᵢ I F next X C i x .tl = anaᵢ I F next X C (next i) (proj₂ (𝛂 C i x))
+
+-- anaᵢ is a homomorphism
 -- anaᵢ是同态
 anaᵢ-ihomo : ∀ {ℓI ℓF ℓX : Level}
              → (I : Set ℓI)
@@ -361,6 +413,8 @@ anaᵢ-ihomo : ∀ {ℓI ℓF ℓX : Level}
              → (C : ICoalgebra I F next X)
              → IHomo I F next X C (anaᵢ I F next X C)
 anaᵢ-ihomo I F next X C .comm i x = refl
+
+-- Uniqueness of indexed stream homomorphisms
 -- 索引流同态唯一性
 unique-ihom : ∀ {ℓI ℓF ℓX : Level}
               → (I : Set ℓI)
@@ -388,6 +442,7 @@ terminal-istream : ∀ {ℓI ℓF ℓX : Level}
                      IHomo I F next X C h ×
                      (∀ φ → IHomo I F next X C φ → ∀ i x → _≈ᵢ_ (φ i x) (h i x))
 terminal-istream I F next X C = anaᵢ I F next X C , anaᵢ-ihomo I F next X C , unique-ihom I F next X C
+
 module _ {ℓ} {A : Set ℓ} (a : A) where
   private
     ≈-constStream-aux : ∀ (s : Stream A) → Always {ℓ = ℓ} {ℓ' = ℓ} (λ x → x ≡ a) s → s ≈ constStream a
@@ -396,11 +451,13 @@ module _ {ℓ} {A : Set ℓ} (a : A) where
   always-const-implies-≈-constStream :
     ∀ (s : Stream A) → Always {ℓ = ℓ} {ℓ' = ℓ} (λ x → x ≡ a) s → s ≈ constStream a
   always-const-implies-≈-constStream = ≈-constStream-aux
+
 module Constructions {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (o : O) (c : C) where
   const-coalg : ⊤ {0ℓ} → StreamF (O × C) (⊤ {0ℓ})
   const-coalg _ = ((o , c) , tt {0ℓ})
   const-stream-via-ana : Stream (O × C)
   const-stream-via-ana = ana const-coalg (tt {0ℓ})
+  -- Streams constructed via coalgebras also fully satisfy constancy
   -- 余代数构造的流也完全满足恒常性
   private
     const-stream-always-element-constant : Always (λ oc → oc ≡ (o , c)) const-stream-via-ana
@@ -409,6 +466,7 @@ module Constructions {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (o : O) (
   const-stream-always-constant : Always (λ oc → proj₂ oc ≡ c) const-stream-via-ana
   const-stream-always-constant .head = refl
   const-stream-always-constant .tail = const-stream-always-constant
+  -- Process identity: Streams produced by the two construction modes are equivalent
   -- 过程同一性：两种构造模式产生的流是等价的
   const-stream-≈ : const-stream-via-ana ≈ constStream (o , c)
   const-stream-≈ = always-const-implies-≈-constStream (o , c)
@@ -424,6 +482,8 @@ private
     ana-fusion α β f comm x ._≈_.tail≈ rewrite sym (cong proj₂ (comm x))
       = ana-fusion α β f comm (proj₂ (α x))
 open AnaFusion public using (ana-fusion)
+
+-- Core ontological theorem: Indestructibility (two equivalent proofs)
 -- 核心存在论定理：不可消减性（两种等价证明）
 record Indestructibility-Theorem : Setω where
   field
@@ -448,10 +508,14 @@ indestructibility-proof = mkIndestructibility λ o c →
 indestructibility-proof-via-coalgebra : Indestructibility-Theorem
 indestructibility-proof-via-coalgebra = mkIndestructibility λ o c →
   const-stream-via-ana o c , const-stream-always-constant o c
+
+-- Streams generated by the two proofs are equivalent: Unification of epistemic and ontological perspectives
 -- 两个证明生成的流是等价的：认识论视角与本体论视角的统一
 indestructibility-proofs-equivalent : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (o : O) (c : C) →
   constStream (o , c) ≈ const-stream-via-ana o c
 indestructibility-proofs-equivalent o c = ≈-sym (const-stream-≈ o c)
+
+-- Uniqueness theorem: Streams with both components constant are uniquely bisimilar to the constant construction
 -- 唯一性定理：双分量皆恒常的流唯一互模拟等价于常量构造
 BothComponentsConstant : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → O → C → Stream (O × C) → Set (ℓ₁ ⊔ ℓ₂)
 BothComponentsConstant o c s = Always (λ oc → proj₁ oc ≡ o) s × Always (λ oc → proj₂ oc ≡ c) s
@@ -491,6 +555,8 @@ indestructibility-uniqueness-proof = record
         uniqueness s bc = both-const-implies-≈-constStream o c s bc
       in (o , c , both-const , uniqueness)
   }
+
+-- Invariant projection: Extracting core values of fixed type C from states F i at each index i
 -- 不变投影：从每个索引i的状态F i中提取固定类型C的核心值
 InvariantProjection : ∀ {ℓI ℓF ℓC} 
                     → (I : Set ℓI) 
@@ -498,6 +564,8 @@ InvariantProjection : ∀ {ℓI ℓF ℓC}
                     → (C : Set ℓC) 
                     → Set (ℓI ⊔ ℓF ⊔ ℓC)
 InvariantProjection I F C = (i : I) → F i → C
+
+-- Core-preserving indexed coalgebras: Core values output at each step are always equal to the initially given c
 -- 保持核心的索引余代数：每一步输出的核心值恒等于初始给定的c
 record CorePreservingCoalgebra 
          {ℓI ℓF ℓX ℓC} 
@@ -514,6 +582,8 @@ record CorePreservingCoalgebra
     core-preservation : ∀ {i : I} (x : X i) 
                       → π i (proj₁ (ICoalgebra.𝛂 coalg i x)) ≡ c
 open CorePreservingCoalgebra public
+
+-- Generalized constancy predicate: Core values at all positions of indexed stream s under projection π are equal to c
 -- 广义恒常性谓词：索引流s在投影π下所有位置的核心值都等于c
 record IAlwaysVia 
          {ℓI ℓF ℓC} 
@@ -531,6 +601,8 @@ record IAlwaysVia
     head-const : π i (IStream.hd s) ≡ c
     tail-const : IAlwaysVia next π c (IStream.tl s)
 open IAlwaysVia public
+
+-- Generalized indestructible existence theorem: Given a core-preserving coalgebra and initial state, an eternal core stream necessarily exists
 -- 广义不可消减存在性定理：给定保持核心的余代数和初始状态，必然存在永恒核心流
 eternal-core-existence : ∀ {ℓI ℓF ℓX ℓC} 
                        → {I : Set ℓI} 
@@ -548,16 +620,21 @@ eternal-core-existence : ∀ {ℓI ℓF ℓX ℓC}
 eternal-core-existence {I = I} {F = F} {X = X} next π c cp-coalg {i₀} x₀ = (s , s-always-c)
   where
     local-coalg = cp-coalg .coalg
+    -- Generate indexed stream by unfolding the coalgebra with anaᵢ
     -- 用anaᵢ展开余代数生成索引流
     s : IStream I F next i₀
     s = anaᵢ I F next X local-coalg i₀ x₀
+    -- Helper function directly proving that all streams generated by anaᵢ satisfy constancy
     -- 辅助函数直接证明所有anaᵢ生成的流都满足恒常性
     aux : ∀ {i : I} (x : X i) → IAlwaysVia next π c (anaᵢ I F next X local-coalg i x)
     aux {i} x .head-const = cp-coalg .core-preservation x
     aux {i} x .tail-const = aux (proj₂ (ICoalgebra.𝛂 local-coalg i x))
+    -- Directly apply the helper function to prove constancy of the current stream
     -- 直接应用辅助函数证明当前流的恒常性
     s-always-c : IAlwaysVia next π c s
     s-always-c = aux x₀
+
+-- Theorem 1: Core value uniqueness (holds unconditionally)
 -- 定理1：核心值唯一性（无条件成立）
 core-value-uniqueness : ∀ {ℓI ℓF ℓC} 
                       → {I : Set ℓI} 
@@ -573,6 +650,8 @@ core-value-uniqueness : ∀ {ℓI ℓF ℓC}
                       → π i (IStream.hd s₁) ≡ π i (IStream.hd s₂)
 core-value-uniqueness s₁ s₂ π c always₁ always₂ = 
   trans (always₁ .head-const) (sym (always₂ .head-const))
+
+-- Theorem 2: State uniqueness (requires the additional condition that π is injective)
 -- 定理2：状态唯一性（需附加π是单射的条件）
 state-uniqueness : ∀ {ℓI ℓF ℓC} 
                  → {I : Set ℓI} 
@@ -593,6 +672,8 @@ state-uniqueness π c π-inj s₁ s₂ always₁ always₂ .tl≈ =
   state-uniqueness π c π-inj 
     (tl s₁) (tl s₂) 
     (always₁ .tail-const) (always₂ .tail-const)
+
+-- Simple stream indestructibility theorem as a strict corollary of the generalized theorem
 -- 简单流不可消减定理是广义定理的严格推论
 forget-index-simple : ∀ {ℓO ℓC} {O : Set ℓO} {C : Set ℓC}
                     → {next : ⊤ → ⊤}
@@ -633,6 +714,8 @@ simple-eternity-as-corollary {ℓO = ℓO} {ℓC = ℓC} O C (o , _) (c , _) =
                        next (λ _ → proj₂) c cp-coalg {i₀ = tt} (tt {0ℓ})
     indexed-s = indexed-result .proj₁
     indexed-always = indexed-result .proj₂
+
+-- Helper function: Combining two invariant projections into a product projection
 -- 辅助函数：将两个不变投影组合成乘积投影
 pair-proj : ∀ {ℓI ℓF ℓC ℓD}
           → {I : Set ℓI}
@@ -643,6 +726,9 @@ pair-proj : ∀ {ℓI ℓF ℓC ℓD}
           → (π₂ : InvariantProjection I F D)
           → InvariantProjection I F (C × D)
 pair-proj π₁ π₂ = λ i state → (π₁ i state , π₂ i state)
+
+-- Composition of core-preserving coalgebras: Two invariant cores can be combined into a product core
+-- Prerequisite: The two core-preserving coalgebras must share the exact same underlying ICoalgebra
 -- 核心保持余代数的组合：两个不变核心可以组合成一个乘积核心
 -- 前提：两个核心保持余代数必须共享完全相同的底层ICoalgebra
 compose-core-preserving : ∀ {ℓI ℓF ℓX ℓC ℓD}
@@ -675,6 +761,8 @@ compose-core-preserving
         p2 = cp2 .core-preservation state
       in
       cong₂ (λ a b → (a , b)) p1 p2
+
+-- History path type (ontological record of the generation process)
 -- 历史路径类型（生成过程的本体论记录）
 record History {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂} (α : X → StreamF A X) (init : X) : Set (ℓ₁ ⊔ ℓ₂) where
   coinductive
@@ -695,6 +783,8 @@ record HistoricalStream {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂} (α : 
     stream : Stream A
     stream-correct : stream ≈ ana α init
 open HistoricalStream public
+
+-- Ontological process identity relation (continuous causal connection + historical identity)
 -- 本体论过程同一关系（连续因果关联 + 历史同一性）
 record _≡ₚ_ {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂} {α : X → StreamF A X} {i : X}
   (hs1 hs2 : HistoricalStream α i) : Set (ℓ₁ ⊔ ℓ₂) where
@@ -732,6 +822,8 @@ structure-same-history-different-implies-not-same-process :
   → ¬ (hs1 ≡ₚ hs2)
 structure-same-history-different-implies-not-same-process h-neq _ p =
   h-neq (p ._≡ₚ_.same-history)
+
+-- General framework
 -- 通用框架
 module OntologicalFramework
   {ℓ₁ ℓ₂} {A : Set ℓ₁} {X : Set ℓ₂}
@@ -764,6 +856,8 @@ module OntologicalFramework
     where
       ¬hs1≡ₚhs2 : ¬ (hs1 ≡ₚ hs2)
       ¬hs1≡ₚhs2 = structure-same-history-different-implies-not-same-process h1≠h2 streams-equal
+
+-- Concrete instance: Two-state constant-true coalgebra; identical structures can arise from different generation processes
 -- 具体实例：双状态恒真余代数，相同结构可以来自不同的生成过程
 module TwoStateConstantTrueInstance where
   X : Set
@@ -789,6 +883,8 @@ module TwoStateConstantTrueInstance where
     ≈-refl
     ana-false≈ana-true
     public
+
+-- Any stream is a trivial instance of Cosmos
 -- 任意流均为 Cosmos 的平凡实例
 private
   record ⊤' (ℓ : Level) : Set (lsuc ℓ) where

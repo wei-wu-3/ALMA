@@ -5,7 +5,7 @@
 -- and comp-nat-shape-eq (shape extraction for composite naturality)
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.Cosmos.ContCatEquivLemmas where
+module ALMA.Cosmos.ContCatEquivLemmas2 where
 
 open import Agda.Primitive using (lsuc)
 open import Relation.Binary.PropositionalEquality

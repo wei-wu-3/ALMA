@@ -1,6 +1,21 @@
+{-
+Standard Model: Concrete instantiation of the ALMA universe framework
+标准模型：ALMA 宇宙框架的具体实例化
+
+Defines basic attribute types, core beings (stable self and random environment),
+feedback system frameworks, coherence and consciousness emergence,
+transient processes with phase transitions, and the standard model overview
+定义了基础属性类型、核心存在者（稳定自我与随机环境）、
+反馈系统框架、相干性与意识涌现、
+含相变的瞬态过程，以及标准模型总览
+-}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.LegacyFlat.StandardModel where
-open import ALMA.LegacyFlat.Universe public
+
+module ALMA.ProofOfConcept.StandardModel where
+
+open import ALMA.ProofOfConcept.Universe public
+
+-- Basic types
 -- 基础类型
 Attr2D : Set
 Attr2D = Fin 2 → ℕ
@@ -8,6 +23,8 @@ Attr1D : Set
 Attr1D = Fin 1 → ℕ
 State : Set
 State = Attr2D × Attr1D
+
+-- Core being definitions
 -- 核心存在者定义
 stableSelf : Attr2D
 stableSelf i = if toℕ i ≡ᵇ 0 then 1 else 42
@@ -100,6 +117,8 @@ self-random-interact : Process (Attr2D × Attr1D) ℕ
 self-random-interact = interact selfBeing randomBeing
 interact-essence-conserved : core self-random-interact ≡ core selfBeing
 interact-essence-conserved = core-interact selfBeing randomBeing
+
+-- Feedback system framework
 -- 反馈系统框架
 record FeedbackRules : Set where
   field
@@ -214,6 +233,8 @@ feedbackRandAt-strictly-increasing = RandAt-strictly-increasing-gen
   unidirectional-rules 
   initState 
   (λ _ _ → refl)
+
+-- Coherence and consciousness emergence
 -- 相干性与意识涌现
 countOver : (ℕ → Bool) → ℕ → ℕ
 countOver P zero    = 0
@@ -299,6 +320,8 @@ Theorem-holds-for-feedback : ConsciousnessTheorem feedback-external-source feedb
 Theorem-holds-for-feedback = consciousnessEmergence
 Theorem-holds-for-bidirectional : ConsciousnessTheorem bidirectional-external-source bidirectionalProcess
 Theorem-holds-for-bidirectional = bidirConsciousnessEmergence
+
+-- Transient processes and phase transitions
 -- 瞬态过程与相变
 env : ℕ → ℕ
 env n = observe randomBeing n zero
@@ -368,6 +391,8 @@ phase-transition-exists : ∃ λ (p : Process Attr2D ℕ) →
   (∃ λ steps → countOver (λ k → v k ≡ᵇ v (suc k)) (steps ∸ 1) > countOver (λ k → v k ≡ᵇ env k) steps) ×
   (∃ λ steps → countOver (λ k → v (7 + k) ≡ᵇ v (7 + suc k)) (steps ∸ 1) < countOver (λ k → v (7 + k) ≡ᵇ env (7 + k)) steps)
 phase-transition-exists = transientBeing , (∃-coherence , ∃-dissipation)
+
+-- Standard model overview
 -- 标准模型总览
 record StandardModel : Setω where
   field

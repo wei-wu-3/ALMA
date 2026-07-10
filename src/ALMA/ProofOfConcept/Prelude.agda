@@ -1,17 +1,36 @@
 {-
 Semantic Bridge between Agda and ALMA
---
+Agda 与 ALMA 之间的语义桥梁
+
 Self-referential closure of the type system -- Epistemic cycle (transcendental framework)
+类型系统的自指闭包 -- 认识论循环（先验框架）
+
 The self-evident ground of the judgment form Γ ⊢ t : A -- Being (abstract logic)
+判断形式 Γ ⊢ t : A 的自明基础 -- 存在（抽象逻辑）
+
 The postulation of the type universe Set -- Cosmos (dynamic whole)
+类型宇宙 Set 的公设 -- 宇宙（动态整体）
+
 Closed term t : A -- Beings (concrete forms)
+封闭项 t : A -- 存在者（具体形式）
+
 Dependent sum type Σ A B -- Existential quantifier (encapsulates a being and its proof)
+依赖和类型 Σ A B -- 存在量词（封装了一个存在者及其证明）
+
 The empty type ⊥ has no closed terms -- Nothingness
+空类型 ⊥ 没有封闭项 -- 虚无
+
 Identity type constructor refl : t ≡ t -- Law of Identity
+同一性类型构造子 refl : t ≡ t -- 同一律
+
 Empty type elimination ⊥-elim -- Law of Non-Contradiction
+空类型消去 ⊥-elim -- 矛盾律
 -}
+
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.LegacyFlat.Prelude where
+
+module ALMA.ProofOfConcept.Prelude where
+
 open import Agda.Primitive using (lsuc; Setω; _⊔_; Level) public
 open import Level using (Lift; lift; 0ℓ) public
 open import Data.Empty.Polymorphic using (⊥; ⊥-elim) public
@@ -37,23 +56,30 @@ open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; �
 open import Relation.Nullary using (Dec; no; yes; contradiction; Irrelevant) public
 open import Relation.Nullary.Decidable using (does; ⌊_⌋; False; isYes; map′; toWitness; toWitnessFalse; True) public
 open import Relation.Binary using (IsEquivalence) public
+
 open import Categories.Category public
 open import Categories.Adjoint public
 open import Categories.Morphism.Reasoning public
 open import Categories.Yoneda public
 open import Categories.Functor using (Functor; _∘F_) public
+
 -- Polymorphic negation and inequality
+-- 多态否定与不等关系
 ¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
 ¬_ {ℓ} A = A → ⊥ {ℓ}
 infix 4 _≢_
 _≢_ : ∀ {ℓ} {A : Set ℓ} → A → A → Set ℓ
 x ≢ y = ¬ (x ≡ y)
+
 -- Ex nihilo creation and reduction to nothingness are logically excluded
+-- 逻辑上排除了无中生有与归于虚无
 noExNihilo : ∀ {ℓ} → ¬ (⊥ {ℓ})
 noExNihilo ()
 noAnnihilation : ∀ {ℓ} {A : Set ℓ} → Σ A (λ _ → ⊤ {ℓ}) → ¬ (A → ⊥ {ℓ})
 noAnnihilation (a , _) f = f a
+
 -- Basic equational tools
+-- 基础等式推理工具
 transReflˡ : ∀ {ℓ} {A : Set ℓ} {x y : A} (eq : x ≡ y) → trans refl eq ≡ eq
 transReflˡ refl = refl
 trans-assoc' : ∀ {ℓ} {A : Set ℓ} {x y z w : A} (eq1 : x ≡ y) (eq2 : y ≡ z) (eq3 : z ≡ w)
@@ -76,7 +102,9 @@ cong-sym-sym f eq = sym (cong (cong f) (sym-sym eq))
     → (eq₂ : subst B eq₁ (proj₂ p) ≡ proj₂ q)
     → p ≡ q
 Σ-≡ refl refl = refl
+
 -- Basic properties of subst
+-- subst 的基础性质
 subst-refl-id : ∀ {ℓA ℓB} {A : Set ℓA} (B : A → Set ℓB) {x : A} → (b : B x) → subst B refl b ≡ b
 subst-refl-id B b = refl
 subst-inv : ∀ {ℓA ℓB} {A : Set ℓA} {B : A → Set ℓB} {a1 a2 : A} (eq : a1 ≡ a2) {b : B a1}
@@ -146,7 +174,9 @@ sym-subst-sym-comp {f = f} p q {s} =
     trans (cong (λ eq → subst f eq s) (sym-trans p q))
           (sym (subst-comp {B = f} (sym q) (sym p)))
   ∎
+
 -- Binary subst tools
+-- 二元 subst 工具
 subst-target-source≡subst₂ : ∀ {a b p} {A : Set a} {B : Set b} {P : A → B → Set p}
   {a₁ a₂ : A} {b₁ b₂ : B}
   (eqA : a₁ ≡ a₂) (eqB : b₁ ≡ b₂)
@@ -199,17 +229,23 @@ cong-trans : ∀ {a b} {A : Set a} {B : Set b} {x y z : A} (f : A → B)
   → (p : x ≡ y) (q : y ≡ z)
   → cong f (trans p q) ≡ trans (cong f p) (cong f q)
 cong-trans f refl refl = refl
+
 -- General combinators
+-- 通用组合子
 iter : ∀ {ℓ : Level} {A : Set ℓ} → ℕ → (A → A) → A → A
 iter zero f x = x
 iter (suc n) f x = f (iter n f x)
 comb : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} {O₁ : Set ℓ₁} {C₁ : Set ℓ₂} {O₂ : Set ℓ₃} {C₂ : Set ℓ₄}
      → (O₁ → O₂) → (C₁ → C₂) → (O₁ × C₁) → (O₂ × C₂)
 comb f-O f-C (o , c) = (f-O o , f-C c)
+
 -- Polymorphic constructor inequality
+-- 多态构造子不等关系
 true≢false : true ≢ false
 true≢false eq = subst (λ { true → ⊤ ; false → ⊥ }) eq tt
+
 -- Natural number properties
+-- 自然数性质
 zero≢suc : ∀ {n : ℕ} → 0 ≢ suc n
 zero≢suc ()
 ¬zero→suc : ∀ {i} → i ≢ 0 → i > 0
@@ -255,7 +291,9 @@ m≤n→n≡m+n∸m {suc m} {suc n} p = cong suc (m≤n→n≡m+n∸m (≤-pred 
 subst-inequality : {a b n m : ℕ} → a ≡ n → b ≡ m → n > m → a > b
 subst-inequality a≡n b≡m n>m =
   subst (λ x → x > _) (sym a≡n) (subst (λ x → _ > x) (sym b≡m) n>m)
+
 -- Finite set properties
+-- 有限集性质
 toFin : ∀ {n} → ℕ → Maybe (Fin n)
 toFin {zero} _ = nothing
 toFin {suc n} zero = just zero

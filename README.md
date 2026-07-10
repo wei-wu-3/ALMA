@@ -36,32 +36,19 @@ and coherence laws by distributing them into single-layer components.
 
 src/ALMA/
 ├── Cosmos/
-│   ├── Iso.agda                  -- Object isomorphisms
-│   ├── ContCategory.agda         -- Container category
-│   ├── ContCategoryLemmas.agda   -- Algebraic lemmas for container morphism equivalence
-│   ├── ObjEquivCat.agda          -- Categories with object equivalence
-│   ├── ObjEquivFunctor.agda      -- Functors preserving object equivalence
-│   ├── ContCatEquiv.agda         -- Base category + container functor
-│   ├── ContCatEquivFunctor.agda  -- Morphisms between ContCatEquivs
-│   ├── UnfoldingObject.agda      -- Object-level unfolding structure
-│   ├── UnfoldingMorphism.agda    -- Morphism-level unfolding structure
-│   ├── MorphismObject.agda       -- Object-level homomorphisms (onPos, onunfold-obj, onPos-to-shape)
-│   └── MorphismMorphism.agda     -- Action compatibility (onActP)
-└── Cosmos.agda                   -- Terminal coalgebra: Cosmos, _⇒ℱ_, id⇒ℱ, _∘⇒ℱ_, UnitCosmos
-
-### Dependency order (bottom-up)
-
-Iso → ContCategory → ContCategoryLemmas → ObjEquivCat → ObjEquivFunctor
-                                               ↓
-ContCatEquiv → ContCatEquivFunctor ─────────────────────┐
-       ↓                                                ↓
-UnfoldingObject → UnfoldingMorphism                     │
-       ↓                  ↓                             │
-MorphismObject ──→ MorphismMorphism                     │
-       ↓                  ↓                             ↓
-       └──────────────────┴─────────────────────────────┘
-                            ↓
-       Cosmos (terminal coalgebra) + UnitCosmos (instance)
+│   ├── Iso.agda                    -- Object isomorphisms
+│   ├── ContCategory.agda           -- Container category
+│   ├── ContCategoryLemmas.agda     -- Algebraic lemmas for container morphism equivalence
+│   ├── ObjEquivCat.agda            -- Categories with object equivalence
+│   ├── ObjEquivFunctor.agda        -- Functors preserving object equivalence
+│   ├── ContCatEquiv.agda           -- Base category + container functor
+│   ├── ContCatEquivLemmas.agda     -- Lemmas: onPos-subst-comm, comp-nat-shape-eq
+│   ├── ContCatEquivFunctor.agda    -- Morphisms between ContCatEquivs
+│   ├── UnfoldingObject.agda        -- Object-level unfolding structure
+│   ├── UnfoldingMorphism.agda      -- Morphism-level unfolding structure
+│   ├── MorphismObject.agda         -- Object-level homomorphisms
+│   └── MorphismMorphism.agda       -- Action compatibility (onActP)
+└── Cosmos.agda                     -- Terminal coalgebra: Cosmos, _⇒ℱ_, id⇒ℱ, _∘⇒ℱ_, UnitCosmos
 
 ## Contributing / 贡献指南
 

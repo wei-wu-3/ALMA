@@ -6,13 +6,11 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ObjEquivCat where
+module ALMA.Cosmos.ObjEquivCat2 where
 
 open import Agda.Primitive using (_⊔_; lsuc; Level)
-open import Categories.Category using (Category)
 open import Relation.Binary using (IsEquivalence)
-
-open import ALMA.Cosmos.Iso
+open import Categories.Category using (Category)
 
 -- Category with an object equivalence
 record ObjEquivCat (o ℓ e : Level) : Set (lsuc (o ⊔ ℓ ⊔ e)) where
@@ -56,69 +54,10 @@ record ObjEquivCat (o ℓ e : Level) : Set (lsuc (o ⊔ ℓ ⊔ e)) where
 
 -- Canonical instance: isomorphism as object equivalence
 objEquivCatFromIso : ∀ {o ℓ e} (C : Category o ℓ e) → ObjEquivCat o ℓ e
-objEquivCatFromIso C =
-  let
-    open Category C
-    open Equiv
-    open Iso C
-  in
-  let
-    transport' : ∀ {A₁ A₂ B₁ B₂} → A₁ ≅ A₂ → B₁ ≅ B₂ → (A₁ ⇒ B₁) → (A₂ ⇒ B₂)
-    transport' A≅ B≅ f = to B≅ ∘ f ∘ from A≅
-    transport-resp-≈' : ∀ {A₁ A₂ B₁ B₂}
-                      → (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂)
-                      → ∀ {f g : A₁ ⇒ B₁}
-                      → f ≈ g → transport' eqA eqB f ≈ transport' eqA eqB g
-    transport-resp-≈' _ _ f≈g = ∘-resp-≈ʳ (∘-resp-≈ˡ f≈g)
-    transport-refl' : ∀ {A B} {f : A ⇒ B} → transport' isoRefl isoRefl f ≈ f
-    transport-refl' =
-      let
-        step1 = ∘-resp-≈ʳ identityʳ
-        step2 = identityˡ
-      in
-      trans step1 step2
-    transport-trans' : ∀ {A₁ A₂ A₃ B₁ B₂ B₃}
-                     → (eqA₁ : A₁ ≅ A₂) (eqA₂ : A₂ ≅ A₃)
-                     → (eqB₁ : B₁ ≅ B₂) (eqB₂ : B₂ ≅ B₃)
-                     → {f : A₁ ⇒ B₁}
-                     → transport' (isoTrans eqA₁ eqA₂) (isoTrans eqB₁ eqB₂) f
-                       ≈ transport' eqA₂ eqB₂ (transport' eqA₁ eqB₁ f)
-    transport-trans' eqA₁ eqA₂ eqB₁ eqB₂ {f} =
-      let
-        step1 = assoc
-        step2 = ∘-resp-≈ʳ (∘-resp-≈ʳ sym-assoc)
-        step3 = ∘-resp-≈ʳ sym-assoc
-      in
-      trans step1 (trans step2 step3)
-    transport-∘' : ∀ {A₁ A₂ B₁ B₂ C₁ C₂}
-                 → (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂) (eqC : C₁ ≅ C₂)
-                 → (f : A₁ ⇒ B₁) (g : B₁ ⇒ C₁)
-                 → transport' eqB eqC g ∘ transport' eqA eqB f
-                   ≈ transport' eqA eqC (g ∘ f)
-    transport-∘' eqA eqB eqC f g =
-      let
-        step1 = ∘-resp-≈ˡ sym-assoc
-        step2 = assoc
-        step3 = ∘-resp-≈ʳ sym-assoc
-        step4 = ∘-resp-≈ʳ (∘-resp-≈ˡ (isoˡ eqB))
-        step5 = ∘-resp-≈ʳ identityˡ
-        step6 = assoc
-        step7 = ∘-resp-≈ʳ sym-assoc
-      in
-      trans step1 (trans step2 (trans step3 (trans step4 (trans step5 (trans step6 step7)))))
-    transport-id' : ∀ {A B} (eqA : A ≅ B)
-                  → transport' eqA eqA (id {A}) ≈ id {B}
-    transport-id' eqA =
-      let
-        step1 = ∘-resp-≈ʳ identityˡ
-        step2 = isoʳ eqA
-      in
-      trans step1 step2
-  in
-  record
+objEquivCatFromIso C = record
   { cat              = C
   ; _≈ₒ_             = _≅_
-  ; ≈ₒ-isEquiv       = isoEquiv
+  ; ≈ₒ-isEquiv       = ≅-isEquivalence
   ; transport        = transport'
   ; transport-resp-≈ = transport-resp-≈'
   ; transport-refl   = transport-refl'
@@ -126,6 +65,45 @@ objEquivCatFromIso C =
   ; transport-∘      = transport-∘'
   ; transport-id     = transport-id'
   }
+  where
+    open Category C
+    open HomReasoning
+    open Equiv
+    open import Categories.Morphism C using (_≅_; module ≅; ≅-isEquivalence)
+    open _≅_
+    transport' : ∀ {A₁ A₂ B₁ B₂} → A₁ ≅ A₂ → B₁ ≅ B₂ → (A₁ ⇒ B₁) → (A₂ ⇒ B₂)
+    transport' A≅ B≅ f = from B≅ ∘ f ∘ to A≅
+    transport-resp-≈' : ∀ {A₁ A₂ B₁ B₂}
+                      → (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂)
+                      → ∀ {f g : A₁ ⇒ B₁}
+                      → f ≈ g → transport' eqA eqB f ≈ transport' eqA eqB g
+    transport-resp-≈' _ _ f≈g = ∘-resp-≈ʳ (∘-resp-≈ˡ f≈g)
+    transport-refl' : ∀ {A B} {f : A ⇒ B} → transport' ≅.refl ≅.refl f ≈ f
+    transport-refl' = trans (∘-resp-≈ʳ identityʳ) identityˡ
+    transport-trans' : ∀ {A₁ A₂ A₃ B₁ B₂ B₃}
+                     → (eqA₁ : A₁ ≅ A₂) (eqA₂ : A₂ ≅ A₃)
+                     → (eqB₁ : B₁ ≅ B₂) (eqB₂ : B₂ ≅ B₃)
+                     → {f : A₁ ⇒ B₁}
+                     → transport' (≅.trans eqA₁ eqA₂) (≅.trans eqB₁ eqB₂) f
+                       ≈ transport' eqA₂ eqB₂ (transport' eqA₁ eqB₁ f)
+    transport-trans' eqA₁ eqA₂ eqB₁ eqB₂ {f} =
+      trans assoc (trans (∘-resp-≈ʳ (∘-resp-≈ʳ sym-assoc)) (∘-resp-≈ʳ sym-assoc))
+    transport-∘' : ∀ {A₁ A₂ B₁ B₂ C₁ C₂}
+                 → (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂) (eqC : C₁ ≅ C₂)
+                 → (f : A₁ ⇒ B₁) (g : B₁ ⇒ C₁)
+                 → transport' eqB eqC g ∘ transport' eqA eqB f
+                   ≈ transport' eqA eqC (g ∘ f)
+    transport-∘' eqA eqB eqC f g =
+      trans (∘-resp-≈ˡ sym-assoc)
+      (trans assoc
+      (trans (∘-resp-≈ʳ sym-assoc)
+      (trans (∘-resp-≈ʳ (∘-resp-≈ˡ (isoˡ eqB)))
+      (trans (∘-resp-≈ʳ identityˡ)
+      (trans assoc
+      (∘-resp-≈ʳ sym-assoc))))))
+    transport-id' : ∀ {A B} (eqA : A ≅ B)
+                  → transport' eqA eqA (id {A}) ≈ id {B}
+    transport-id' eqA = trans (∘-resp-≈ʳ identityˡ) (isoʳ eqA)
 
 -- Equational reasoning for object equivalence _≈ₒ_
 module ≈ₒ-Reasoning {o ℓ e : Level} (C : ObjEquivCat o ℓ e) where

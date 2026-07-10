@@ -1,14 +1,17 @@
 {-
+ALMA Infinite Unbounded Dynamic Self-Referential Universe Mathematical Model
 ALMA 无限无界动态自指涉宇宙数学模型
---
-可能的拓展方向 MorphLift Bisim EvalH EvalV mapEvalH mapEvalV DynamicsStep 与各种引理
+
+Possible extensions: MorphLift, Bisim, EvalH, EvalV, mapEvalH, mapEvalV, DynamicsStep, and various lemmas
+可能的拓展方向： MorphLift Bisim EvalH EvalV mapEvalH mapEvalV DynamicsStep 与各种引理
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.LegacyFlat.Properties where
+module ALMA.ProofOfConcept.Properties where
 
-open import ALMA.LegacyFlat.strictCosmos public
+open import ALMA.ProofOfConcept.Cosmos public
 
+-- Basic homotopy equations
 -- 基本的同伦等式
 unfold-hom-id' : ∀ {ℓ} (C : Cosmos ℓ) {A : Obj C} {s : Shape C A}
                → subst (λ X → Hom C (unfold-obj C s) (unfold-obj C X)) 
@@ -42,6 +45,7 @@ unfold-hom-comp' C f g {s} =
     (cong (subst P eq) (unfold-hom-comp C f g s))
     (subst-inv' P eq {b = compH})
 
+-- Properties of subst on ⇒ℱ
 -- subst 在 ⇒ℱ 上的性质
 subst-⇒ℱ-onObj : ∀ (ℓ) (F C D : Cosmos ℓ) (eq : C ≡ D) (m : F ⇒ℱ C) (X : Obj F)
                 → onObj (subst (λ C → F ⇒ℱ C) eq m) X ≡ subst (λ Y → Obj Y) eq (onObj m X)
@@ -84,6 +88,7 @@ subst-⇒ℱ-onunfold : ∀ (ℓ) (F C D : Cosmos ℓ) (eq : C ≡ D) (m : F ⇒
           (onunfold m t)
 subst-⇒ℱ-onunfold ℓ F C D refl m X t = refl
 
+-- Compatibility of subst with composition for ≃⇒ℱ
 -- subst 与组合的 ≃⇒ℱ 相容性
 subst-comp-⇒ℱ-both : ∀ {ℓ} {A B B' C : Cosmos ℓ} (p : B ≡ B')
   → (f : A ⇒ℱ B) (g : B ⇒ℱ C)
@@ -92,6 +97,7 @@ subst-comp-⇒ℱ-both : ∀ {ℓ} {A B B' C : Cosmos ℓ} (p : B ≡ B')
     g ∘⇒ℱ f
 subst-comp-⇒ℱ-both refl f g = refl-≃⇒ℱ
 
+-- Auxiliary type aliases and equality constructors
 -- 辅助类型别名与等式构造器
 ObjShape : (ℓ : Level) (C : Cosmos ℓ) → Set (lsuc ℓ)
 ObjShape ℓ C = Σ (Obj C) (Shape C)
@@ -128,6 +134,7 @@ PosAt ℓ C o s = Pos C {o} s
 PosOfShape : (ℓ : Level) (C : Cosmos ℓ) → ObjShape ℓ C → Set (lsuc ℓ)
 PosOfShape ℓ C (o , s) = PosAt ℓ C o s
 
+-- Transport of Pos/Hom and related lemmas
 -- 运输 Pos/Hom 及相关引理
 transport-Pos : ∀ ℓ (C₁ C₂ : Cosmos ℓ) (eq : C₁ ≡ C₂)
               → {o : Obj C₁} {s : Shape C₁ o}
@@ -229,6 +236,7 @@ hom-subst-lemma ℓ C₁ C₂ eq {a1} {a2} {b1} {b2} eA eB f2 =
       b2 eB f2
     )
 
+-- Shape/position reasoning related to ≃⇒ℱ
 -- ≃⇒ℱ 相关的形状/位置推理
 eqSh-base-simp : ∀ {ℓ} {G : Cosmos ℓ} {O1 : Obj G} {S1 S2' : Shape G O1}
                 → (eqSh' : S1 ≡ subst (Shape G) refl S2')
@@ -372,6 +380,7 @@ cancel-shape-eq : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ : F ⇒ℱ G} {e : m�
 cancel-shape-eq {ℓ} {F} {G} {m₁} {m₂} {e} {A} {s} {p} = 
   subst-cancel-pos {ℓ} {F} {G} {m₁} {m₂} {e} {A} {s} {p}
 
+-- Symmetrization of equations (reversing the evidence of ≃⇒ℱ)
 -- 对称化等式（将 ≃⇒ℱ 的证据反过来）
 onShape-eq-sym : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ : F ⇒ℱ G}
                → (h : m₁ ≃⇒ℱ m₂) {A : Obj F} (s : Shape F A)
@@ -395,6 +404,7 @@ onHom-eq-sym {G = G} h {A} {B} f =
   trans (sym (subst-inv₂' eqOA eqOB))
         (cong (subst₂ (Hom G) eqOA eqOB) (sym eqH))
 
+-- Composition equations and paths
 -- 组合等式与路径
 combine-hom-eq : ∀ {ℓ} {F G : Cosmos ℓ} {m₁ m₂ m₃ : F ⇒ℱ G}
                → (h1 : m₁ ≃⇒ℱ m₂) (h2 : m₂ ≃⇒ℱ m₃) {A B : Obj F} (f : Hom F A B)
@@ -428,6 +438,7 @@ trans-unfold-path : ∀ {ℓ} (G : Cosmos ℓ) (X Y Z : Obj G)
                                                          (sym (sym-trans eqO1 eqO2))))))))
 trans-unfold-path G X .X .X refl refl s1 .s1 .s1 refl refl = refl
 
+-- Additional properties under MorphLift
 -- MorphLift 下的额外性质
 actP-subst-shape : ∀ {ℓ} (F : Cosmos ℓ) {B C : Obj F} {s1 s2 : Shape F B}
                   → (g : Hom F B C) (eq : s1 ≡ s2)
@@ -436,6 +447,7 @@ actP-subst-shape : ∀ {ℓ} (F : Cosmos ℓ) {B C : Obj F} {s1 s2 : Shape F B}
                     ≡ subst (Pos F) eq (actP F g s1 p)
 actP-subst-shape F g refl p = refl
 
+-- Direct equivalences derived from onunfold-eq
 -- 从 onunfold-eq 导出的直接等价
 unfold-subst-shape : ∀ {ℓ} {C : Cosmos ℓ} {o₁ o₂ : Obj C} (eq : o₁ ≡ o₂) (s : Shape C o₁)
                   → unfold C (subst (Shape C) eq s) ≡ unfold C s
@@ -480,7 +492,7 @@ transport-onunfold {ℓ} {A} {B} {m₁} {m₂} m-eq X s =
     eq0 = onunfold-eq m-eq s
     eq1 : subst P (sym thePath) (onunfold m₁ s)
         ≃⇒ℱ subst P (sym thePath) (subst P thePath (onunfold m₂ s))
-    eq1 = subst-≃⇒ℱ ℓ (unfold A s) _ _ (sym thePath) eq0   -- 唯一改动处
+    eq1 = subst-≃⇒ℱ ℓ (unfold A s) _ _ (sym thePath) eq0
     subst-cancel : subst P (sym thePath) (subst P thePath (onunfold m₂ s))
                  ≡ onunfold m₂ s
     subst-cancel =

@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos where
+module ALMA.Cosmos2 where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Relation.Binary.PropositionalEquality

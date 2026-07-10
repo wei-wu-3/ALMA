@@ -1,11 +1,17 @@
 {-
+Dynamic correlation from beings to the totality of beings; the relationship between finite perspectives and infinite essence
 从存在者到存在者整体的动态关联性，有限视角与无限本质的关系
 --
+Universe structure, projection and non-reconstruction theorem, inevitability of non-uniformity theorem, interaction, coupling, and common essence
 宇宙结构、投影与不可重构定理、非均匀性必然定理、交互、耦合与共同本质
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.LegacyFlat.Universe where
-open import ALMA.LegacyFlat.Beings public
+
+module ALMA.ProofOfConcept.Universe where
+
+open import ALMA.ProofOfConcept.Beings public
+
+-- Irreducibility and fundamental definition of the universe
 -- 不可消减性与宇宙的基本定义
 record IsIndestructible {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃}
                        (essence : C) (stream : Stream ((I → A) × C)) : Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃) where
@@ -19,23 +25,29 @@ record Universe {ℓ₁ ℓ₂ ℓ₃} (I : Set ℓ₁) (A : Set ℓ₂) (C : Se
     stream  : Stream ((I → A) × C)
     indestruct : IsIndestructible essence stream
 open Universe public
+
+infix 4 _≈ᵁ_
 record _≈ᵁ_ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃}
             (u v : Universe I A C) : Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃) where
   field
     essence≈ : essence u ≡ essence v
     stream≈  : stream u ≈ stream v
 open _≈ᵁ_ public
-infix 4 _≈ᵁ_
+
 ≈ᵁ-refl : ∀ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃} {u : Universe I A C} → u ≈ᵁ u
 ≈ᵁ-refl = record { essence≈ = refl ; stream≈ = ≈-refl }
+
 ≈ᵁ-sym : ∀ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃} {u v : Universe I A C} → u ≈ᵁ v → v ≈ᵁ u
 ≈ᵁ-sym eq = record { essence≈ = sym (essence≈ eq) ; stream≈ = ≈-sym (stream≈ eq) }
+
 ≈ᵁ-trans : ∀ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃} {u v w : Universe I A C}
           → u ≈ᵁ v → v ≈ᵁ w → u ≈ᵁ w
 ≈ᵁ-trans eq1 eq2 = record
   { essence≈ = trans (essence≈ eq1) (essence≈ eq2)
   ; stream≈  = ≈-trans (stream≈ eq1) (stream≈ eq2)
   }
+
+-- Observation: Extracting concrete accidents from the universe
 -- 观察：从宇宙中提取具体偶性
 module _ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ₃} where
   observeAccident : Universe I A C → ℕ → I → A
@@ -54,6 +66,8 @@ module _ {ℓ₁ ℓ₂ ℓ₃} {I : Set ℓ₁} {A : Set ℓ₂} {C : Set ℓ�
   univ-essence-constant u n = always-implies-all-n (essencePermanent (indestruct u)) n
   univ-deterministic-observation : ∀ u n i → Σ A (λ a → observeAccident u n i ≡ a)
   univ-deterministic-observation u n i = observeAccident u n i , refl
+
+-- Generic projection: From infinite indexing to finite indexing
 -- 通用投影：从无限索引到有限索引
 Selector : ℕ → Set
 Selector n = Fin n → ℕ
@@ -84,6 +98,8 @@ module MergeSelectors (n m : ℕ) where
   merge-preserves-core : ∀ {ℓ} {C : Set ℓ} (cos : Universe ℕ ℕ C) (sel₁ : Fin n → ℕ) (sel₂ : Fin m → ℕ) →
                          essence (projGeneric (n + m) (merge sel₁ sel₂) cos) ≡ univ-core cos
   merge-preserves-core cos sel₁ sel₂ = refl
+
+-- Cosmos: The universe with a unique essence
 -- Cosmos：唯一本质的宇宙
 data Cosmos-C : Set where
   CosmicEssence : Cosmos-C
@@ -96,6 +112,8 @@ private
   core-const-cosmos : ∀ n s sel (c : Cosmos-C) → Always (λ x → proj₂ x ≡ c) s →
                       Always (λ x → proj₂ x ≡ c) (proj-stream-cosmos n s sel)
   core-const-cosmos = core-const ℕ Cosmos-C
+
+-- Projection: Reducing the infinite universe to a finite perspective (G)
 -- 投影：将无限宇宙降维到有限视角（G）
 projCosmos : ∀ n → Selector n → StreamCosmos → Universe (Fin n) ℕ Cosmos-C
 projCosmos n sel cos = record
@@ -107,21 +125,26 @@ projCosmos n sel cos = record
   }
 cos-observe : StreamCosmos → ℕ → ℕ → ℕ
 cos-observe = observeAccident {I = ℕ} {A = ℕ} {C = Cosmos-C}
+
+infix 4 _≈ᶜ_
 record _≈ᶜ_ (x y : StreamCosmos) : Set where
   field
     essence≈ : essence x ≡ essence y
     stream≈  : stream x ≈ stream y
 open _≈ᶜ_ public
-infix 4 _≈ᶜ_
+
 ≈ᶜ-refl  : ∀ {x} → x ≈ᶜ x
 ≈ᶜ-refl = record { essence≈ = refl ; stream≈ = ≈-refl }
+
 ≈ᶜ-sym   : ∀ {x y} → x ≈ᶜ y → y ≈ᶜ x
 ≈ᶜ-sym eq = record { essence≈ = sym (essence≈ eq) ; stream≈ = ≈-sym (stream≈ eq) }
+
 ≈ᶜ-trans : ∀ {x y z} → x ≈ᶜ y → y ≈ᶜ z → x ≈ᶜ z
 ≈ᶜ-trans eq1 eq2 = record
   { essence≈ = trans (essence≈ eq1) (essence≈ eq2)
   ; stream≈  = ≈-trans (stream≈ eq1) (stream≈ eq2)
   }
+
 cosmos-essence-unique : ∀ (cos1 cos2 : StreamCosmos) → essence cos1 ≡ essence cos2
 cosmos-essence-unique cos1 cos2 with essence cos1 | essence cos2
 ... | CosmicEssence | CosmicEssence = refl
@@ -131,6 +154,8 @@ cosmos-initial o = record
   ; stream = constStream (o , CosmicEssence)
   ; indestruct = record { essencePermanent = constStream-always-gen (o , CosmicEssence) refl }
   }
+
+-- Embedding: Lifting from a finite perspective back to the universe (F)
 -- 嵌入：从有限视角回升到宇宙（F）
 private
   extend-fun : ∀ {n} → (Fin n → ℕ) → (ℕ → ℕ)
@@ -143,8 +168,11 @@ private
                   → Always (λ x → proj₂ x ≡ c) (embedToCosmos s)
   extend-always alw .Always.head = alw .Always.head
   extend-always alw .Always.tail = extend-always (alw .Always.tail)
-  -- 观察等价关系（有限宇宙流之间）
+
+-- Observational equivalence relation (between finite universe streams)
+-- 观察等价关系（有限宇宙流之间）
 private
+  infix 4 _≈obs_
   record _≈obs_ {n} (s t : Stream ((Fin n → ℕ) × Cosmos-C)) : Set where
     coinductive
     field
@@ -153,18 +181,23 @@ private
       head-essence-equiv : proj₂ (Stream.head s) ≡ proj₂ (Stream.head t)
       tail-equiv : Stream.tail s ≈obs Stream.tail t
   open _≈obs_
+
   ≈obs-refl : ∀ {n} {s : Stream ((Fin n → ℕ) × Cosmos-C)} → s ≈obs s
   ≈obs-refl .head-obs-equiv i = refl
   ≈obs-refl .head-essence-equiv = refl
   ≈obs-refl .tail-equiv = ≈obs-refl
-  trans-≈obs : ∀ {n} {s t u : Stream ((Fin n → ℕ) × Cosmos-C)} → s ≈obs t → t ≈obs u → s ≈obs u
-  trans-≈obs eq1 eq2 .head-obs-equiv i = trans (eq1 .head-obs-equiv i) (eq2 .head-obs-equiv i)
-  trans-≈obs eq1 eq2 .head-essence-equiv = trans (eq1 .head-essence-equiv) (eq2 .head-essence-equiv)
-  trans-≈obs eq1 eq2 .tail-equiv = trans-≈obs (eq1 .tail-equiv) (eq2 .tail-equiv)
+
   ≈obs-sym : ∀ {n} {s t : Stream ((Fin n → ℕ) × Cosmos-C)} → s ≈obs t → t ≈obs s
   ≈obs-sym eq .head-obs-equiv i = sym (eq .head-obs-equiv i)
   ≈obs-sym eq .head-essence-equiv = sym (eq .head-essence-equiv)
   ≈obs-sym eq .tail-equiv = ≈obs-sym (eq .tail-equiv)
+
+  trans-≈obs : ∀ {n} {s t u : Stream ((Fin n → ℕ) × Cosmos-C)} → s ≈obs t → t ≈obs u → s ≈obs u
+  trans-≈obs eq1 eq2 .head-obs-equiv i = trans (eq1 .head-obs-equiv i) (eq2 .head-obs-equiv i)
+  trans-≈obs eq1 eq2 .head-essence-equiv = trans (eq1 .head-essence-equiv) (eq2 .head-essence-equiv)
+  trans-≈obs eq1 eq2 .tail-equiv = trans-≈obs (eq1 .tail-equiv) (eq2 .tail-equiv)
+
+  -- Core lemma for the unit law: Embedding followed by re-projection yields an observation equivalent to the original finite stream
   -- 单位律的核心引理：嵌入再投影回来，观察等价于原有限流
   proj-extend-obs-equiv : ∀ {n} (s : Stream ((Fin n → ℕ) × Cosmos-C))
                          → proj-stream-cosmos n (embedToCosmos s) (λ i → toℕ i) ≈obs s
@@ -179,7 +212,8 @@ private
       helper .head-essence-equiv = refl
       helper .tail-equiv = proj-extend-obs-equiv (Stream.tail s)
 open _≈obs_ public
-infix 4 _≈obs_
+
+-- Embedding: Lifting a finite universe to an infinite universe (F)
 -- 嵌入：将有限宇宙提升为无限宇宙（F）
 universe-to-cosmos : ∀ {n} → Universe (Fin n) ℕ Cosmos-C → StreamCosmos
 universe-to-cosmos u = record
@@ -187,6 +221,8 @@ universe-to-cosmos u = record
   ; stream     = embedToCosmos (stream u)
   ; indestruct = record { essencePermanent = extend-always (essencePermanent (indestruct u)) }
   }
+
+-- Functorial properties and unit laws
 -- 函子性质与单位律
 embedToCosmos-preserves-≈ : ∀ {n_len} {s t : Stream ((Fin n_len → ℕ) × Cosmos-C)}
                           → s ≈ t → embedToCosmos s ≈ embedToCosmos t
@@ -236,7 +272,10 @@ universe-embedding-uniqueness {n} u1 u2 stream-obs =
     bisim1 = proj-extend-obs-equiv (stream u1)
     bisim2 : stream (projCosmos n sel2 cos) ≈obs stream u2
     bisim2 = trans-≈obs (proj-extend-obs-equiv (stream u1)) stream-obs
+
+-- Weak adjunction: Pointwise stream equivalence and weak counit
 -- 弱伴随：逐点流等价与弱余单位
+infix 4 _≈∞_
 record _≈∞_ (s t : Stream ((ℕ → ℕ) × Cosmos-C)) : Set where
   coinductive
   field
@@ -244,7 +283,8 @@ record _≈∞_ (s t : Stream ((ℕ → ℕ) × Cosmos-C)) : Set where
     head-essence : proj₂ (Stream.head s) ≡ proj₂ (Stream.head t)
     tail-pointwise : Stream.tail s ≈∞ Stream.tail t
 open _≈∞_ public
-infix 4 _≈∞_
+
+-- After projecting from infinity and re-embedding, consistency with the original infinite universe at all observable points (weak triangle identity)
 -- 从无限投影再嵌入后，在一切可观察点上与原无限宇宙一致（弱三角恒等式）
 triangle1-pointwise : ∀ {n_len} (u : Universe (Fin n_len) ℕ Cosmos-C)
                     → stream (universe-to-cosmos (projCosmos n_len (λ i → toℕ i) (universe-to-cosmos u)))
@@ -263,6 +303,8 @@ triangle1-pointwise {n_len} u = helper
     helper .head-pointwise k = general-lemma (toFin k)
     helper .head-essence = refl
     helper .tail-pointwise = triangle1-pointwise (cosmicStep u)
+
+-- General Non-Reconstruction Theorem: For any finite dimension, finite observations cannot reconstruct a unique infinite universe
 -- 通用不可重构定理：对任意有限维度，有限观察无法重构唯一无限宇宙
 module GeneralNoReconstruction (n : ℕ) where
   obs-selector : Fin n → ℕ
@@ -301,6 +343,8 @@ module GeneralNoReconstruction (n : ℕ) where
     ¬cosmos1≈cosmos2 (≈ᶜ-trans (≈ᶜ-sym (prop cosmos-instance-1))
                              (≈ᶜ-trans (pres _ _ finite-obs-equiv)
                                        (prop cosmos-instance-2)))
+
+-- Homogeneity and change at the cosmic level
 -- 宇宙层面的同质与变化
 module CosmosLevel where
   WeakHom-Cosmos : StreamCosmos → Set
@@ -347,6 +391,7 @@ FrequentChangeCosmos cos =
 PeriodicCosmos : ℕ → StreamCosmos → Set
 PeriodicCosmos k cos = ∀ n i → cos-observe cos n i ≡ cos-observe cos (n + k) i
 open CosmosLevel
+
 weakHomCosmos→¬localChange : ∀ cos → WeakHom-Cosmos cos → ∀ d → ¬ LocalChangeCosmos d cos
 weakHomCosmos→¬localChange cos w d (n , m , neq) = neq (w n m d)
 HomS : ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} → Stream (O × C) → Set (ℓ₁ ⊔ ℓ₂)
@@ -396,6 +441,8 @@ thm-no-Hom-if-any-change :
   ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (FB : Process O C) → Changes FB → ¬ (∃ λ (p : Process O C) → StrongHom p)
 thm-no-Hom-if-any-change FB (n , neq) (p , hom-p) =
   ⊥-elim (neq (trans (sym (hom-p FB n n)) (hom-p FB n (suc n))))
+
+-- Inevitability of non-uniformity: As long as there exists a changing process, there can be no absolutely homogeneous observer
 -- 非均匀性必然：只要存在一个变化过程，就没有绝对同质的观察者
 nonuniformity-inevitable :
   ∀ {ℓ₁ ℓ₂} {O : Set ℓ₁} {C : Set ℓ₂} (FB : Process O C) → Changes FB → (∀ p → ¬ StrongHom p)
@@ -410,6 +457,8 @@ module WithFact
   concrete-nonuniformity = nonuniformity-inevitable FB fact-FB-changes
 lemma-Hom-Cosmos→¬Changes-Cosmos : (cos : StreamCosmos) → WeakHom-Cosmos cos → ¬ Changes-Cosmos cos
 lemma-Hom-Cosmos→¬Changes-Cosmos cos hom (n , i , neq) = neq (hom n (suc n) i)
+
+-- Ontological interaction: Process composition preserving the same essence
 -- 本体论交互：过程组合并保持同一本质
 module Ontological where
   transform : ∀ {O₁ O₂ C : Set} → ((O₁ × O₂) × (C × C)) → ((O₁ × O₂) × C)
@@ -482,6 +531,8 @@ module Ontological where
         ≡⟨ refl ⟩
       (observe p1 n , observe p2 n)
     ∎
+
+-- Epistemic coupling: Abstract specification of interaction, essence conservation, and dual observation
 -- 认识论耦合：交互的抽象规格，本质守恒与对偶观察
 module Epistemic where
   open Ontological public
@@ -516,6 +567,8 @@ module Epistemic where
   observe-interact-epistemic coupling p1 p2 n = proj₂ (proj₂ (coupling p1 p2)) n
 open Ontological public
 open Epistemic public
+
+-- Lemmas for the interact combinator
 -- interact 组合子的引理
 interact-functor₁ : ∀ {O₁ O₂ C} {p₁ p₁' : Process O₁ C} {p₂ : Process O₂ C} →
                     p₁ ≈ₚ p₁' → interact p₁ p₂ ≈ₚ interact p₁' p₂
@@ -561,6 +614,8 @@ interact-next-comm p₁ p₂ = helper (stream p₁) (stream p₂)
 interact-observe-comm : ∀ {O₁ O₂ C} (p₁ : Process O₁ C) (p₂ : Process O₂ C) (n : ℕ) →
                         observe (interact p₁ p₂) n ≡ (observe p₁ n , observe p₂ n)
 interact-observe-comm = observe-interact
+
+-- Algebraic lemmas for interact
 -- interact 的代数引理
 assoc-interact-O : ∀ {O₁ O₂ O₃ : Set} → ((O₁ × O₂) × O₃) → (O₁ × (O₂ × O₃))
 assoc-interact-O ((o₁ , o₂) , o₃) = (o₁ , (o₂ , o₃))

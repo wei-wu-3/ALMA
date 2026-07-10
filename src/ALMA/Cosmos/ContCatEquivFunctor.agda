@@ -1,156 +1,97 @@
 ------------------------------------------------------------------------
--- ContCatEquivFunctor: morphism between ContCatEquiv instances
+-- Morphisms between ContCat-valued functors
 --
--- Combines an ObjEquivFunctor with a container natural transformation
--- contCatEquivFunctorFromIso: constructor using objEquivFunctorFromIso + a natural transformation
+-- A natural transformation α : FC → FD ∘ H
+-- where FC, FD : ContCat-valued functors, H : C → D
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.ContCatEquivFunctor where
 
-open import Agda.Primitive using (Level; lsuc)
-open import Data.Container.Core using (_⇒_)
-open import Data.Container.Morphism using (id; _∘_)
+open import Agda.Primitive using (Level; lsuc; _⊔_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst; setoid)
+open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Container.Core using (shape)
+
 open import Categories.Category using (Category)
-open import Categories.Functor  using (Functor)
+open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
+open import Categories.NaturalTransformation
+  using (NaturalTransformation; id; _∘ᵥ_; _∘ʳ_)
+open import Categories.NaturalTransformation.NaturalIsomorphism
+  using (unitorʳ; associator; NaturalIsomorphism)
 
-open import ALMA.Cosmos.ContCategory
-  using (_≈M_; ≈M-refl; ≈M-sym; module ≈M-Reasoning; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat)
-open import ALMA.Cosmos.Iso
+open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCatEquiv
-  using (ContCatEquiv; contCatEquivFromIso)
-open import ALMA.Cosmos.ObjEquivCat
-  using (ObjEquivCat)
-open import ALMA.Cosmos.ObjEquivFunctor
-  using (ObjEquivFunctor; compObjEquivFunctor; objEquivFunctorFromIso)
+  using (shapeFunctor; ContCatEquiv; ShapeCat; module ContCatEquiv)
+open import ALMA.Cosmos.ContCategoryLemmas
+  using (shape-eq-from-≈M; ShapeOf; PosOf; actSOf; actPOf)
 
--- Functor between ContCatEquiv instances: preserves object equivalences and container structure
-record ContCatEquivFunctor {ℓ : Level} (F G : ContCatEquiv ℓ) : Set (lsuc ℓ) where
-  private
-    module FC = ObjEquivCat (ContCatEquiv.base F)
-    module GC = ObjEquivCat (ContCatEquiv.base G)
-    module F  = ContCatEquiv F
-    module G  = ContCatEquiv G
-  field
-    -- Underlying functor preserving object equivalences
-    objEquivFunctor : ObjEquivFunctor F.base G.base
-  open ObjEquivFunctor objEquivFunctor
-  field
-    -- container natural transformation at A
-    containerNat : ∀ {A : Category.Obj FC.cat}
-                 → Functor.₀ F.containerFunctor A ⇒ Functor.₀ G.containerFunctor (BF.₀ A)
-    -- naturality of containerNat with respect to morphisms
-    natural : ∀ {A B : Category.Obj FC.cat}
-              (f : Category._⇒_ FC.cat A B)
-            → (containerNat ∘ Functor.₁ F.containerFunctor f) ≈M
-              (Functor.₁ G.containerFunctor (BF.₁ f) ∘ containerNat)
-    -- naturality of containerNat with respect to object-equivalence transport
-    transport-nat : ∀ {A₁ A₂ : Category.Obj FC.cat}
-                    (eqA : FC._≈ₒ_ A₁ A₂)
-                  → (containerNat ∘ F.transportContainer eqA) ≈M
-                    (G.transportContainer (≈ₒ-homo eqA) ∘ containerNat)
+-- Pairs a base functor with a natural transformation between ContCat-valued functors
+module _ {o h e o′ h′ : Level}
+    {C : Category o h e} {D : Category o h e}
+    (FC : Functor C (ContCat o′ h′))
+    (FD : Functor D (ContCat o′ h′))
+    (baseFunctor : Functor C D)
+    (containerNat : NaturalTransformation FC (FD ∘F baseFunctor)) where
+  record ContCatEquivFunctor : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′)) where
 
 -- Identity ContCatEquivFunctor
-idContCatEquivFunctor : ∀ {ℓ} (C : ContCatEquiv ℓ) → ContCatEquivFunctor C C
-idContCatEquivFunctor C = record
-  { objEquivFunctor = record
-    { baseFunctor    = record
-      { F₀           = λ x → x
-      ; F₁           = λ f → f
-      ; identity     = Cat.Equiv.refl
-      ; homomorphism = Cat.Equiv.refl
-      ; F-resp-≈     = λ eq → eq
-      }
-    ; ≈ₒ-homo        = λ eq → eq
-    ; transport-comm = λ eqA eqB {f} → OE.transport-resp-≈ eqA eqB (Cat.Equiv.refl {x = f})
-    }
-  ; containerNat     = λ {A} → id (Fctr.₀ A)
-  ; natural          = λ f → ≈M-refl
-  ; transport-nat    = λ eqA → ≈M-refl
-  }
-  where
-    module C   = ContCatEquiv C
-    module OE  = ObjEquivCat C.base
-    module Cat = Category OE.cat
-    module Fctr = Functor C.containerFunctor
+idContCatEquivFunctor : ∀ {o h e o′ h′} {C : Category o h e}
+                       (FC : Functor C (ContCat o′ h′))
+                      → ContCatEquivFunctor FC FC idF (NaturalIsomorphism.F⇐G unitorʳ)
+idContCatEquivFunctor FC = record {}
 
 -- Composition of ContCatEquivFunctors
-compContCatEquivFunctor : ∀ {ℓ} {F G H : ContCatEquiv ℓ}
-  → ContCatEquivFunctor G H → ContCatEquivFunctor F G → ContCatEquivFunctor F H
-compContCatEquivFunctor {ℓ} {F} {G} {H} g f = record
-  { objEquivFunctor = compObjEquivFunctor g.objEquivFunctor f.objEquivFunctor
-  ; containerNat    = λ {A} → g.containerNat {fobj.₀ A} ∘ f.containerNat {A}
-  ; natural         = λ {A B} h → natural-proof {A} {B} h
-  ; transport-nat   = λ {A₁ A₂} eqA → transport-nat-proof {A₁} {A₂} eqA
-  }
-  where
-    module F = ContCatEquiv F
-    module G = ContCatEquiv G
-    module H = ContCatEquiv H
-    module f = ContCatEquivFunctor f
-    module g = ContCatEquivFunctor g
-    fctr = F.containerFunctor
-    gctr = G.containerFunctor
-    hctr = H.containerFunctor
-    fobj = ObjEquivFunctor.baseFunctor f.objEquivFunctor
-    gobj = ObjEquivFunctor.baseFunctor g.objEquivFunctor
-    module fobj = Functor fobj
-    module gobj = Functor gobj
-    module fctr = Functor fctr
-    module gctr = Functor gctr
-    module hctr = Functor hctr
-    open ≈M-Reasoning
-    natural-proof : ∀ {A B} (h : Category._⇒_ (ObjEquivCat.cat F.base) A B) → _
-    natural-proof {A} {B} h = begin
-      (g.containerNat {fobj.₀ B} ∘ f.containerNat {B}) ∘ fctr.₁ h
-        ≈⟨ ∘M-assoc {f = fctr.₁ h} {g = f.containerNat {B}} {h = g.containerNat {fobj.₀ B}} ⟩
-      g.containerNat {fobj.₀ B} ∘ (f.containerNat {B} ∘ fctr.₁ h)
-        ≈⟨ ∘M-resp-≈ʳ {g = g.containerNat {fobj.₀ B}} (f.natural h) ⟩
-      g.containerNat {fobj.₀ B} ∘ (gctr.₁ (fobj.₁ h) ∘ f.containerNat {A})
-        ≈⟨ ≈M-sym (∘M-assoc {f = f.containerNat {A}} {g = gctr.₁ (fobj.₁ h)} {h = g.containerNat {fobj.₀ B}}) ⟩
-      (g.containerNat {fobj.₀ B} ∘ gctr.₁ (fobj.₁ h)) ∘ f.containerNat {A}
-        ≈⟨ ∘M-resp-≈ˡ {f = f.containerNat {A}} (g.natural (fobj.₁ h)) ⟩
-      (hctr.₁ (gobj.₁ (fobj.₁ h)) ∘ g.containerNat {fobj.₀ A}) ∘ f.containerNat {A}
-        ≈⟨ ∘M-assoc {f = f.containerNat {A}} {g = g.containerNat {fobj.₀ A}} {h = hctr.₁ (gobj.₁ (fobj.₁ h))} ⟩
-      hctr.₁ (gobj.₁ (fobj.₁ h)) ∘ (g.containerNat {fobj.₀ A} ∘ f.containerNat {A})
-        ∎
-    transport-nat-proof : ∀ {A₁ A₂} (eqA : ObjEquivCat._≈ₒ_ F.base A₁ A₂) → _
-    transport-nat-proof {A₁} {A₂} eqA = begin
-      (g.containerNat {fobj.₀ A₂} ∘ f.containerNat {A₂}) ∘ F.transportContainer eqA
-        ≈⟨ ∘M-assoc {f = F.transportContainer eqA} {g = f.containerNat {A₂}} {h = g.containerNat {fobj.₀ A₂}} ⟩
-      g.containerNat {fobj.₀ A₂} ∘ (f.containerNat {A₂} ∘ F.transportContainer eqA)
-        ≈⟨ ∘M-resp-≈ʳ {g = g.containerNat {fobj.₀ A₂}} (f.transport-nat eqA) ⟩
-      g.containerNat {fobj.₀ A₂} ∘ (G.transportContainer (≈ₒ-homo-f eqA) ∘ f.containerNat {A₁})
-        ≈⟨ ≈M-sym (∘M-assoc {f = f.containerNat {A₁}} {g = G.transportContainer (≈ₒ-homo-f eqA)} {h = g.containerNat {fobj.₀ A₂}}) ⟩
-      (g.containerNat {fobj.₀ A₂} ∘ G.transportContainer (≈ₒ-homo-f eqA)) ∘ f.containerNat {A₁}
-        ≈⟨ ∘M-resp-≈ˡ {f = f.containerNat {A₁}} (g.transport-nat (≈ₒ-homo-f eqA)) ⟩
-      (H.transportContainer (≈ₒ-homo-g (≈ₒ-homo-f eqA)) ∘ g.containerNat {fobj.₀ A₁}) ∘ f.containerNat {A₁}
-        ≈⟨ ∘M-assoc {f = f.containerNat {A₁}} {g = g.containerNat {fobj.₀ A₁}} {h = H.transportContainer (≈ₒ-homo-g (≈ₒ-homo-f eqA))} ⟩
-      H.transportContainer (≈ₒ-homo-g (≈ₒ-homo-f eqA)) ∘ (g.containerNat {fobj.₀ A₁} ∘ f.containerNat {A₁})
-        ∎
-      where
-        ≈ₒ-homo-f = ObjEquivFunctor.≈ₒ-homo f.objEquivFunctor
-        ≈ₒ-homo-g = ObjEquivFunctor.≈ₒ-homo g.objEquivFunctor
+compContCatEquivFunctor : ∀ {o h e o′ h′}
+    {C D E : Category o h e}
+    (FC : Functor C (ContCat o′ h′))
+    (FD : Functor D (ContCat o′ h′))
+    (FE : Functor E (ContCat o′ h′))
+    {bg : Functor D E} {bf : Functor C D}
+    {ng : NaturalTransformation FD (FE ∘F bg)}
+    {nf : NaturalTransformation FC (FD ∘F bf)}
+  → ContCatEquivFunctor FD FE bg ng
+  → ContCatEquivFunctor FC FD bf nf
+  → ContCatEquivFunctor FC FE (bg ∘F bf)
+      ( NaturalIsomorphism.F⇒G (associator bf bg FE)
+          ∘ᵥ (ng ∘ʳ bf)
+          ∘ᵥ nf
+      )
+compContCatEquivFunctor _ _ _ _ _ = record {}
 
--- Constructor: functor + natural transformation → ContCatEquivFunctor
-module _ {ℓ} {C D : Category (lsuc ℓ) (lsuc ℓ) (lsuc ℓ)}
-         (F : Functor C D)
-         (FC : Functor C (ContCat (lsuc ℓ) (lsuc ℓ)))
-         (FD : Functor D (ContCat (lsuc ℓ) (lsuc ℓ)))
-         (α : ∀ {A : Category.Obj C} → Functor.₀ FC A ⇒ Functor.₀ FD (Functor.₀ F A))
-         (nat : ∀ {A B} (f : Category._⇒_ C A B)
-              → (α ∘ Functor.₁ FC f) ≈M (Functor.₁ FD (Functor.₁ F f) ∘ α))
-       where
+-- Trivial constructor packing a functor and natural transformation
+mkContCatEquivFunctor : ∀ {ℓ : Level}
+    {C D : Category (lsuc ℓ) (lsuc ℓ) (lsuc ℓ)}
+    (F : Functor C D)
+    (FC : Functor C (ContCat (lsuc ℓ) (lsuc ℓ)))
+    (FD : Functor D (ContCat (lsuc ℓ) (lsuc ℓ)))
+    (α : NaturalTransformation FC (FD ∘F F))
+  → ContCatEquivFunctor FC FD F α
+mkContCatEquivFunctor _ _ _ _ = record {}
+
+-- Functor between shape categories induced by a ContCatEquivFunctor
+module ShapeCatMorphism {o h e o′ h′} {C D : Category o h e}
+  {FC : Functor C (ContCat o′ h′)} {FD : Functor D (ContCat o′ h′)}
+  {H : Functor C D}
+  {α : NaturalTransformation FC (FD ∘F H)}
+  (cf : ContCatEquivFunctor FC FD H α)
+  where
   private
-    F-contEquiv = contCatEquivFromIso C FC
-    G-contEquiv = contCatEquivFromIso D FD
-    module FE = ContCatEquiv F-contEquiv
-    module GE = ContCatEquiv G-contEquiv
-    objEquivF  = objEquivFunctorFromIso {C = C} {D} F
-  contCatEquivFunctorFromIso : ContCatEquivFunctor F-contEquiv G-contEquiv
-  contCatEquivFunctorFromIso = record
-    { objEquivFunctor = objEquivF
-    ; containerNat    = α
-    ; natural         = nat
-    ; transport-nat   = λ eqA → nat (Iso.to eqA)
+    open NaturalTransformation α
+    module H = Functor H
+    module FC = Functor FC
+    module FD = Functor FD
+  S : Functor (ShapeCat C FC) (ShapeCat D FD)
+  S = record
+    { F₀ = λ { (A , s) → (H.₀ A , shape (η A) s) }
+    ; F₁ = λ { {(A , s)} {(B , t)} (f , p) →
+        let
+          comm-shape : shape (η B) (shape (FC.F₁ f) s) ≡ shape (FD.F₁ (H.F₁ f)) (shape (η A) s)
+          comm-shape = shape-eq-from-≈M (commute f) s
+          q : shape (FD.F₁ (H.F₁ f)) (shape (η A) s) ≡ shape (η B) t
+          q = trans (sym comm-shape) (cong (shape (η B)) p)
+        in (H.F₁ f , q) }
+    ; identity     = λ { {A , s} → H.identity }
+    ; homomorphism = λ { {f = _} {g = _} → H.homomorphism }
+    ; F-resp-≈     = λ { {f = _} {g = _} f≈g → H.F-resp-≈ f≈g }
     }

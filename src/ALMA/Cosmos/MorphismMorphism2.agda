@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.MorphismMorphism where
+module ALMA.Cosmos.MorphismMorphism2 where
 
 open import Agda.Primitive using (Level; lsuc)
 open import Relation.Binary.PropositionalEquality
@@ -15,14 +15,16 @@ open import Data.Container.Core using (shape)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCatEquiv using (ContCatEquiv)
-open import ALMA.Cosmos.ContCatEquivFunctor using (ContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.ContCategoryLemmas
+open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
+open import ALMA.Cosmos.ObjEquivFunctor2 using (ObjEquivFunctor)
+open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv)
+open import ALMA.Cosmos.ContCatEquivFunctor2 using (ContCatEquivFunctor; compContCatEquivFunctor)
+open import ALMA.Cosmos.ContCategoryLemmas2
   using (shape-eq-from-≈M; ShapeOf; PosOf; actSOf; actPOf)
-open import ALMA.Cosmos.Unfolding using (Unfolding)
-open import ALMA.Cosmos.MorphismObject
+open import ALMA.Cosmos.Unfolding2 using (Unfolding)
+open import ALMA.Cosmos.MorphismObject2
   using (MorphismObject; idMorphismObject; compMorphismObject)
-open import ALMA.Cosmos.ContCatEquivLemmas using (onPos-subst-comm; comp-nat-shape-eq)
+open import ALMA.Cosmos.ContCatEquivLemmas2 using (onPos-subst-comm; comp-nat-shape-eq)
 
 record MorphismMorphism {ℓ : Level}
   {CEF CEG : ContCatEquiv ℓ}
