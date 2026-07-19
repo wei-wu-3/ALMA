@@ -11,9 +11,9 @@ transient processes with phase transitions, and the standard model overview
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.ProofOfConcept.StandardModel where
+module ALMA.Prototype.StandardModel where
 
-open import ALMA.ProofOfConcept.Universe public
+open import ALMA.Prototype.Universe public
 
 -- Basic types
 -- 基础类型

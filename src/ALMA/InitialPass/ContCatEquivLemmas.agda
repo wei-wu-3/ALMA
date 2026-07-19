@@ -5,7 +5,7 @@
 -- and comp-nat-shape-eq (shape extraction for composite naturality)
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
-module ALMA.Cosmos.ContCatEquivLemmas2 where
+module ALMA.InitialPass.ContCatEquivLemmas where
 
 open import Agda.Primitive using (lsuc)
 open import Relation.Binary.PropositionalEquality
@@ -15,14 +15,14 @@ open import Data.Container.Morphism using (_∘_)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCategory2 using (≈M-sym; ≈M-trans; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ObjEquivFunctor2 using (ObjEquivFunctor)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv)
-open import ALMA.Cosmos.ContCatEquivFunctor2 using (ContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.Unfolding2 using (Unfolding)
-open import ALMA.Cosmos.MorphismObject2 using (MorphismObject)
-open import ALMA.Cosmos.ContCategoryLemmas2
+open import ALMA.InitialPass.ContCategory using (≈M-sym; ≈M-trans; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
+open import ALMA.InitialPass.ObjEquivFunctor using (ObjEquivFunctor)
+open import ALMA.InitialPass.ContCatEquiv using (ContCatEquiv)
+open import ALMA.InitialPass.ContCatEquivFunctor using (ContCatEquivFunctor; compContCatEquivFunctor)
+open import ALMA.InitialPass.Unfolding using (Unfolding)
+open import ALMA.InitialPass.MorphismObject using (MorphismObject)
+open import ALMA.InitialPass.ContCategoryLemmas
   using (shape-eq-from-≈M; ShapeOf; PosOf; shape-eq-sym; shape-eq-trans; shape-eq-assoc; shape-eq-resp-ˡ; shape-eq-resp-ʳ)
 
 onPos-subst-comm :

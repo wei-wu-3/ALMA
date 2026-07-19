@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ContCatEquivFunctor2 where
+module ALMA.InitialPass.ContCatEquivFunctor where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Data.Container.Core using (_⇒_)
@@ -14,11 +14,11 @@ open import Data.Container.Morphism using (id; _∘_)
 open import Categories.Category using (Category)
 open import Categories.Functor  using (Functor)
 
-open import ALMA.Cosmos.ContCategory2
+open import ALMA.InitialPass.ContCategory
   using (_≈M_; ≈M-refl; ≈M-sym; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈M-Reasoning)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv; contCatEquivFromIso)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ObjEquivFunctor2
+open import ALMA.InitialPass.ContCatEquiv using (ContCatEquiv; contCatEquivFromIso)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
+open import ALMA.InitialPass.ObjEquivFunctor
   using (ObjEquivFunctor; compObjEquivFunctor; objEquivFunctorFromIso)
 
 -- Functor between ContCatEquiv instances: preserves object equivalences and container structure

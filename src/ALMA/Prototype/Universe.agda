@@ -7,9 +7,9 @@ Universe structure, projection and non-reconstruction theorem, inevitability of 
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.ProofOfConcept.Universe where
+module ALMA.Prototype.Universe where
 
-open import ALMA.ProofOfConcept.Beings public
+open import ALMA.Prototype.Beings public
 
 -- Irreducibility and fundamental definition of the universe
 -- 不可消减性与宇宙的基本定义

@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos2 where
+module ALMA.InitialPass.Cosmos where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Relation.Binary.PropositionalEquality
@@ -23,16 +23,16 @@ open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Construction.Elements using (Elements)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCategory2 using (≈M-refl; ContCat)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv; contCatEquivFromIso)
-open import ALMA.Cosmos.ContCatEquivFunctor2
+open import ALMA.InitialPass.ContCategory using (≈M-refl; ContCat)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
+open import ALMA.InitialPass.ContCatEquiv using (ContCatEquiv; contCatEquivFromIso)
+open import ALMA.InitialPass.ContCatEquivFunctor
   using (ContCatEquivFunctor; idContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.Unfolding2
+open import ALMA.InitialPass.Unfolding
   using (Unfolding; module UnfoldingSetoid; module UnfoldingFunctor)
-open import ALMA.Cosmos.MorphismObject2
+open import ALMA.InitialPass.MorphismObject
   using (MorphismObject; idMorphismObject; compMorphismObject)
-open import ALMA.Cosmos.MorphismMorphism2
+open import ALMA.InitialPass.MorphismMorphism
   using (MorphismMorphism; idMorphismMorphism; compMorphismMorphism)
 
 -- Core Definitions: CosmosF and Cosmos as Terminal Coalgebra

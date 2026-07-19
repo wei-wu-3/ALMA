@@ -7,7 +7,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ContCategory2 where
+module ALMA.InitialPass.ContCategory where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Relation.Binary.Structures using (IsEquivalence)

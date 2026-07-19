@@ -7,9 +7,9 @@ Possible extensions: MorphLift, Bisim, EvalH, EvalV, mapEvalH, mapEvalV, Dynamic
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.ProofOfConcept.Properties where
+module ALMA.Prototype.Properties where
 
-open import ALMA.ProofOfConcept.Cosmos public
+open import ALMA.Prototype.Cosmos public
 
 -- Basic homotopy equations
 -- 基本的同伦等式

@@ -7,7 +7,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ContCatEquiv2 where
+module ALMA.InitialPass.ContCatEquiv where
 
 open import Agda.Primitive using (Level; lsuc)
 open import Relation.Binary using (IsEquivalence)
@@ -16,9 +16,9 @@ open import Data.Container.Morphism using (id; _∘_)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCategory2
+open import ALMA.InitialPass.ContCategory
   using (_≈M_; ≈M-sym; ≈M-trans; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈M-Reasoning)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
 
 -- Functor from the base category to the category of containers
 record ContCatEquiv (ℓ : Level) : Set (lsuc (lsuc ℓ)) where

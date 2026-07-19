@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.Unfolding2 where
+module ALMA.InitialPass.Unfolding where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Relation.Binary using (IsEquivalence; Reflexive; Symmetric; Transitive)
@@ -20,10 +20,10 @@ open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Category.Construction.Elements using (Elements)
 open import Categories.Functor using (Functor; _∘F_)
 
-open import ALMA.Cosmos.ContCategory2 using (ContCat)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv)
-open import ALMA.Cosmos.ContCategoryLemmas2
+open import ALMA.InitialPass.ContCategory using (ContCat)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
+open import ALMA.InitialPass.ContCatEquiv using (ContCatEquiv)
+open import ALMA.InitialPass.ContCategoryLemmas
   using (shape-eq-from-≈M; ShapeOf; PosOf; actSOf; actPOf)
 
 -- container-based unfolding system

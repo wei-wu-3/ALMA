@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.MorphismObject2 where
+module ALMA.InitialPass.MorphismObject where
 
 open import Agda.Primitive using (Level; lsuc)
 open import Relation.Binary.Structures using (IsEquivalence)
@@ -16,14 +16,14 @@ open import Data.Product using (_,_)
 open import Data.Container.Core using (shape)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCategory2 using (_≈M_)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv)
-open import ALMA.Cosmos.ObjEquivFunctor2 using (ObjEquivFunctor)
-open import ALMA.Cosmos.ContCatEquivFunctor2
+open import ALMA.InitialPass.ContCategory using (_≈M_)
+open import ALMA.InitialPass.ObjEquivCat using (ObjEquivCat)
+open import ALMA.InitialPass.ContCatEquiv using (ContCatEquiv)
+open import ALMA.InitialPass.ObjEquivFunctor using (ObjEquivFunctor)
+open import ALMA.InitialPass.ContCatEquivFunctor
   using (ContCatEquivFunctor; idContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.Unfolding2 using (Unfolding)
-open import ALMA.Cosmos.ContCategoryLemmas2 using (shape-eq-from-≈M; ShapeOf; PosOf)
+open import ALMA.InitialPass.Unfolding using (Unfolding)
+open import ALMA.InitialPass.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
 
 record MorphismObject {ℓ : Level}
   {CEF CEG : ContCatEquiv ℓ}

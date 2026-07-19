@@ -8,9 +8,9 @@ Fundamental Forms of Existence → Two Construction Modes → Process Identity �
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.ProofOfConcept.Indestructibility where
+module ALMA.Prototype.Indestructibility where
 
-open import ALMA.ProofOfConcept.Cosmos public
+open import ALMA.Prototype.Cosmos public
 
 -- Fundamental forms of existence: Eternal streams and persistence predicates
 -- 基础存在形式：永恒流与持存谓词

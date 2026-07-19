@@ -14,14 +14,21 @@ ALMA 是基于类型论、范畴论、容器、余代数的形式化框架。其
 实现宇宙构造的可组合性。项目核心 Cosmos —— 无限无界动态自指涉宇宙，
 为哲学本体论研究提供数学模型。
 
-This modular design separates concerns across layers, allowing each layer's
-proofs and combinators to be reused independently. Compared to a flat Cosmos
-definition, the layered architecture reduces proof burden for composition
-and coherence laws by distributing them into single-layer components.
+The project adopts a three-tier modular architecture that captures the evolutionary development of the formalization:
 
-分层设计将关注点按层次分离，各层的证明和组合子可独立复用。
-相较扁平 Cosmos 定义，分层架构将复合与相干律的证明负担分散到各单层组件中，
-显著降低了高层构造的证明复杂度。
+项目采用三层模块化架构，清晰反映了形式化过程中的演进脉络：
+
+src/ALMA/Prototype/ contains the original, self-contained, and fully hand-unfolded formalization of the philosophical ideas from the paper. It serves as the first Agda prototype, specifically designed to trace the formation process of the formalized philosophy. 
+
+src/ALMA/Prototype/ 是论文哲学思想在 Agda 中首次形式化的完全自包含、手工展开初始原型，旨在完整追溯该哲学思想形式化的生成脉络。
+
+src/ALMA/InitialPass/ represents the first community-assisted refactoring iteration. It was developed after the proof of comp-cong-≃⇒ℱ became entangled in subst complexities during the prototype phase. Following feedback from the Agda community, this version was rebuilt upon a generalized categorical library.
+
+src/ALMA/InitialPass/ 该版本为首次基于社区反馈的重构迭代。其起因是原型阶段 comp-cong-≃⇒ℱ 的证明深陷 subst 复杂性泥潭；后经 Agda 社区指导，基于通用范畴库重新构建而成。
+
+src/ALMA/Cosmos/ (along with the root Cosmos.agda) is the ongoing, latest evolution of the codebase. It is currently under active development, with its core closure mechanisms and internal consistency not yet fully finalized.
+
+src/ALMA/Cosmos/（及根目录 Cosmos.agda）则为当前演进中的最新代码。该项目目前仍在积极开发中，其核心闭合机制及内部一致性尚待最终确立。
 
 ## Preprint / 预印本
 
@@ -35,23 +42,40 @@ and coherence laws by distributing them into single-layer components.
 ## Architecture / 架构
 
 src/ALMA/
+├── Cosmos.agda
 ├── Cosmos/
-│   ├── Iso.agda                    -- Object isomorphisms
-│   ├── ContCategory.agda           -- Container category
-│   ├── ContCategoryLemmas.agda     -- Algebraic lemmas for container morphism equivalence
-│   ├── ObjEquivCat.agda            -- Categories with object equivalence
-│   ├── ObjEquivFunctor.agda        -- Functors preserving object equivalence
-│   ├── ContCatEquiv.agda           -- Base category + container functor
-│   ├── ContCatEquivLemmas.agda     -- Lemmas: onPos-subst-comm, comp-nat-shape-eq
-│   ├── ContCatEquivFunctor.agda    -- Morphisms between ContCatEquivs
-│   ├── UnfoldingObject.agda        -- Object-level unfolding structure
-│   ├── UnfoldingMorphism.agda      -- Morphism-level unfolding structure
-│   ├── MorphismObject.agda         -- Object-level homomorphisms
-│   └── MorphismMorphism.agda       -- Action compatibility (onActP)
-└── Cosmos.agda                     -- Terminal coalgebra: Cosmos, _⇒ℱ_, id⇒ℱ, _∘⇒ℱ_, UnitCosmos
+│   ├── ContCategory.agda
+│   ├── ContCategoryLemmas.agda
+│   ├── ContCatEquiv.agda
+│   ├── ContCatEquivLemmas.agda
+│   ├── ContCatEquivFunctor.agda
+│   ├── ContFunctor.agda
+│   ├── MorphismMorphism.agda
+│   ├── MorphismObject.agda
+│   └── Unfolding.agda
+├── InitialPass/
+│   ├── ContCategory.agda
+│   ├── ContCategoryLemmas.agda
+│   ├── ContCatEquiv.agda
+│   ├── ContCatEquivLemmas.agda
+│   ├── ContCatEquivFunctor.agda
+│   ├── Cosmos.agda
+│   ├── MorphismMorphism.agda
+│   ├── MorphismObject.agda
+│   ├── ObjEquivCat.agda
+│   ├── ObjEquivFunctor.agda
+│   └── Unfolding.agda
+└── Prototype/
+    ├── Beings.agda
+    ├── Cosmos.agda
+    ├── Indestructibility.agda
+    ├── Prelude.agda
+    ├── Properties.agda
+    ├── StandardModel.agda
+    └── Universe.agda
 
 ## Contributing / 贡献指南
 
 Discussions, proof ideas, literature references and code contributions 
 are all welcome
-欢迎讨论交流、证明思路、文献指引与代码贡献
+欢迎参与讨论、提供证明思路与文献指引，或贡献代码

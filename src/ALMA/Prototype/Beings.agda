@@ -7,9 +7,9 @@ Processes, Tensor Product Categorical Structure, Coherent Patterns, Evolution, a
 -}
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.ProofOfConcept.Beings where
+module ALMA.Prototype.Beings where
 
-open import ALMA.ProofOfConcept.Indestructibility public
+open import ALMA.Prototype.Indestructibility public
 
 -- Process: Fundamental structure of dynamic beings (O: Accident, C: Essence)
 -- 过程：动态存在者的基本结构（O：偶性，C：本质）
