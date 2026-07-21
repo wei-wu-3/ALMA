@@ -15,14 +15,14 @@ open import Data.Container.Morphism using (_∘_)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
 
-open import ALMA.Cosmos.ContCategory2 using (≈M-sym; ≈M-trans; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ)
+open import ALMA.Cosmos.ContCategory using (≈M-sym; ≈M-trans; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ)
 open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
 open import ALMA.Cosmos.ObjEquivFunctor2 using (ObjEquivFunctor)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv)
-open import ALMA.Cosmos.ContCatEquivFunctor2 using (ContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.Unfolding2 using (Unfolding)
-open import ALMA.Cosmos.MorphismObject2 using (MorphismObject)
-open import ALMA.Cosmos.ContCategoryLemmas2
+open import ALMA.Cosmos.ContCatEquiv using (ContCatEquiv)
+open import ALMA.Cosmos.ContCatEquivFunctor using (ContCatEquivFunctor; compContCatEquivFunctor)
+open import ALMA.Cosmos.Unfolding using (Unfolding)
+open import ALMA.Cosmos.MorphismObject using (MorphismObject)
+open import ALMA.Cosmos.ContCategoryLemmas
   using (shape-eq-from-≈M; ShapeOf; PosOf; shape-eq-sym; shape-eq-trans; shape-eq-assoc; shape-eq-resp-ˡ; shape-eq-resp-ʳ)
 
 onPos-subst-comm :

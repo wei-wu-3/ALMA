@@ -2,7 +2,7 @@
 -- Container morphism equivalence lemmas and container functor basics
 --
 -- shape-level laws for _≈M_ (sym, trans, assoc, whiskering) and
--- basic functoriality of actSOf/actPOf (id, comp, resp-≈)
+-- basic container functor projections (ShapeOf, PosOf, actSOf, actPOf)
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
