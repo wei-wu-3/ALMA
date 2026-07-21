@@ -2,166 +2,91 @@
 -- Object-level homomorphisms between unfolding systems
 --
 -- A MorphismObject witnesses the commutation of object/position mappings
--- with the container natural transformation, up to object isomorphism
+-- with the container natural isomorphism
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.MorphismObject where
 
-open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; module ≡-Reasoning)
+open import Agda.Primitive using (Level; _⊔_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Product using (_,_; proj₂)
 open import Data.Container.Core using (shape)
-open import Data.Container.Morphism using (id)
 
 open import Categories.Category using (Category)
-open import Categories.Functor using (Functor; _∘F_; module Functor) renaming (id to idF)
-open import Categories.NaturalTransformation using (NaturalTransformation; module NaturalTransformation)
-open import Categories.Morphism using (_≅_; module ≅)
+open import Categories.Functor using (Functor; _∘F_; id)
+open import Categories.NaturalTransformation using (NaturalTransformation)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism)
 
-open import ALMA.Cosmos.ContCategory using (ContCat; _≈M_)
-open import ALMA.Cosmos.ContCatEquiv using (ContCatEquiv; ShapeCat)
+open import ALMA.Cosmos.ContCategory using (ContCat)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquivFunctor
-  using (ContCatEquivFunctor; idContCatEquivFunctor; compContCatEquivFunctor; module ShapeCatMorphism)
-open import ALMA.Cosmos.Unfolding using (Unfolding; module Unfolding)
-open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
+  using (ContCatEquivFunctor; module ShapeCatMorphism)
+open import ALMA.Cosmos.Unfolding using (Unfolding)
 
-private
-  F-map-iso : ∀ {o h e} {C D : Category o h e}
-            → (F : Functor C D)
-            → ∀ {A B} → _≅_ C A B → _≅_ D (Functor.₀ F A) (Functor.₀ F B)
-  F-map-iso {D = D} F iso =
-    let module D = Category D
-        module F = Functor F
-        open _≅_ iso
-    in record
-    { from = F.₁ from
-    ; to   = F.₁ to
-    ; iso  = record
-      { isoˡ = D.Equiv.trans (D.Equiv.sym F.homomorphism)
-               (D.Equiv.trans (F.F-resp-≈ isoˡ) F.identity)
-      ; isoʳ = D.Equiv.trans (D.Equiv.sym F.homomorphism)
-               (D.Equiv.trans (F.F-resp-≈ isoʳ) F.identity)
-      }
-    }
-
-module _ {o h e o′ h′ : Level} {C D : Category o h e}
-  {FC : Functor C (ContCat o′ h′)} {FD : Functor D (ContCat o′ h′)}
-  {H : Functor C D} {α : NaturalTransformation FC (FD ∘F H)}
-  {X Y : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′))}
-  (cf : ContCatEquivFunctor FC FD H α)
-  (UF : Unfolding FC X) (UG : Unfolding FD Y) where
-  record MorphismObject : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′)) where
-    constructor mk
+module _ {o h e o′ ℓ′ e′ s p u v : Level}
+         {C : Category o h e} {D : Category o′ ℓ′ e′}
+         {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+         {X : Set u} {Y : Set v}
+         (UF : Unfolding FC X) (UG : Unfolding FD Y)
+         (S  : Functor (ShapeCat C FC) (ShapeCat D FD))
+         (shapeTrans : ∀ {A} {s : ShapeOf FC A}
+                     → PosOf FC s
+                     → ShapeOf FD
+                         (Functor.₀ (Unfolding.unfoldFunctor UG)
+                                    (Functor.₀ S (A , s)))) where
+  private
+    module C  = Category C; module D  = Category D
+    module FC = Functor FC; module FD = Functor FD
+    module UF = Unfolding UF; module UG = Unfolding UG; module Sf = Functor S
+  record MorphismObject : Set (o ⊔ s ⊔ p) where
     field
-      unfoldIso : NaturalTransformation
-                  (H ∘F Unfolding.unfoldFunctor UF)
-                  ((Unfolding.unfoldFunctor UG) ∘F ShapeCatMorphism.S cf)
+      onPos      : ∀ {A} {s : ShapeOf FC A} → PosOf FC s → PosOf FD (proj₂ (Sf.₀ (A , s)))
+      pts-compat : ∀ {A} {s : ShapeOf FC A} (p : PosOf FC s) → shapeTrans p ≡ UG.pos-to-shape (proj₂ (Sf.₀ (A , s))) (onPos p)
 
-------------------------------------------------------------------------
--- 恒等 MorphismObject
-------------------------------------------------------------------------
-idMorphismObject : ∀ {o h e o′ h′} {C : Category o h e}
-  {FC : Functor C (ContCat o′ h′)}
-  {X : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′))}
-  {UF : Unfolding FC X}
-  → MorphismObject (idContCatEquivFunctor FC) UF UF
-idMorphismObject {C = C} {FC = FC} {UF = UF} = record
-  { onPos = λ p → p
-  ; onunfold-iso = λ s → ≅.refl
-  ; onPos-to-shape = λ {A} {s} p →
-      let
-        ce : ContCatEquiv C FC
-        ce = record {}
-        module CE = ContCatEquiv C FC ce
-        open ≡-Reasoning
-      in begin
-        shape (CE.transpCont ≅.refl) (shape _ (UF.pos-to-shape s p))
-          ≡⟨ shape-eq-from-≈M CE.transpCont-refl _ ⟩
-        shape (id (FC.₀ (UF.unfoldFunctor .₀ (A , s)))) (shape _ (UF.pos-to-shape s p))
-          ≡⟨ refl ⟩
-        UF.pos-to-shape s p
-          ≡⟨ refl ⟩
-        UF.pos-to-shape s p
-      ∎
-  }
-  where open Categories.Morphism C using (_≅_)
+module _ {o h e s p u : Level} {C : Category o h e}
+         {FC : Functor C (ContCat s p)} {X : Set u} (UF : Unfolding FC X) where
+  private module UF = Unfolding UF
+  idMorphismObject : MorphismObject UF UF id (λ p → UF.pos-to-shape _ p)
+  idMorphismObject = record { onPos = λ p → p ; pts-compat = λ p → refl }
 
-------------------------------------------------------------------------
--- MorphismObject 复合
-------------------------------------------------------------------------
-compMorphismObject : ∀ {o h e o′ h′} {C D E : Category o h e}
-  {FC : Functor C (ContCat o′ h′)}
-  {FD : Functor D (ContCat o′ h′)}
-  {FE : Functor E (ContCat o′ h′)}
-  {bg : Functor D E}
-  {bf : Functor C D}
-  {ng : NaturalTransformation FD (FE ∘F bg)}
-  {nf : NaturalTransformation FC (FD ∘F bf)}
-  {X Y Z : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′))}
-  {cg : ContCatEquivFunctor FD FE bg ng}
-  {cf : ContCatEquivFunctor FC FD bf nf}
-  {UF : Unfolding FC X}
-  {UG : Unfolding FD Y}
-  {UH : Unfolding FE Z}
-  → MorphismObject cg UG UH
-  → MorphismObject cf UF UG
-  → MorphismObject (compContCatEquivFunctor FC FD FE cg cf) UF UH
-compMorphismObject {C = C} {D = D} {E = E} {bg = bg} {bf = bf} {ng = ng} {nf = nf} {cg = cg} {cf = cf} {UF = UF} {UG = UG} {UH = UH} mog mof = record
-  { onPos = λ p → onPos-g (onPos-f p)
-  ; onunfold-iso = λ {A} s →
-      ≅.trans E
-        (F-map-iso bg (onunfold-iso-f s))
-        (onunfold-iso-g (shape (nf.η A) s))
-  ; onPos-to-shape = λ {A} {s} p →
-      let
-        module bg = Functor bg
-        module nf = NaturalTransformation nf
-        module ng = NaturalTransformation ng
-        module Sf = ShapeCatMorphism cf
-        module Sg = ShapeCatMorphism cg
+module _ {o₁ h₁ e₁ o₂ h₂ e₂ o₃ h₃ e₃ s p u v w : Level}
+         {C : Category o₁ h₁ e₁} {D : Category o₂ h₂ e₂} {E : Category o₃ h₃ e₃}
+         {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)} {FE : Functor E (ContCat s p)}
+         {X : Set u} {Y : Set v} {Z : Set w}
+         (UF : Unfolding FC X) (UG : Unfolding FD Y) (UH : Unfolding FE Z)
+         (S₁ : Functor (ShapeCat C FC) (ShapeCat D FD))
+         (S₂ : Functor (ShapeCat D FD) (ShapeCat E FE))
+         (shTrans₁ : ∀ {A} {s : ShapeOf FC A} → PosOf FC s → ShapeOf FD (Functor.₀ (Unfolding.unfoldFunctor UG) (Functor.₀ S₁ (A , s))))
+         (shTrans₂ : ∀ {A} {s : ShapeOf FD A} → PosOf FD s → ShapeOf FE (Functor.₀ (Unfolding.unfoldFunctor UH) (Functor.₀ S₂ (A , s)))) where
+  compMorphismObject : (mo₁ : MorphismObject UF UG S₁ shTrans₁) (mo₂ : MorphismObject UG UH S₂ shTrans₂)
+                     → MorphismObject UF UH (S₂ ∘F S₁) (λ p → shTrans₂ (MorphismObject.onPos mo₁ p))
+  compMorphismObject mo₁ mo₂ = record
+    { onPos = λ p → onPos mo₂ (onPos mo₁ p)
+    ; pts-compat = λ p → pts-compat mo₂ (onPos mo₁ p)
+    } where open MorphismObject
 
-        ceE : ContCatEquiv E FE
-        ceE = record {}
-        ceD : ContCatEquiv D FD
-        ceD = record {}
-        module CEE = ContCatEquiv E FE
-        module CED = ContCatEquiv D FD ceD
-        open ≡-Reasoning
-
-        s'     = shape (nf.η A) s
-        eqf    = onunfold-iso-f s
-        eqg    = onunfold-iso-g s'
-        eq1    = F-map-iso bg eqf
-        eq-comp = ≅.trans E eq1 eqg
-
-        y = shape (nf.η (UF.unfoldFunctor .₀ (A , s))) (UF.pos-to-shape s p)
-        x = shape (ng.η (bg.₀ (UF.unfoldFunctor .₀ (A , s)))) y
-
-        -- 容器自然变换与同构传输的交换律（由自然性直接导出）
-        nat-comm : shape (CEE.transpCont eq1) x
-                 ≡ shape (ng.η (UG.unfoldFunctor .₀ (Sf.S .₀ (A , s))))
-                         (shape (CED.transpCont eqf) y)
-        nat-comm = sym (shape-eq-from-≈M (ng.commute (≅.from eqf)) y)
-      in begin
-        shape (CEE.transpCont eq-comp) (shape _ (UF.pos-to-shape s p))
-          ≡⟨ shape-eq-from-≈M (CEE.transpCont-trans eq1 eqg) _ ⟩
-        shape (CEE.transpCont eqg) (shape (CEE.transpCont eq1) x)
-          ≡⟨ cong (shape (CEE.transpCont eqg)) nat-comm ⟩
-        shape (CEE.transpCont eqg)
-              (shape (ng.η (UG.unfoldFunctor .₀ (Sf.S .₀ (A , s))))
-                     (shape (CED.transpCont eqf) y))
-          ≡⟨ cong (shape (CEE.transpCont eqg))
-                  (cong (shape (ng.η _)) (onPos-to-shape-f p)) ⟩
-        shape (CEE.transpCont eqg)
-              (shape (ng.η _) (UG.pos-to-shape s' (onPos-f p)))
-          ≡⟨ onPos-to-shape-g (onPos-f p) ⟩
-        UH.pos-to-shape (shape (ng.η _) s') (onPos-g (onPos-f p))
-          ≡⟨ refl ⟩
-        UH.pos-to-shape (shape _ s) (onPos-g (onPos-f p))
-      ∎
-  }
-  where
-    open MorphismObject mog renaming (onPos to onPos-g; onunfold-iso to onunfold-iso-g; onPos-to-shape to onPos-to-shape-g)
-    open MorphismObject mof renaming (onPos to onPos-f; onunfold-iso to onunfold-iso-f; onPos-to-shape to onPos-to-shape-f)
-    open Categories.Morphism using (_≅_; module ≅)
+module _ {o h e o′ ℓ′ e′ s p u v : Level}
+         {C : Category o h e} {D : Category o′ ℓ′ e′}
+         {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+         {X : Set u} {Y : Set v} (UF : Unfolding FC X) (UG : Unfolding FD Y) where
+  private
+    module UF  = Unfolding UF
+    module UG  = Unfolding UG
+    module FD  = Functor FD
+    module UFf = Functor UF.unfoldFunctor
+  mkMorphismObject :
+    ∀ {H : Functor C D} {α : NaturalTransformation FC (FD ∘F H)}
+    → (cf : ContCatEquivFunctor FC FD H α)
+    → let module SCM = ShapeCatMorphism cf in
+      (ni : NaturalIsomorphism (H ∘F UF.unfoldFunctor) (UG.unfoldFunctor ∘F SCM.S))
+    → (onPos₀ : ∀ {A} {s : ShapeOf FC A} → PosOf FC s → PosOf FD (proj₂ (Functor.₀ SCM.S (A , s))))
+    → (coh : ∀ {A} {s : ShapeOf FC A} (p : PosOf FC s)
+           → shape (FD.₁ (NaturalTransformation.η (NaturalIsomorphism.F⇒G ni) (A , s)))
+                   (shape (NaturalTransformation.η α (UFf.₀ (A , s))) (UF.pos-to-shape s p))
+             ≡ UG.pos-to-shape (proj₂ (Functor.₀ SCM.S (A , s))) (onPos₀ p))
+    → MorphismObject UF UG SCM.S
+        (λ {A} {s} p → shape (FD.₁ (NaturalTransformation.η (NaturalIsomorphism.F⇒G ni) (A , s)))
+                             (shape (NaturalTransformation.η α (UFf.₀ (A , s))) (UF.pos-to-shape s p)))
+  mkMorphismObject cf ni onPos₀ coh = record { onPos = onPos₀ ; pts-compat = coh }

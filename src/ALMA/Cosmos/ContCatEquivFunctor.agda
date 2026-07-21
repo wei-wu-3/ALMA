@@ -27,26 +27,29 @@ open import ALMA.Cosmos.ContCategoryLemmas
   using (shape-eq-from-≈M; ShapeOf; PosOf; actSOf; actPOf)
 
 -- Pairs a base functor with a natural transformation between ContCat-valued functors
-module _ {o h e o′ h′ : Level}
-    {C : Category o h e} {D : Category o h e}
-    (FC : Functor C (ContCat o′ h′))
-    (FD : Functor D (ContCat o′ h′))
+module _ {o h e o′ ℓ′ e′ s p : Level}
+    {C : Category o h e}
+    {D : Category o′ ℓ′ e′}
+    (FC : Functor C (ContCat s p))
+    (FD : Functor D (ContCat s p))
     (baseFunctor : Functor C D)
     (containerNat : NaturalTransformation FC (FD ∘F baseFunctor)) where
-  record ContCatEquivFunctor : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′)) where
+  record ContCatEquivFunctor : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ ℓ′ ⊔ e′ ⊔ s ⊔ p)) where
 
 -- Identity ContCatEquivFunctor
-idContCatEquivFunctor : ∀ {o h e o′ h′} {C : Category o h e}
-                       (FC : Functor C (ContCat o′ h′))
-                      → ContCatEquivFunctor FC FC idF (NaturalIsomorphism.F⇐G unitorʳ)
+idContCatEquivFunctor : ∀ {o h e s p} {C : Category o h e}
+  (FC : Functor C (ContCat s p))
+  → ContCatEquivFunctor FC FC idF (NaturalIsomorphism.F⇐G unitorʳ)
 idContCatEquivFunctor FC = record {}
 
 -- Composition of ContCatEquivFunctors
-compContCatEquivFunctor : ∀ {o h e o′ h′}
-    {C D E : Category o h e}
-    (FC : Functor C (ContCat o′ h′))
-    (FD : Functor D (ContCat o′ h′))
-    (FE : Functor E (ContCat o′ h′))
+compContCatEquivFunctor : ∀ {o h e o′ ℓ′ e′ o″ ℓ″ e″ s p}
+    {C : Category o h e}
+    {D : Category o′ ℓ′ e′}
+    {E : Category o″ ℓ″ e″}
+    (FC : Functor C (ContCat s p))
+    (FD : Functor D (ContCat s p))
+    (FE : Functor E (ContCat s p))
     {bg : Functor D E} {bf : Functor C D}
     {ng : NaturalTransformation FD (FE ∘F bg)}
     {nf : NaturalTransformation FC (FD ∘F bf)}
@@ -60,22 +63,23 @@ compContCatEquivFunctor : ∀ {o h e o′ h′}
 compContCatEquivFunctor _ _ _ _ _ = record {}
 
 -- Trivial constructor packing a functor and natural transformation
-mkContCatEquivFunctor : ∀ {ℓ : Level}
-    {C D : Category (lsuc ℓ) (lsuc ℓ) (lsuc ℓ)}
+mkContCatEquivFunctor : ∀ {o h e o′ ℓ′ e′ s p}
+    {C : Category o h e} {D : Category o′ ℓ′ e′}
     (F : Functor C D)
-    (FC : Functor C (ContCat (lsuc ℓ) (lsuc ℓ)))
-    (FD : Functor D (ContCat (lsuc ℓ) (lsuc ℓ)))
+    (FC : Functor C (ContCat s p))
+    (FD : Functor D (ContCat s p))
     (α : NaturalTransformation FC (FD ∘F F))
   → ContCatEquivFunctor FC FD F α
 mkContCatEquivFunctor _ _ _ _ = record {}
 
 -- Functor between shape categories induced by a ContCatEquivFunctor
-module ShapeCatMorphism {o h e o′ h′} {C D : Category o h e}
-  {FC : Functor C (ContCat o′ h′)} {FD : Functor D (ContCat o′ h′)}
-  {H : Functor C D}
-  {α : NaturalTransformation FC (FD ∘F H)}
-  (cf : ContCatEquivFunctor FC FD H α)
-  where
+module ShapeCatMorphism {o h e o′ ℓ′ e′ s p}
+    {C : Category o h e} {D : Category o′ ℓ′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {H : Functor C D}
+    {α : NaturalTransformation FC (FD ∘F H)}
+    (cf : ContCatEquivFunctor FC FD H α)
+    where
   private
     open NaturalTransformation α
     module H = Functor H

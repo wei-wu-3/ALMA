@@ -34,9 +34,10 @@ open import ALMA.Cosmos.ContFunctor using (ContEmbedding; ⟦_⟧)
 
 -- ContCatEquiv: container isomorphism transport along isomorphisms
 -- 沿同构的容器传输结构（容器态射升级为容器同构）
-module _ {o h e o′ h′ : Level} (C : Category o h e)
-         (containerFunctor : Functor C (ContCat o′ h′)) where
-  record ContCatEquiv : Set (lsuc (o ⊔ h ⊔ e ⊔ o′ ⊔ h′)) where
+module _ {o h e s p : Level}
+         (C : Category o h e)
+         (containerFunctor : Functor C (ContCat s p)) where
+  record ContCatEquiv : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
 
     -- The core groupoid of C
     -- C 的核心广群
@@ -48,7 +49,7 @@ module _ {o h e o′ h′ : Level} (C : Category o h e)
 
     -- Inclusion (forgetful) functor from the core to the original category
     -- 从核心广群到原范畴的包含（遗忘）函子
-    open import Categories.Morphism (ContCat o′ h′) renaming (_≅_ to ContIso)
+    open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso renaming (from to contFrom)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
     open _≅_ using (from; to)
@@ -64,7 +65,7 @@ module _ {o h e o′ h′ : Level} (C : Category o h e)
 
     -- Transport functor along isomorphisms (now a composition of standard functors)
     -- 沿同构的传输函子（此处为标准函子的复合）
-    transportFunctor : Functor CoreC (ContCat o′ h′)
+    transportFunctor : Functor CoreC (ContCat s p)
     transportFunctor = containerFunctor ∘F Core→C
 
     -- Coherence theorems: all come for free from the functor laws
@@ -135,16 +136,16 @@ module _ {o h e o′ h′ : Level} (C : Category o h e)
 
 -- ContCatEquivEmbedding: transport lifted to natural transformations
 -- 将同构传输通过容器嵌入提升为自然变换
-module ContCatEquivEmbedding {o h e o′ h′} (ℓ′ : Level)
+module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
          (C : Category o h e)
-         (F : Functor C (ContCat o′ h′)) where
+         (F : Functor C (ContCat s p)) where
   private
     module CF = Functor F
     CCE : ContCatEquiv C F
     CCE = record {}
     -- Target category: endofunctor category [Setoids, Setoids]
     -- 目标范畴：自函子范畴 [Setoids, Setoids]
-    Tgt = Functors (Setoids ℓ′ ℓ′) (Setoids (o′ ⊔ h′ ⊔ ℓ′) (o′ ⊔ h′ ⊔ ℓ′))
+    Tgt = Functors (Setoids ℓ′ ℓ′) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
     module TgtCat = Category Tgt
     -- Combinators for natural transformation equivalence
     -- 自然变换等价组合子
@@ -153,12 +154,12 @@ module ContCatEquivEmbedding {o h e o′ h′} (ℓ′ : Level)
     -- 从 ContCatEquiv 导入传输结构
     open ContCatEquiv CCE
       using (transportFunctor; transpIso; transpCont-sym; transpCont-refl; transpCont-trans; CoreC)
-    open import Categories.Morphism (ContCat o′ h′) renaming (_≅_ to ContIso)
+    open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso using (from)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
   -- Container embedding functor ContCat → [Setoids, Setoids]
   -- 容器嵌入函子 ContCat → [Setoids, Setoids]
-  ContEmb = ContEmbedding {s = o′} {p = h′} {ℓ′ = ℓ′}
+  ContEmb = ContEmbedding {s = s} {p = p} {ℓ′ = ℓ′}
   open Functor ContEmb
   -- Lifted transport functor: CoreC → [Setoids, Setoids]
   -- 提升的传输函子：CoreC → [Setoids, Setoids]
@@ -184,11 +185,11 @@ module ContCatEquivEmbedding {o h e o′ h′} (ℓ′ : Level)
 
 -- ShapeCat: the category of shapes (Grothendieck construction)
 -- 形状范畴（Grothendieck 构造）
-module _ {o h e o′ h′} (C : Category o h e) (F : Functor C (ContCat o′ h′)) where
+module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
   open Functor F
   -- Functor forgetting positions, retaining only shapes
   -- 遗忘位置、仅保留形状的函子
-  ShapeForget : Functor (ContCat o′ h′) (Sets o′)
+  ShapeForget : Functor (ContCat s p) (Sets s)
   ShapeForget = record
     { F₀           = λ Ctr → Data.Container.Core.Shape Ctr
     ; F₁           = λ f → shape f
@@ -198,9 +199,9 @@ module _ {o h e o′ h′} (C : Category o h e) (F : Functor C (ContCat o′ h�
     }
   -- The shape functor: extracts the shape set from the container functor
   -- 形状函子：从容器函子中提取形状集
-  shapeFunctor : Functor C (Sets o′)
+  shapeFunctor : Functor C (Sets s)
   shapeFunctor = ShapeForget ∘F F
   -- The category of shapes over C (Grothendieck construction / Elements)
   -- C 上的形状范畴（Grothendieck 构造 / Elements 构造）
-  ShapeCat : Category (o ⊔ o′) (h ⊔ o′) e
+  ShapeCat : Category (o ⊔ s) (h ⊔ s) e
   ShapeCat = Elements shapeFunctor

@@ -1,142 +1,106 @@
 ------------------------------------------------------------------------
--- Lemmas for ContCatEquiv: onPos-subst and composite naturality shape
---
--- Provides onPos-subst-comm (onPos commutes with shape substitution)
--- and comp-nat-shape-eq (shape extraction for composite naturality)
+-- Lemmas for the refactored Cosmos architecture
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+
 module ALMA.Cosmos.ContCatEquivLemmas where
 
-open import Agda.Primitive using (lsuc)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; trans-reflʳ; module ≡-Reasoning)
+  using (_≡_; refl; cong; subst; module ≡-Reasoning)
 open import Data.Container.Core using (shape)
-open import Data.Container.Morphism using (_∘_)
+open import Data.Product using (_,_; proj₂)
+
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
+open import Categories.NaturalTransformation using (NaturalTransformation; _∘ᵥ_)
 
-open import ALMA.Cosmos.ContCategory using (≈M-sym; ≈M-trans; ∘M-assoc; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ObjEquivFunctor2 using (ObjEquivFunctor)
-open import ALMA.Cosmos.ContCatEquiv using (ContCatEquiv)
-open import ALMA.Cosmos.ContCatEquivFunctor using (ContCatEquivFunctor; compContCatEquivFunctor)
+open import ALMA.Cosmos.ContCategory using (ContCat)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
+open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos.ContCategoryLemmas
-  using (shape-eq-from-≈M; ShapeOf; PosOf; shape-eq-sym; shape-eq-trans; shape-eq-assoc; shape-eq-resp-ˡ; shape-eq-resp-ʳ)
 
 onPos-subst-comm :
-  ∀ {ℓ} {F G : ContCatEquiv ℓ} {CF : ContCatEquivFunctor F G}
-  {X Y : Set (lsuc (lsuc ℓ))} {UF : Unfolding ℓ F X} {UG : Unfolding ℓ G Y}
-  (MO : MorphismObject CF UF UG)
-  {A : Category.Obj (ObjEquivCat.cat (ContCatEquiv.base F))}
-  {s₁ s₂ : ShapeOf (ContCatEquiv.containerFunctor F) A}
-  (eq : s₁ ≡ s₂)
-  (p : PosOf (ContCatEquiv.containerFunctor F) s₁)
-  → MorphismObject.onPos MO (subst (PosOf (ContCatEquiv.containerFunctor F)) eq p)
-    ≡ subst (PosOf (ContCatEquiv.containerFunctor G))
-            (cong (shape (ContCatEquivFunctor.containerNat CF)) eq)
+  ∀ {o h e o′ ℓ′ e′ s p u v}
+    {C : Category o h e} {D : Category o′ ℓ′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {X : Set u} {Y : Set v}
+    {UF : Unfolding FC X} {UG : Unfolding FD Y}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {shapeTrans : ∀ {A} {s : ShapeOf FC A}
+                → PosOf FC s
+                → ShapeOf FD (Functor.₀ (Unfolding.unfoldFunctor UG)
+                                        (Functor.₀ S (A , s)))}
+    (MO : MorphismObject UF UG S shapeTrans)
+    {A : Category.Obj C}
+    {s₁ s₂ : ShapeOf FC A}
+    (eq : s₁ ≡ s₂)
+    (p : PosOf FC s₁)
+  → MorphismObject.onPos MO (subst (PosOf FC) eq p)
+    ≡ subst (λ s → PosOf FD (proj₂ (Functor.₀ S (A , s))))
+            eq
             (MorphismObject.onPos MO p)
 onPos-subst-comm MO refl p = refl
 
-comp-nat-shape-eq :
-  ∀ {ℓ} {F G H : ContCatEquiv ℓ}
-  (g : ContCatEquivFunctor G H) (f : ContCatEquivFunctor F G)
-  {A B : Category.Obj (ObjEquivCat.cat (ContCatEquiv.base F))}
-  (h : Category._⇒_ (ObjEquivCat.cat (ContCatEquiv.base F)) A B)
-  (s : ShapeOf (ContCatEquiv.containerFunctor F) A)
-  → shape-eq-from-≈M (ContCatEquivFunctor.natural (compContCatEquivFunctor g f) h) s
-    ≡ trans
-        (cong (shape (ContCatEquivFunctor.containerNat g))
-              (shape-eq-from-≈M (ContCatEquivFunctor.natural f h) s))
-        (shape-eq-from-≈M
-          (ContCatEquivFunctor.natural g
-            (Functor.₁ (ObjEquivFunctor.baseFunctor (ContCatEquivFunctor.objEquivFunctor f)) h))
-          (shape (ContCatEquivFunctor.containerNat f) s))
-comp-nat-shape-eq {F = F} {G} {H} g f {A} {B} h s =
-  let
-    open ≡-Reasoning
-    module FCE = ContCatEquiv F
-    module GCE = ContCatEquiv G
-    module HCE = ContCatEquiv H
-    module fCF = ContCatEquivFunctor f
-    module gCF = ContCatEquivFunctor g
-    fctr = FCE.containerFunctor
-    gctr = GCE.containerFunctor
-    hctr = HCE.containerFunctor
-    fobj = ObjEquivFunctor.baseFunctor fCF.objEquivFunctor
-    gobj = ObjEquivFunctor.baseFunctor gCF.objEquivFunctor
-    module fobj = Functor fobj
-    module gobj = Functor gobj
-    module fctr = Functor fctr
-    module gctr = Functor gctr
-    module hctr = Functor hctr
-    fN-A = fCF.containerNat {A}
-    fN-B = fCF.containerNat {B}
-    gN-fA = gCF.containerNat {fobj.₀ A}
-    gN-fB = gCF.containerNat {fobj.₀ B}
-    Fh = fctr.₁ h
-    Gfh = gctr.₁ (fobj.₁ h)
-    Hgfh = hctr.₁ (gobj.₁ (fobj.₁ h))
-    s1 = ∘M-assoc {f = Fh} {g = fN-B} {h = gN-fB}
-    s2 = ∘M-resp-≈ʳ {g = gN-fB} (fCF.natural h)
-    s3 = ≈M-sym (∘M-assoc {f = fN-A} {g = Gfh} {h = gN-fB})
-    s4 = ∘M-resp-≈ˡ {f = fN-A} (gCF.natural (fobj.₁ h))
-    s5 = ∘M-assoc {f = fN-A} {g = gN-fA} {h = Hgfh}
-    full = ≈M-trans s1 (≈M-trans s2 (≈M-trans s3 (≈M-trans s4 s5)))
-  in
+-- Sequential commutativity of shape maps for two composable natural transformations
+glue-shape-eq :
+  ∀ {o h e s p}
+    {C : Category o h e}
+    {F G H : Functor C (ContCat s p)}
+    {α : NaturalTransformation G H} {β : NaturalTransformation F G}
+    {A B : Category.Obj C} (f : Category._⇒_ C A B)
+    (s : ShapeOf F A)
+  → shape (NaturalTransformation.η (α ∘ᵥ β) B)
+          (shape (Functor.F₁ F f) s)
+    ≡ shape (Functor.F₁ H f)
+            (shape (NaturalTransformation.η (α ∘ᵥ β) A) s)
+glue-shape-eq {F = F} {G} {H} {α = α} {β = β} {A = A} {B = B} f s =
+  let open ≡-Reasoning in
   begin
-    shape-eq-from-≈M (ContCatEquivFunctor.natural (compContCatEquivFunctor g f) h) s
-      ≡⟨ shape-eq-trans s1 (≈M-trans s2 (≈M-trans s3 (≈M-trans s4 s5))) s ⟩
-    trans (shape-eq-from-≈M s1 s)
-      (shape-eq-from-≈M (≈M-trans s2 (≈M-trans s3 (≈M-trans s4 s5))) s)
-      ≡⟨ cong₂ trans
-           (shape-eq-assoc {A = fctr.₀ A} {B = fctr.₀ B} {C = gctr.₀ (fobj.₀ B)} {D = hctr.₀ (gobj.₀ (fobj.₀ B))}
-                           {f = Fh} {g = fN-B} {h = gN-fB} s)
-           refl ⟩
-    trans refl
-      (shape-eq-from-≈M (≈M-trans s2 (≈M-trans s3 (≈M-trans s4 s5))) s)
-      ≡⟨ shape-eq-trans s2 (≈M-trans s3 (≈M-trans s4 s5)) s ⟩
-    trans (shape-eq-from-≈M s2 s)
-      (shape-eq-from-≈M (≈M-trans s3 (≈M-trans s4 s5)) s)
-      ≡⟨ cong₂ trans
-           (shape-eq-resp-ʳ {g = gN-fB} (fCF.natural h) s)
-           (shape-eq-trans s3 (≈M-trans s4 s5) s) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (trans (shape-eq-from-≈M s3 s)
-        (shape-eq-from-≈M (≈M-trans s4 s5) s))
-      ≡⟨ cong (λ x → trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-                          (trans x (shape-eq-from-≈M (≈M-trans s4 s5) s)))
-           (begin
-             shape-eq-from-≈M s3 s
-               ≡⟨ shape-eq-sym (∘M-assoc {f = fN-A} {g = Gfh} {h = gN-fB}) s ⟩
-             sym (shape-eq-from-≈M (∘M-assoc {f = fN-A} {g = Gfh} {h = gN-fB}) s)
-               ≡⟨ cong sym (shape-eq-assoc {A = fctr.₀ A} {B = gctr.₀ (fobj.₀ A)}
-                                            {C = gctr.₀ (fobj.₀ B)} {D = hctr.₀ (gobj.₀ (fobj.₀ B))}
-                                            {f = fN-A} {g = Gfh} {h = gN-fB} s) ⟩
-             refl
-           ∎) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (trans refl (shape-eq-from-≈M (≈M-trans s4 s5) s))
-      ≡⟨ cong (trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s)))
-           (shape-eq-trans s4 s5 s) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (trans (shape-eq-from-≈M s4 s) (shape-eq-from-≈M s5 s))
-      ≡⟨ cong (λ x → trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-                          (trans (shape-eq-from-≈M s4 s) x))
-           (shape-eq-assoc {A = fctr.₀ A} {B = gctr.₀ (fobj.₀ A)}
-                           {C = hctr.₀ (gobj.₀ (fobj.₀ A))} {D = hctr.₀ (gobj.₀ (fobj.₀ B))}
-                           {f = fN-A} {g = gN-fA} {h = Hgfh} s) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (trans (shape-eq-from-≈M s4 s) refl)
-      ≡⟨ cong (trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s)))
-           (trans-reflʳ (shape-eq-from-≈M s4 s)) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (shape-eq-from-≈M s4 s)
-      ≡⟨ cong (trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s)))
-           (shape-eq-resp-ˡ {A = fctr.₀ A} {B = gctr.₀ (fobj.₀ A)} {C = hctr.₀ (gobj.₀ (fobj.₀ B))}
-                            {g₁ = gN-fB ∘ Gfh} {g₂ = Hgfh ∘ gN-fA} {f = fN-A}
-                            (gCF.natural (fobj.₁ h)) s) ⟩
-    trans (cong (shape gN-fB) (shape-eq-from-≈M (fCF.natural h) s))
-      (shape-eq-from-≈M (gCF.natural (fobj.₁ h)) (shape fN-A s))
-  ∎
+    shape (NTα.η B) (shape (NTβ.η B) (shape (F.F₁ f) s))
+      ≡⟨ cong (shape (NTα.η B))
+              (shape-eq-from-≈M (NTβ.commute f) s) ⟩
+    shape (NTα.η B) (shape (G.F₁ f) (shape (NTβ.η A) s))
+      ≡⟨ shape-eq-from-≈M (NTα.commute f)
+                          (shape (NTβ.η A) s) ⟩
+    shape (H.F₁ f) (shape (NTα.η A) (shape (NTβ.η A) s))
+    ∎
+  where
+    module F = Functor F
+    module G = Functor G
+    module H = Functor H
+    module NTα = NaturalTransformation α
+    module NTβ = NaturalTransformation β
+
+-- Sequential commutativity for three composable natural transformations
+comp-nat-shape-eq :
+  ∀ {o h e s p}
+    {C : Category o h e}
+    {F G H I : Functor C (ContCat s p)}
+    {α : NaturalTransformation H I}
+    {β : NaturalTransformation G H}
+    {γ : NaturalTransformation F G}
+    {A B : Category.Obj C} (f : Category._⇒_ C A B)
+    (s : ShapeOf F A)
+  → shape (NaturalTransformation.η (α ∘ᵥ β ∘ᵥ γ) B)
+          (shape (Functor.F₁ F f) s)
+    ≡ shape (Functor.F₁ I f)
+            (shape (NaturalTransformation.η (α ∘ᵥ β ∘ᵥ γ) A) s)
+comp-nat-shape-eq {F = F} {G} {H} {I} {α = α} {β = β} {γ = γ} {A = A} {B = B} f s =
+  let open ≡-Reasoning in
+  begin
+    shape (NTα.η B) (shape (NTβγ.η B) (shape (F.F₁ f) s))
+      ≡⟨ cong (shape (NTα.η B))
+              (glue-shape-eq {α = β} {β = γ} f s) ⟩
+    shape (NTα.η B) (shape (H.F₁ f) (shape (NTβγ.η A) s))
+      ≡⟨ shape-eq-from-≈M (NTα.commute f)
+                          (shape (NTβγ.η A) s) ⟩
+    shape (I.F₁ f) (shape (NTα.η A) (shape (NTβγ.η A) s))
+    ∎
+  where
+    module F = Functor F
+    module H = Functor H
+    module I = Functor I
+    module NTα = NaturalTransformation α
+    βγ = β ∘ᵥ γ
+    module NTβγ = NaturalTransformation βγ
