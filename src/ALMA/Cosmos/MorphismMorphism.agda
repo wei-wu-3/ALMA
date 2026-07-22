@@ -1,137 +1,140 @@
 ------------------------------------------------------------------------
 -- MorphismMorphism: compatibility of position maps with hom-actions
+-- 态射间态射：位置映射与态射作用的相容性
 --
 -- onActP : onPos commutes with the container position maps actPOf,
---          modulo the shape transport induced by the naturality of CF
+-- modulo the position transport encoded by the parameter actP
+-- onActP : onPos 与容器的位置映射 actPOf 交换，模掉由参数 actP 编码的位置运输
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.MorphismMorphism where
 
-open import Agda.Primitive using (Level; lsuc)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst-subst; module ≡-Reasoning)
-open import Data.Container.Core using (shape)
-open import Categories.Category using (Category)
-open import Categories.Functor using (Functor)
+open import Agda.Primitive using (Level; _⊔_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
+open import Data.Product using (_,_; proj₁; proj₂)
 
-open import ALMA.Cosmos.ContCatEquiv using (ContCatEquiv)
-open import ALMA.Cosmos.ContCatEquivFunctor using (ContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.ContCategoryLemmas
-  using (shape-eq-from-≈M; ShapeOf; PosOf; actSOf; actPOf)
+open import Categories.Category using (Category)
+open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
+
+open import ALMA.Cosmos.ContCategory using (ContCat)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject
   using (MorphismObject; idMorphismObject; compMorphismObject)
-open import ALMA.Cosmos.ContCatEquivLemmas using (onPos-subst-comm; comp-nat-shape-eq)
 
-record MorphismMorphism {ℓ : Level}
-  {CEF CEG : ContCatEquiv ℓ}
-  {CF : ContCatEquivFunctor CEF CEG}
-  {X Y : Set (lsuc (lsuc ℓ))}
-  {UF : Unfolding ℓ CEF X}
-  {UG : Unfolding ℓ CEG Y}
-  (MO : MorphismObject CF UF UG)
-  : Set (lsuc ℓ) where
+-- Given a MorphismObject (onPos : PosOf FC s → PosOf FD (S s)),
+-- a MorphismMorphism witnesses that onPos is compatible with the
+-- hom-action on positions (actPOf), up to the shape transport encoded by the parameter actP.
+-- 给定一个 MorphismObject（onPos : PosOf FC s → PosOf FD (S s)），
+-- MorphismMorphism 证明 onPos 与位置上的态射作用（actPOf）相容，模掉由参数 actP 编码的 shape 运输。
+module _ {o h e o′ ℓ′ e′ s p u v : Level}
+         {C : Category o h e} {D : Category o′ ℓ′ e′}
+         {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+         {X : Set u} {Y : Set v}
+         (UF : Unfolding FC X) (UG : Unfolding FD Y)
+         (S  : Functor (ShapeCat C FC) (ShapeCat D FD))
+         (shapeTrans : ∀ {A} {s : ShapeOf FC A}
+                     → PosOf FC s
+                     → ShapeOf FD (Functor.₀ (Unfolding.unfoldFunctor UG)
+                                             (Functor.₀ S (A , s))))
+         (MO : MorphismObject UF UG S shapeTrans)
+         (actP : ∀ {A B} (f : Category._⇒_ C A B) (s : ShapeOf FC A)
+               → PosOf FD (proj₂ (Functor.₀ S (B , actSOf FC f s)))
+               → PosOf FD (proj₂ (Functor.₀ S (A , s)))) where
   private
-    module CEF      = ContCatEquiv CEF
-    module CEG      = ContCatEquiv CEG
-    module CFstruct = ContCatEquivFunctor CF
-    module CFobj    = ObjEquivFunctor CFstruct.objEquivFunctor
-    module BF       = Functor CFobj.baseFunctor
-    open Unfolding UF renaming (unfoldFunctor to UF-functor)
-    open Unfolding UG renaming (unfoldFunctor to UG-functor)
-    module UF = Functor UF-functor
-    module UG = Functor UG-functor
-    module MO       = MorphismObject MO
-    module CatF     = Category (ObjEquivCat.cat CEF.base)
-    module CatG     = Category (ObjEquivCat.cat CEG.base)
-  field
-    -- onPos ∘ actPOf(f) ≡ actPOf(BF.₁ f) ∘ onPos (via shape transport)
-    onActP : ∀ {A B} (f : CatF._⇒_ A B) (s : ShapeOf CEF.containerFunctor A)
-           → (p : PosOf CEF.containerFunctor (actSOf CEF.containerFunctor f s))
-           → MO.onPos (actPOf CEF.containerFunctor f s p)
-             ≡ actPOf CEG.containerFunctor (BF.₁ f) (shape CFstruct.containerNat s)
-                 (subst (PosOf CEG.containerFunctor)
-                        (shape-eq-from-≈M (CFstruct.natural f) s)
-                        (MO.onPos p))
+    module C  = Category C
+    module D  = Category D
+    module FC = Functor FC
+    module FD = Functor FD
+    module Sf = Functor S
+    module MO = MorphismObject MO
+  -- MorphismMorphism : onPos commutes with actPOf modulo actP
+  -- 态射间态射：onPos 与 actPOf 模 actP 交换
+  record MorphismMorphism : Set (o ⊔ h ⊔ s ⊔ p) where
+    field
+      onActP : ∀ {A B} (f : C._⇒_ A B) (s : ShapeOf FC A)
+             → (p : PosOf FC (actSOf FC f s))
+             → MO.onPos (actPOf FC f s p)
+               ≡ actP f s (MO.onPos p)
+
+-- actP-from-S : canonical actP derived from the functor S itself
+-- actP-from-S : 由函子 S 本身导出的典范 actP
+module _ {o h e o′ ℓ′ e′ s p : Level}
+         {C : Category o h e} {D : Category o′ ℓ′ e′}
+         (FC : Functor C (ContCat s p)) (FD : Functor D (ContCat s p))
+         (S  : Functor (ShapeCat C FC) (ShapeCat D FD)) where
+  private
+    module C  = Category C
+    module FC = Functor FC
+    module FD = Functor FD
+    module Sf = Functor S
+  actP-from-S : ∀ {A B} (f : C._⇒_ A B) (s : ShapeOf FC A)
+              → PosOf FD (proj₂ (Sf.₀ (B , actSOf FC f s)))
+              → PosOf FD (proj₂ (Sf.₀ (A , s)))
+  actP-from-S {A} f s q =
+    actPOf FD (proj₁ (Sf.₁ (f , refl))) (proj₂ (Sf.₀ (A , s)))
+      (subst (PosOf FD) (sym (proj₂ (Sf.₁ (f , refl)))) q)
 
 -- Identity MorphismMorphism
-module _ {ℓ : Level}
-  {CE : ContCatEquiv ℓ}
-  {X : Set (lsuc (lsuc ℓ))}
-  {UF : Unfolding ℓ CE X}
-  where
-  idMorphismMorphism : MorphismMorphism (idMorphismObject {UF = UF})
-  idMorphismMorphism = record
-    { onActP = λ f s p → refl
-    }
+-- 恒等态射间态射
+module _ {o h e s p u : Level} {C : Category o h e}
+         {FC : Functor C (ContCat s p)} {X : Set u}
+         (UF : Unfolding FC X) where
+  private
+    module UF = Unfolding UF
+  idMorphismMorphism :
+    MorphismMorphism UF UF idF (λ p → UF.pos-to-shape _ p)
+                    (idMorphismObject UF)
+                    (λ f s → actPOf FC f s)
+  idMorphismMorphism = record { onActP = λ f s p → refl }
 
 -- Composition of MorphismMorphisms
-module _ {ℓ : Level}
-  {CEF CEG CEH : ContCatEquiv ℓ}
-  {CF : ContCatEquivFunctor CEF CEG}
-  {CG : ContCatEquivFunctor CEG CEH}
-  {X Y Z : Set (lsuc (lsuc ℓ))}
-  {UF : Unfolding ℓ CEF X}
-  {UG : Unfolding ℓ CEG Y}
-  {UH : Unfolding ℓ CEH Z}
-  where
+-- 态射间态射的复合
+module _ {o₁ h₁ e₁ o₂ h₂ e₂ o₃ h₃ e₃ s p u v w : Level}
+         {C : Category o₁ h₁ e₁} {D : Category o₂ h₂ e₂} {E : Category o₃ h₃ e₃}
+         {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)} {FE : Functor E (ContCat s p)}
+         {X : Set u} {Y : Set v} {Z : Set w}
+         (UF : Unfolding FC X) (UG : Unfolding FD Y) (UH : Unfolding FE Z)
+         (S₁ : Functor (ShapeCat C FC) (ShapeCat D FD))
+         (S₂ : Functor (ShapeCat D FD) (ShapeCat E FE))
+         (shTrans₁ : ∀ {A} {s : ShapeOf FC A} → PosOf FC s
+                   → ShapeOf FD (Functor.₀ (Unfolding.unfoldFunctor UG) (Functor.₀ S₁ (A , s))))
+         (shTrans₂ : ∀ {A} {s : ShapeOf FD A} → PosOf FD s
+                   → ShapeOf FE (Functor.₀ (Unfolding.unfoldFunctor UH) (Functor.₀ S₂ (A , s))))
+         (actP₁ : ∀ {A B} (f : Category._⇒_ C A B) (s : ShapeOf FC A)
+                → PosOf FD (proj₂ (Functor.₀ S₁ (B , actSOf FC f s)))
+                → PosOf FD (proj₂ (Functor.₀ S₁ (A , s))))
+         (actP₂ : ∀ {A B} (f : Category._⇒_ D A B) (s : ShapeOf FD A)
+                → PosOf FE (proj₂ (Functor.₀ S₂ (B , actSOf FD f s)))
+                → PosOf FE (proj₂ (Functor.₀ S₂ (A , s))))
+         (actP₁₂ : ∀ {A B} (f : Category._⇒_ C A B) (s : ShapeOf FC A)
+                 → PosOf FE (proj₂ (Functor.₀ (S₂ ∘F S₁) (B , actSOf FC f s)))
+                 → PosOf FE (proj₂ (Functor.₀ (S₂ ∘F S₁) (A , s)))) where
   private
-    module CEF = ContCatEquiv CEF
-    module CEG = ContCatEquiv CEG
-    module CEH = ContCatEquiv CEH
-    module CF = ContCatEquivFunctor CF
-    module CG = ContCatEquivFunctor CG
-    compCF = compContCatEquivFunctor CG CF
-    module compCF = ContCatEquivFunctor compCF
-    module BFf = Functor (ObjEquivFunctor.baseFunctor CF.objEquivFunctor)
-    module BFg = Functor (ObjEquivFunctor.baseFunctor CG.objEquivFunctor)
-    Fctr = CEF.containerFunctor
-    Gctr = CEG.containerFunctor
-    Hctr = CEH.containerFunctor
+    module C  = Category C
+    module D  = Category D
+    module FC = Functor FC
+    module FD = Functor FD
+    module FE = Functor FE
+    module S₁ = Functor S₁
+    module S₂ = Functor S₂
+  -- compMorphismMorphism : compose two MorphismMorphisms
+  -- compMorphismMorphism : 复合两个态射间态射
   compMorphismMorphism :
-      {MOg : MorphismObject CG UG UH}
-      {MOf : MorphismObject CF UF UG}
-      (MMg : MorphismMorphism MOg)
-      (MMf : MorphismMorphism MOf)
-      → MorphismMorphism (compMorphismObject MOg MOf)
-  compMorphismMorphism {MOg = MOg} {MOf} MMg MMf = record
-    { onActP = λ {A B} f s p →
-        let
-          module MOg = MorphismObject MOg
-          module MOf = MorphismObject MOf
-          module MMf = MorphismMorphism MMf
-          module MMg = MorphismMorphism MMg
-          open ≡-Reasoning
-          f' = BFf.₁ f
-          s' = shape CF.containerNat s
-          eq-f = shape-eq-from-≈M (CF.natural f) s
-          eq-g = shape-eq-from-≈M (CG.natural f') s'
-          eq-comp = shape-eq-from-≈M (compCF.natural f) s
-          x = MOg.onPos (MOf.onPos p)
-        in begin
-          MOg.onPos (MOf.onPos (actPOf Fctr f s p))
-            ≡⟨ cong MOg.onPos (MMf.onActP f s p) ⟩
-          MOg.onPos (actPOf Gctr (BFf.₁ f) (shape CF.containerNat s)
-                    (subst (PosOf Gctr) eq-f (MOf.onPos p)))
-            ≡⟨ MMg.onActP f' s' (subst (PosOf Gctr) eq-f (MOf.onPos p)) ⟩
-          actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-            (subst (PosOf Hctr) eq-g
-              (MOg.onPos (subst (PosOf Gctr) eq-f (MOf.onPos p))))
-            ≡⟨ cong (λ y → actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-                            (subst (PosOf Hctr) eq-g y))
-                    (onPos-subst-comm MOg eq-f (MOf.onPos p)) ⟩
-          actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-            (subst (PosOf Hctr) eq-g
-              (subst (PosOf Hctr) (cong (shape CG.containerNat) eq-f) x))
-            ≡⟨ cong (actPOf Hctr (BFg.₁ f') (shape CG.containerNat s'))
-                    (subst-subst (cong (shape CG.containerNat) eq-f) {y≡z = eq-g}) ⟩
-          actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-            (subst (PosOf Hctr) (trans (cong (shape CG.containerNat) eq-f) eq-g) x)
-            ≡⟨ cong (λ e → actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-                            (subst (PosOf Hctr) e x))
-                    (sym (comp-nat-shape-eq CG CF f s)) ⟩
-          actPOf Hctr (BFg.₁ f') (shape CG.containerNat s')
-            (subst (PosOf Hctr) eq-comp x)
-        ∎
-    }
+      {MOf : MorphismObject UF UG S₁ shTrans₁}
+      {MOg : MorphismObject UG UH S₂ shTrans₂}
+      (MMf : MorphismMorphism UF UG S₁ shTrans₁ MOf actP₁)
+      (MMg : MorphismMorphism UG UH S₂ shTrans₂ MOg actP₂)
+      (coh : ∀ {A B} (f : C._⇒_ A B) (s : ShapeOf FC A)
+               (p : PosOf FC (actSOf FC f s))
+           → MorphismObject.onPos MOg
+               (MorphismObject.onPos MOf (actPOf FC f s p))
+             ≡ actP₁₂ f s (MorphismObject.onPos MOg (MorphismObject.onPos MOf p)))
+      → MorphismMorphism UF UH (S₂ ∘F S₁)
+                 (λ p → shTrans₂ (MorphismObject.onPos MOf p))
+                 (compMorphismObject UF UG UH S₁ S₂ shTrans₁ shTrans₂ MOf MOg)
+                 actP₁₂
+  compMorphismMorphism {MOf} {MOg} MMf MMg coh = record
+    { onActP = coh }

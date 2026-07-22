@@ -9,180 +9,193 @@
 module ALMA.Cosmos where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂; isEquivalence; setoid)
 open import Relation.Binary using (Reflexive; Symmetric; Transitive)
 open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂; isEquivalence; setoid)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Product using (proj₁)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Data.Container.Core using (shape)
-open import Function using (id; _∘_; Func)
+open import Function using (Func; id; _∘_)
+
 open import Categories.Category using (Category)
 open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Construction.Elements using (Elements)
-open import Categories.Functor using (Functor)
+open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
 
-open import ALMA.Cosmos.ContCategory2 using (≈M-refl; ContCat)
-open import ALMA.Cosmos.ObjEquivCat2 using (ObjEquivCat)
-open import ALMA.Cosmos.ContCatEquiv2 using (ContCatEquiv; contCatEquivFromIso)
-open import ALMA.Cosmos.ContCatEquivFunctor2
-  using (ContCatEquivFunctor; idContCatEquivFunctor; compContCatEquivFunctor)
-open import ALMA.Cosmos.Unfolding2
-  using (Unfolding; module UnfoldingSetoid; module UnfoldingFunctor)
-open import ALMA.Cosmos.MorphismObject2
+open import Categories.NaturalTransformation using (NaturalTransformation)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism; unitorʳ)
+
+open import ALMA.Cosmos.ContCategory using (≈M-refl; ContCat)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat; ContCatEquiv)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
+open import ALMA.Cosmos.ContCatEquivFunctor
+  using (ContCatEquivFunctor; idContCatEquivFunctor; compContCatEquivFunctor; module ShapeCatMorphism)
+open import ALMA.Cosmos.Unfolding
+  using (Unfolding; mapUnfolding; mapUnfolding-id; mapUnfolding-∘; module UnfoldingSetoid)
+open import ALMA.Cosmos.MorphismObject
   using (MorphismObject; idMorphismObject; compMorphismObject)
-open import ALMA.Cosmos.MorphismMorphism2
-  using (MorphismMorphism; idMorphismMorphism; compMorphismMorphism)
+open import ALMA.Cosmos.MorphismMorphism
+  using (MorphismMorphism; idMorphismMorphism; compMorphismMorphism; actP-from-S)
 
 -- Core Definitions: CosmosF and Cosmos as Terminal Coalgebra
-record CosmosF (ℓ : Level) (X : Set (lsuc (lsuc ℓ))) : Set (lsuc (lsuc ℓ)) where
+record CosmosF {o h e s p x : Level}
+               (C : Category o h e)
+               (FC : Functor C (ContCat s p))
+               (X : Set x)
+               : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ x) where
   field
-    contEquiv     : ContCatEquiv ℓ
-    unfoldingCore : Unfolding ℓ contEquiv X
+    unfoldingCore : Unfolding FC X
 
-record Cosmos (ℓ : Level) : Set (lsuc (lsuc ℓ)) where
+  contEquiv : ContCatEquiv C FC
+  contEquiv = record {}
+open CosmosF public
+
+record Cosmos {o h e s p : Level}
+              (C : Category o h e)
+              (FC : Functor C (ContCat s p))
+              : Set (o ⊔ h ⊔ e ⊔ s ⊔ p) where
   coinductive
   field
-    out : CosmosF ℓ (Cosmos ℓ)
+    out : CosmosF C FC (Cosmos C FC)
 open Cosmos public
 
 -- Lightweight Functoriality of CosmosF
-module CosmosMap {ℓ : Level} where
-  open UnfoldingFunctor
-
-  mapCosmosF : {X Y : Set (lsuc (lsuc ℓ))} → (X → Y) → CosmosF ℓ X → CosmosF ℓ Y
-  mapCosmosF f c = record
-    { contEquiv     = contEquiv
-    ; unfoldingCore = mapUnfolding f unfoldingCore
-    }
-    where open CosmosF c
-
-  map-id : ∀ {X} (c : CosmosF ℓ X) → mapCosmosF (λ x → x) c ≡ c
-  map-id c = refl
-  map-∘ : ∀ {X Y Z} {f : Y → Z} {g : X → Y} (c : CosmosF ℓ X) →
-          mapCosmosF (f ∘ g) c ≡ mapCosmosF f (mapCosmosF g c)
-  map-∘ c = refl
-  map-cong : {X Y : Set (lsuc (lsuc ℓ))} {f g : X → Y} → f ≡ g → mapCosmosF f ≡ mapCosmosF g
+module CosmosMap {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)} where
+  mapCosmosF : ∀ {x y : Level} {X : Set x} {Y : Set y}
+            → (X → Y) → CosmosF C FC X → CosmosF C FC Y
+  mapCosmosF f c = record { unfoldingCore = mapUnfolding f (unfoldingCore c) }
+  map-id : ∀ {x : Level} {X : Set x} (c : CosmosF C FC X)
+        → mapCosmosF (λ x → x) c ≡ c
+  map-id c = cong (λ u → record { unfoldingCore = u }) (mapUnfolding-id (unfoldingCore c))
+  map-∘ : ∀ {x y z : Level} {X : Set x} {Y : Set y} {Z : Set z}
+            (f : Y → Z) (g : X → Y) (c : CosmosF C FC X)
+        → mapCosmosF (f ∘ g) c ≡ mapCosmosF f (mapCosmosF g c)
+  map-∘ f g c =
+    cong (λ u → record { unfoldingCore = u })
+        (mapUnfolding-∘ f g (unfoldingCore c))
+  map-cong : ∀ {x y : Level} {X : Set x} {Y : Set y}
+          → {f g : X → Y} → f ≡ g → mapCosmosF f ≡ mapCosmosF g
   map-cong refl = refl
 
 -- Universe Morphisms: Coalgebra Homomorphisms
 mutual
-  record _⇒ℱ_ {ℓ} (F G : Cosmos ℓ) : Set (lsuc ℓ) where
+  record _⇒ℱ_ {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)}
+             (F G : Cosmos C FC)
+             : Set (o ⊔ h ⊔ s ⊔ p) where
     coinductive
     field
       out : ⇒ℱLayer F G
 
-  record ⇒ℱLayer {ℓ} (F G : Cosmos ℓ) : Set (lsuc ℓ) where
+  record ⇒ℱLayer {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)}
+                (F G : Cosmos C FC)
+                : Set (o ⊔ h ⊔ s ⊔ p) where
     inductive
     private
-      module FL = CosmosF (out F)
-      module GL = CosmosF (out G)
-      module CE-F = ContCatEquiv FL.contEquiv
-      module CE-G = ContCatEquiv GL.contEquiv
-      open Unfolding FL.unfoldingCore
-        renaming (unfoldFunctor to UF-functor; unfold-next to UF-next; pos-to-shape to UF-pos-to-shape)
-      open Unfolding GL.unfoldingCore
-        renaming (unfoldFunctor to UG-functor; unfold-next to UG-next; pos-to-shape to UG-pos-to-shape)
+      module C = Category C
+      UF = unfoldingCore (out F)
+      UG = unfoldingCore (out G)
+      S : Functor (ShapeCat C FC) (ShapeCat C FC)
+      S = idF
+      actP : ∀ {A B} (f : C._⇒_ A B) (s : ShapeOf FC A)
+           → PosOf FC (proj₂ (Functor.₀ S (B , actSOf FC f s)))
+           → PosOf FC (proj₂ (Functor.₀ S (A , s)))
+      actP f s = actPOf FC f s
     field
-      contEquivFunctor : ContCatEquivFunctor FL.contEquiv GL.contEquiv
-      morphismObj      : MorphismObject contEquivFunctor FL.unfoldingCore GL.unfoldingCore
-      morphismMor      : MorphismMorphism morphismObj
-      onunfold-next    : ∀ {A}
-        (s : Data.Container.Core.Shape (Functor.₀ CE-F.containerFunctor A)) →
-        UF-next s ⇒ℱ UG-next (Data.Container.Core.shape (ContCatEquivFunctor.containerNat contEquivFunctor) s)
-
+      shapeTrans  : ∀ {A} {s : ShapeOf FC A}
+                  → PosOf FC s
+                  → ShapeOf FC (Functor.₀ (Unfolding.unfoldFunctor UG) (Functor.₀ S (A , s)))
+      morphismObj : MorphismObject UF UG S shapeTrans
+      morphismMor : MorphismMorphism UF UG S shapeTrans morphismObj actP
+      onunfold-next : ∀ {A} (s : ShapeOf FC A)
+                    → Unfolding.unfold-next UF s ⇒ℱ Unfolding.unfold-next UG (proj₂ (Functor.₀ S (A , s)))
 open _⇒ℱ_ public
+open ⇒ℱLayer public
 
 -- Identity coalgebra homomorphism
-id⇒ℱ : ∀ {ℓ} {F : Cosmos ℓ} → F ⇒ℱ F
-id⇒ℱ {F = F} .out =
-  let open CosmosF (out F)
-  in record
-    { contEquivFunctor = idContCatEquivFunctor contEquiv
-    ; morphismObj      = idMorphismObject {UF = unfoldingCore}
-    ; morphismMor      = idMorphismMorphism {UF = unfoldingCore}
-    ; onunfold-next    = λ _ → id⇒ℱ
-    }
+id⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
+     → {F : Cosmos C FC} → F ⇒ℱ F
+id⇒ℱ {F = F} .out = record
+  { shapeTrans    = λ p → Unfolding.pos-to-shape UF _ p
+  ; morphismObj   = idMorphismObject UF
+  ; morphismMor   = idMorphismMorphism UF
+  ; onunfold-next = λ _ → id⇒ℱ
+  }
+  where UF = unfoldingCore (out F)
 
 -- Composition of coalgebra homomorphisms
-_∘⇒ℱ_ : ∀ {ℓ} {F G H : Cosmos ℓ} → G ⇒ℱ H → F ⇒ℱ G → F ⇒ℱ H
-_∘⇒ℱ_ {ℓ} {F} {G} {H} g f .out = record
-  { contEquivFunctor = compCF
-  ; morphismObj      = compMO
-  ; morphismMor      = compMM
-  ; onunfold-next    = λ {A} s → nextG (shape (ContCatEquivFunctor.containerNat cF) s) ∘⇒ℱ nextF s
+_∘⇒ℱ_ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
+       → {F G H : Cosmos C FC} → G ⇒ℱ H → F ⇒ℱ G → F ⇒ℱ H
+_∘⇒ℱ_ {o} {h} {e} {s} {p} {C} {FC} {F = F} {G} {H} g f .out = record
+  { shapeTrans    = λ p → shapeTrans (g .out) (onPos moF p)
+  ; morphismObj   = record
+      { onPos      = λ p → onPos moG (onPos moF p)
+      ; pts-compat = λ p → pts-compat moG (onPos moF p)
+      }
+  ; morphismMor   = record { onActP = coh }
+  ; onunfold-next = λ s →
+      (onunfold-next (g .out) _) ∘⇒ℱ (onunfold-next (f .out) s)
   }
   where
-    open ⇒ℱLayer (g .out)
-      renaming (contEquivFunctor to cG; morphismObj to moG; morphismMor to mmG; onunfold-next to nextG)
-    open ⇒ℱLayer (f .out)
-      renaming (contEquivFunctor to cF; morphismObj to moF; morphismMor to mmF; onunfold-next to nextF)
-    compCF = compContCatEquivFunctor cG cF
-    compMO = compMorphismObject moG moF
-    compMM = compMorphismMorphism mmG mmF
+    open MorphismObject
+    open MorphismMorphism
+    open import Relation.Binary.PropositionalEquality using (trans; cong)
+    UF = unfoldingCore (out F)
+    UG = unfoldingCore (out G)
+    UH = unfoldingCore (out H)
+    moF = morphismObj (f .out)
+    moG = morphismObj (g .out)
+    mmF = morphismMor (f .out)
+    mmG = morphismMor (g .out)
+    coh : ∀ {A B} (f′ : Category._⇒_ C A B) (s′ : ShapeOf FC A)
+        → (p : PosOf FC (actSOf FC f′ s′))
+        → onPos moG (onPos moF (actPOf FC f′ s′ p))
+          ≡ actPOf FC f′ s′ (onPos moG (onPos moF p))
+    coh f′ s′ p = trans (cong (onPos moG) (onActP mmF f′ s′ p))
+                        (onActP mmG f′ s′ (onPos moF p))
 
 -- UnitCosmos: Trivial One-Object Cosmos
-UnitCat : ∀ {ℓ} → Category (lsuc ℓ) (lsuc ℓ) (lsuc ℓ)
+UnitCat : ∀ {ℓ} → Category ℓ ℓ ℓ
 UnitCat = record
-  { Obj       = ⊤
-  ; _⇒_       = λ _ _ → ⊤
-  ; _≈_       = _≡_
-  ; id        = tt
-  ; _∘_       = λ _ _ → tt
-  ; equiv     = record { refl = refl ; sym = sym ; trans = trans }
-  ; ∘-resp-≈  = λ _ _ → refl
-  ; assoc     = λ {_ _ _ _ _ _ _} → refl
-  ; sym-assoc = λ {_ _ _ _ _ _ _} → refl
-  ; identityˡ = λ {_ _ _} → refl
-  ; identityʳ = λ {_ _ _} → refl
-  ; identity² = λ {_} → refl
+  { Obj = ⊤
+  ; _⇒_ = λ _ _ → ⊤
+  ; _≈_ = λ _ _ → ⊤
+  ; id = tt
+  ; _∘_ = λ _ _ → tt
+  ; equiv = record { refl = tt; sym = λ _ → tt; trans = λ _ _ → tt }
+  ; ∘-resp-≈ = λ _ _ → tt
+  ; assoc = tt
+  ; sym-assoc = tt
+  ; identityˡ = tt
+  ; identityʳ = tt
+  ; identity² = tt
   }
-UnitContainerFunctor : ∀ {ℓ} → Functor (UnitCat {ℓ}) (ContCat (lsuc ℓ) (lsuc ℓ))
+
+UnitContainerFunctor : ∀ {ℓ} → Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)
 UnitContainerFunctor = record
-  { F₀           = λ _ → record { Shape = ⊤ ; Position = λ _ → ⊤ }
-  ; F₁           = λ _ → record { shape = λ _ → tt ; position = λ _ → tt }
-  ; identity     = ≈M-refl
+  { F₀ = λ _ → record { Shape = ⊤; Position = λ _ → ⊤ }
+  ; F₁ = λ _ → record { shape = λ _ → tt; position = λ _ → tt }
+  ; identity = ≈M-refl
   ; homomorphism = ≈M-refl
-  ; F-resp-≈     = λ _ → ≈M-refl
+  ; F-resp-≈ = λ _ → ≈M-refl
   }
-UnitContCatEquiv : ∀ {ℓ} → ContCatEquiv ℓ
-UnitContCatEquiv = contCatEquivFromIso UnitCat UnitContainerFunctor
-UnitCosmos : ∀ {ℓ} → Cosmos ℓ
-UnitCosmos {ℓ} .out = record
-  { contEquiv     = UnitContCatEquiv
-  ; unfoldingCore = unitUnfolding
+
+UnitCosmos : ∀ {ℓ} → Cosmos (UnitCat {ℓ}) UnitContainerFunctor
+UnitCosmos .out = record
+  { unfoldingCore = record
+    { unfoldFunctor = record
+      { F₀ = proj₁
+      ; F₁ = proj₁
+      ; identity = Category.Equiv.refl UnitCat
+      ; homomorphism = Category.Equiv.refl UnitCat
+      ; F-resp-≈ = λ p → p
+      }
+    ; unfold-next = λ _ → UnitCosmos
+    ; pos-to-shape = λ _ _ → tt
+    ; pos-actS-compat = λ _ _ _ → refl
+    }
   }
-  where
-    open ContCatEquiv UnitContCatEquiv
-    open ObjEquivCat base
-    module Cat = Category cat
-    ShapeForget : Functor cat (Sets (lsuc ℓ))
-    ShapeForget = record
-      { F₀       = λ _ → ⊤
-      ; F₁       = λ _ _ → tt
-      ; identity     = λ _ → refl
-      ; homomorphism = λ _ → refl
-      ; F-resp-≈     = λ _ _ → refl
-      }
-    UnitShapeCat : Category (lsuc ℓ ⊔ lsuc ℓ) (lsuc ℓ ⊔ lsuc ℓ) (lsuc ℓ)
-    UnitShapeCat = Elements ShapeForget
-    unitUnfoldFunctor : Functor UnitShapeCat cat
-    unitUnfoldFunctor = record
-      { F₀           = proj₁
-      ; F₁           = proj₁
-      ; identity     = Cat.Equiv.refl
-      ; homomorphism = Cat.Equiv.refl
-      ; F-resp-≈     = λ p → p
-      }
-    unitUnfolding : Unfolding ℓ UnitContCatEquiv (Cosmos ℓ)
-    unitUnfolding = record
-      { unfoldFunctor          = unitUnfoldFunctor
-      ; unfold-next            = λ _ → UnitCosmos
-      ; pos-to-shape           = λ _ _ → tt
-      ; pos-actS-compat        = λ _ _ _ → refl
-      ; pos-to-shape-transport = λ _ → refl
-      }
 
 -- StrictSets Category
 StrictSets : (ℓ : Level) → Category (lsuc ℓ) ℓ ℓ
@@ -206,80 +219,80 @@ StrictSets ℓ = record
   }
 
 -- CosmosF Functor: StrictSets → Setoids
-module CosmosFFunctor {ℓ : Level} where
-  open UnfoldingFunctor
-  open CosmosF
+module CosmosFFunctor {o h e s p : Level}
+                      {C : Category o h e}
+                      {FC : Functor C (ContCat s p)} where
   open CosmosMap
-  -- Helper: lift plain functions to setoid morphisms
+  open import Categories.Category.Instance.Setoids using (Setoids)
+  open import Function using (Func) renaming (id to idFunc; _∘_ to _∘Func_)
   private
-    toStdFunc : {X Y : Set (lsuc (lsuc ℓ))} → (X → Y) → Func (setoid X) (setoid Y)
-    toStdFunc f = record { to = f ; cong = λ eq → cong f eq }
+    module US {u : Level} = UnfoldingSetoid
+      {o = o} {h = h} {e = e} {s = s} {p = p} {u = u} {C = C} {F = FC}
   -- Equivalence relation on CosmosF elements
-  record _≈F_ (X : Setoid (lsuc (lsuc ℓ)) (lsuc (lsuc ℓ)))
-              (c₁ c₂ : CosmosF ℓ (Setoid.Carrier X)) : Set (lsuc (lsuc ℓ)) where
-    private
-      module X  = Setoid X
-      module C₁ = CosmosF c₁
-      module C₂ = CosmosF c₂
+  record _≈F_ {u : Level} (X : Setoid u u)
+              (c₁ c₂ : CosmosF C FC (Setoid.Carrier X))
+              : Set (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u) where
     field
-      contEquiv-eq : C₁.contEquiv ≡ C₂.contEquiv
-      unfolding-eq :
-        let module US = UnfoldingSetoid {CE = C₂.contEquiv}
-        in US._≈U_ X
-             (subst (λ ce → Unfolding ℓ ce (X.Carrier)) contEquiv-eq C₁.unfoldingCore)
-             C₂.unfoldingCore
+      contEquiv-eq : contEquiv c₁ ≡ contEquiv c₂
+      unfolding-eq : US._≈U_ {X = X} (unfoldingCore c₁) (unfoldingCore c₂)
   -- Equivalence proofs
-  ≈F-refl : {X : Setoid _ _} → Reflexive (_≈F_ X)
+  ≈F-refl : {u : Level} {X : Setoid u u} → Reflexive (_≈F_ X)
   ≈F-refl {X = X} = record
     { contEquiv-eq = refl
-    ; unfolding-eq = UnfoldingSetoid.≈U-refl {X = X}
+    ; unfolding-eq = US.≈U-refl {X = X}
     }
-  ≈F-sym : {X : Setoid _ _} → Symmetric (_≈F_ X)
-  ≈F-sym {X = X} (record { contEquiv-eq = refl ; unfolding-eq = ue }) = record
-    { contEquiv-eq = refl
-    ; unfolding-eq = UnfoldingSetoid.≈U-sym X ue
+  ≈F-sym : {u : Level} {X : Setoid u u} → Symmetric (_≈F_ X)
+  ≈F-sym {X = X} (record { contEquiv-eq = ce ; unfolding-eq = ue }) = record
+    { contEquiv-eq = sym ce
+    ; unfolding-eq = US.≈U-sym X ue
     }
-  ≈F-trans : {X : Setoid _ _} → Transitive (_≈F_ X)
-  ≈F-trans {X = X}
-    (record { contEquiv-eq = refl ; unfolding-eq = ue₁ })
-    (record { contEquiv-eq = refl ; unfolding-eq = ue₂ }) = record
-      { contEquiv-eq = refl
-      ; unfolding-eq = UnfoldingSetoid.≈U-trans X ue₁ ue₂
-      }
+  ≈F-trans : {u : Level} {X : Setoid u u} → Transitive (_≈F_ X)
+  ≈F-trans {X = X} (record { contEquiv-eq = ce₁ ; unfolding-eq = ue₁ })
+                  (record { contEquiv-eq = ce₂ ; unfolding-eq = ue₂ }) = record
+    { contEquiv-eq = trans ce₁ ce₂
+    ; unfolding-eq = US.≈U-trans X ue₁ ue₂
+    }
   -- CosmosF as a Setoid
-  CosmosFSetoid : Setoid (lsuc (lsuc ℓ)) (lsuc (lsuc ℓ))
-                → Setoid (lsuc (lsuc ℓ)) (lsuc (lsuc ℓ))
-  CosmosFSetoid X = record
-    { Carrier       = CosmosF ℓ (Setoid.Carrier X)
+  CosmosFSetoid : (u : Level) → Setoid u u
+                → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
+                         (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u)
+  CosmosFSetoid u X = record
+    { Carrier       = CosmosF C FC (Setoid.Carrier X)
     ; _≈_           = _≈F_ X
-    ; isEquivalence = record { refl = ≈F-refl ; sym = ≈F-sym ; trans = ≈F-trans }
+    ; isEquivalence = record
+      { refl  = ≈F-refl {X = X}
+      ; sym   = ≈F-sym {X = X}
+      ; trans = ≈F-trans {X = X}
+      }
     }
   -- mapCosmosF respects the equivalence
-  mapCosmosF-resp : {X Y : Setoid _ _} → Func X Y
-                  → Func (CosmosFSetoid X) (CosmosFSetoid Y)
-  mapCosmosF-resp f = record
+  mapCosmosF-resp : {u : Level} {X Y : Setoid u u} → Func X Y
+                  → Func (CosmosFSetoid u X) (CosmosFSetoid u Y)
+  mapCosmosF-resp {X = X} {Y = Y} f = record
     { to   = λ c → mapCosmosF (Func.to f) c
     ; cong = helper
     }
     where
-      helper : {c₁ c₂ : CosmosF ℓ _} → _≈F_ _ c₁ c₂
-             → _≈F_ _ (mapCosmosF (Func.to f) c₁) (mapCosmosF (Func.to f) c₂)
-      helper (record { contEquiv-eq = refl ; unfolding-eq = ue }) = record
+      helper : {c₁ c₂ : CosmosF C FC _} → _≈F_ X c₁ c₂
+            → _≈F_ Y (mapCosmosF (Func.to f) c₁) (mapCosmosF (Func.to f) c₂)
+      helper (record { unfolding-eq = ue }) = record
         { contEquiv-eq = refl
-        ; unfolding-eq = Func.cong (UnfoldingSetoid.mapUnfolding-Func _ _ f) ue
+        ; unfolding-eq = Func.cong (US.mapUnfolding-resp X Y f) ue
         }
   -- The CosmosF functor
-  CosmosFFunctor : Functor (StrictSets (lsuc (lsuc ℓ)))
-                           (Setoids (lsuc (lsuc ℓ)) (lsuc (lsuc ℓ)))
-  CosmosFFunctor = record
-    { F₀           = λ X → CosmosFSetoid (setoid X)
+  toStdFunc : {u : Level} {X Y : Set u} → (X → Y) → Func (setoid X) (setoid Y)
+  toStdFunc f = record { to = f ; cong = cong f }
+  cosmosFFunctor : (u : Level)
+                → Functor (StrictSets u)
+                          (Setoids (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
+                                    (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u))
+  cosmosFFunctor u = record
+    { F₀           = λ X → CosmosFSetoid u (setoid X)
     ; F₁           = λ f → mapCosmosF-resp (toStdFunc f)
     ; identity     = λ {X} → ≈F-refl {X = setoid X}
     ; homomorphism = λ {X Y Z} {f g} → ≈F-refl {X = setoid Z}
-    ; F-resp-≈     = λ {X Y} {f g} f≈g {c} →
-        let open UnfoldingSetoid {CE = contEquiv c}
-        in record
-          { contEquiv-eq = refl
-          ; unfolding-eq = mapUnfolding-resp-≈ X Y f g f≈g ≈U-refl
-          }
+    ; F-resp-≈     = λ {X Y} {f g} f≈g {c} → record
+        { contEquiv-eq = refl
+        ; unfolding-eq = US.mapUnfolding-resp-≈ X Y f g f≈g US.≈U-refl
+        }
     }

@@ -37,7 +37,7 @@ module _ {o h e s p u : Level}
     module F   = Functor F
     ShapeCat′ : Category (o ⊔ s) (h ⊔ s) e
     ShapeCat′ = ShapeCat C F
-  record Unfolding : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)) where
+  record Unfolding : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
     field
       unfoldFunctor   : Functor ShapeCat′ C
       unfold-next     : ∀ {A} → ShapeOf F A → X
@@ -61,11 +61,14 @@ mapUnfolding f u = record
 mapUnfolding-id : ∀ {o h e s p u} {C : Category o h e} {F : Functor C (ContCat s p)} {X : Set u}
                  (u : Unfolding F X) → mapUnfolding id u ≡ u
 mapUnfolding-id u = refl
-mapUnfolding-∘ : ∀ {o h e s p u v w} {C : Category o h e} {F : Functor C (ContCat s p)}
+mapUnfolding-∘ : ∀ {o h e s p u v w}
+                   {C : Category o h e}
+                   {F : Functor C (ContCat s p)}
                    {X : Set u} {Y : Set v} {Z : Set w}
-                   {f : Y → Z} {g : X → Y} (u : Unfolding F X)
-                 → mapUnfolding (f ∘ g) u ≡ mapUnfolding f (mapUnfolding g u)
-mapUnfolding-∘ u = refl
+                   (f : Y → Z) (g : X → Y)
+                   (u : Unfolding F X)
+               → mapUnfolding (f ∘ g) u ≡ mapUnfolding f (mapUnfolding g u)
+mapUnfolding-∘ f g u = refl
 
 -- Setoid structure for unfoldings
 module UnfoldingSetoid {o h e s p u : Level}
@@ -115,7 +118,7 @@ module UnfoldingSetoid {o h e s p u : Level}
     ; unfold-next-eq   = λ s → Setoid.trans X (un₁ s) (un₂ s)
     }
 
-  unfoldingSetoid : Setoid u u → Setoid (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u))
+  unfoldingSetoid : Setoid u u → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
                                         (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u))
   unfoldingSetoid X = record
     { Carrier       = Unfolding F (Setoid.Carrier X)

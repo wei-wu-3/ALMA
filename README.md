@@ -23,6 +23,12 @@ src/ALMA/Cosmos/ — The ongoing, latest evolution of the codebase. Currently un
 
 src/ALMA/Cosmos/ —— 当前演进中的最新代码。该项目仍在积极开发中，其核心闭合机制与内部一致性尚待最终确立。
 
+## Motivation / 动机
+
+The inherent ambiguity and non-computability of natural language render it an unreliable tool for rigorously examining the logical necessity of philosophical thought; mathematics is therefore introduced as a more precise alternative.
+
+自然语言固有的歧义性与不可计算性，使其无法成为严格审查哲学思想逻辑必然性的可靠工具；因此，数学被引入，作为一种更精确的替代。
+
 ## Preprint / 预印本
 
 <https://philpeople.org/profiles/wei-wu-3>
@@ -31,9 +37,11 @@ src/ALMA/Cosmos/ —— 当前演进中的最新代码。该项目仍在积极�
 
 - Agda v2.8.0  
 - Agda Standard Library v2.4  
+- agda-categories v0.3.0
 
 ## Architecture / 架构
 
+```text
 src/ALMA/
 ├── Cosmos.agda
 ├── Cosmos/
@@ -76,18 +84,33 @@ are all welcome
 ## References / 参考文献
 
 Abbott, M., Altenkirch, T., & Ghani, N. (2003). Categories of containers. In A. D. Gordon (Ed.), Foundations of software science and computation structures (LNCS 2620, pp. 23–38). Springer. https://doi.org/10.1007/3-540-36576-1_2
+
 Abbott, M., Altenkirch, T., & Ghani, N. (2005). Containers: Constructing strictly positive types. Theoretical Computer Science, 342(1), 3–27. https://doi.org/10.1016/j.tcs.2005.06.002
+
 Baars, B. J. (1989). A cognitive theory of consciousness. Cambridge University Press.
+
 Bohr, N. (1935). Can quantum-mechanical description of physical reality be considered complete? Physical Review, 48(8), 696–702. https://doi.org/10.1103/PhysRev.48.696
+
 Chalmers, D. J. (1995). Facing up to the problem of consciousness. Journal of Consciousness Studies, 2(3), 200–209.
+
 Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. Neuron, 70(2), 200–227. https://doi.org/10.1016/j.neuron.2011.03.018
+
 Einstein, A. (1905). Zur Elektrodynamik bewegter Körper. Annalen der Physik, 322(10), 891–921. https://doi.org/10.1002/andp.19053221004
+
 Hawking, S. W. (1988). A brief history of time: From the big bang to black holes. Bantam Books.
+
 Heidegger, M. (1962). Being and time (J. Macquarrie & E. Robinson, Trans.). Harper & Row. (Original work published 1927)
+
 Jacobs, B. (1999). Categorical logic and type theory (Studies in Logic and the Foundations of Mathematics, Vol. 141). Elsevier Science.
+
 Kant, I. (1781/1787). Kritik der reinen Vernunft. Hartknoch.
+
 Leibniz, G. W. (1989). Philosophical essays (R. Ariew & D. Garber, Trans.). Hackett Publishing.
+
 Parmenides. (1983). Fragments of on nature. In G. S. Kirk, J. E. Raven, & M. Schofield (Eds.), The presocratic philosophers (2nd ed., pp. 239–268). Cambridge University Press.
+
 Penrose, R. (2016). Fashion, faith, and fantasy in the new physics of the universe. Princeton University Press.
+
 Prigogine, I. (1980). From being to becoming: Time and complexity in the physical sciences. W. H. Freeman.
+
 Wittgenstein, L. (1922/1981). Tractatus logico-philosophicus (C. K. Ogden, Trans.). Routledge & Kegan Paul.
