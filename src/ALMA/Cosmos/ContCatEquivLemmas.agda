@@ -1,25 +1,37 @@
 ------------------------------------------------------------------------
--- Lemmas for the refactored Cosmos architecture
+-- Proves substitution–commutation for position maps, and sequential
+-- (vertical) commutativity of shape components under composition of
+-- natural transformations valued in ContCat
+-- 证明位置映射与替换的交换性，以及取值于 ContCat 的自然变换
+-- 在纵复合下形状分量的顺序交换性
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.ContCatEquivLemmas where
 
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; subst; module ≡-Reasoning)
+open import Agda.Builtin.Equality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality.Core using (cong; subst)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
+open import Data.Product.Base using (_,_; proj₂)
 open import Data.Container.Core using (shape)
-open import Data.Product using (_,_; proj₂)
 
-open import Categories.Category using (Category)
-open import Categories.Functor using (Functor)
-open import Categories.NaturalTransformation using (NaturalTransformation; _∘ᵥ_)
+open import Categories.Category.Core using (Category)
+open import Categories.Functor.Core using (Functor)
+open import Categories.NaturalTransformation.Core using (NaturalTransformation; _∘ᵥ_)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
 
+-- Substitution commutes with the position map of a MorphismObject:
+-- applying onPos after substituting along a shape equality in the source
+-- equals substituting along the induced shape equality in the target
+-- after applying onPos
+-- 替换与 MorphismObject 的位置映射交换：
+-- 在源端沿形状等式替换后再施加 onPos，
+-- 等于先施加 onPos 再在目标端沿诱导的形状等式替换
 onPos-subst-comm :
   ∀ {o h e o′ ℓ′ e′ s p u v}
     {C : Category o h e} {D : Category o′ ℓ′ e′}
@@ -42,7 +54,13 @@ onPos-subst-comm :
             (MorphismObject.onPos MO p)
 onPos-subst-comm MO refl p = refl
 
--- Sequential commutativity of shape maps for two composable natural transformations
+-- Sequential (vertical) commutativity of shape components under composition
+-- for two composable natural transformations α : G ⟹ H and β : F ⟹ G:
+-- the shape component of α ∘ᵥ β satisfies the naturality square with
+-- respect to any morphism f : A → B in the source category
+-- 两个可复合自然变换 α : G ⟹ H 与 β : F ⟹ G 的形状映射的
+-- 顺序（纵向）交换性：α ∘ᵥ β 的形状分量关于源范畴中
+-- 任意态射 f : A → B 满足自然性方块
 glue-shape-eq :
   ∀ {o h e s p}
     {C : Category o h e}
@@ -72,7 +90,13 @@ glue-shape-eq {F = F} {G} {H} {α = α} {β = β} {A = A} {B = B} f s =
     module NTα = NaturalTransformation α
     module NTβ = NaturalTransformation β
 
--- Sequential commutativity for three composable natural transformations
+-- Sequential (vertical) commutativity for three composable natural
+-- transformations α : H ⟹ I, β : G ⟹ H, γ : F ⟹ G:
+-- the shape component of α ∘ᵥ β ∘ᵥ γ satisfies the naturality square
+-- The proof factors β ∘ᵥ γ via glue-shape-eq, then applies naturality of α
+-- 三个可复合自然变换 α : H ⟹ I、β : G ⟹ H、γ : F ⟹ G 的
+-- 顺序（纵向）交换性：α ∘ᵥ β ∘ᵥ γ 的形状分量满足自然性方块
+-- 证明先经 glue-shape-eq 分解 β ∘ᵥ γ，再施加 α 的自然性
 comp-nat-shape-eq :
   ∀ {o h e s p}
     {C : Category o h e}

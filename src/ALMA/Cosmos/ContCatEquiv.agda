@@ -12,21 +12,23 @@
 
 module ALMA.Cosmos.ContCatEquiv where
 
-open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Relation.Binary.PropositionalEquality using (refl; cong)
-open import Relation.Binary using (Setoid)
-open import Data.Product using (_,_)
-open import Data.Container.Core using (_⇒_; shape)
+open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Builtin.Equality using (refl)
+open import Relation.Binary.PropositionalEquality.Core using (cong)
+open import Relation.Binary.Bundles using (Setoid)
+open import Data.Product.Base using (_,_)
+open import Data.Container.Core using (shape)
 open import Data.Container.Morphism using (id; _∘_)
 open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
 
-open import Categories.Category using (Category)
+open import Categories.Category.Core using (Category)
 open import Categories.Category.Construction.Functors using (Functors)
 open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Construction.Elements using (Elements)
-open import Categories.Functor using (Functor; _∘F_)
-open import Categories.NaturalTransformation using (NaturalTransformation)
+open import Categories.Functor.Core using (Functor)
+open import Categories.Functor using (_∘F_)
+open import Categories.NaturalTransformation.Core using (NaturalTransformation)
 
 open import ALMA.Cosmos.ContCategory
   using (_≈M_; ≈M-sym; ≈M-trans; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈M-Reasoning)
@@ -37,7 +39,12 @@ open import ALMA.Cosmos.ContFunctor using (ContEmbedding; ⟦_⟧)
 module _ {o h e s p : Level}
          (C : Category o h e)
          (containerFunctor : Functor C (ContCat s p)) where
-  record ContCatEquiv : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
+  -- Parameterised record: packages the source category C and the
+  -- functor containerFunctor as module context; has no fields, so
+  -- instantiation is trivial (record {})
+  -- 参数化 record：将源范畴 C 与函子 containerFunctor 封装为模块上下文；
+  -- 无字段，故实例化是平凡的（record {}）
+  record ContCatEquiv : Set where
 
     -- The core groupoid of C
     -- C 的核心广群

@@ -1,5 +1,4 @@
 # ALMA — Arche of Being: Logically Necessary Metatheoretical Architecture
-# ALMA —— 存在之本原：逻辑必然的元理论架构
 
 ## Introduction / 简介
 
@@ -29,15 +28,41 @@ The inherent ambiguity and non-computability of natural language render it an un
 
 自然语言固有的歧义性与不可计算性，使其无法成为严格审查哲学思想逻辑必然性的可靠工具；因此，数学被引入，作为一种更精确的替代。
 
+### Tool Migration and Ontological Commitment / 工具迁移与本体论承诺
+
+The formalization has undergone three tool migrations, each driven by a fundamental conflict in ontological commitment. In the QS5+BF phase, the Barcan Formula forces all possible worlds to share a single domain of quantification. The subsequent turn to Lean 4 revealed, beyond expressivity bottlenecks, that its mathematical library's unconditional presupposition of the law of excluded middle and classical set theory constitutes a direct conflict at the level of ontological commitment. Agda was ultimately selected: its constructive foundation presupposes no classical axioms whatsoever, and its dependent types and coinductive records align precisely with the ontological commitments of this work. This migratory trajectory itself reveals that formalization languages are not neutral notational vehicles; their logical foundations, type structures, and axiomatic environments collectively constitute an implicit set of ontological commitments. To choose a tool is to choose an ontology.
+
+形式化历经三次工具迁移，其背后是本体论承诺的根本性冲突。QS5+BF 阶段，Barcan 公式强制所有可能世界共享同一论域。转向 Lean 4 后，除表达力瓶颈外，更发现与其数学库对排中律与经典集合论的无条件预设，直接构成本体论承诺层面的冲突。最终选定 Agda：其构造性基底不预设任何经典公理，依赖类型与余归纳记录恰与该项工作的本体论承诺完全相合。这一迁移历程本身揭示：形式化语言并非中性的记号载体；其逻辑基底、类型结构与公理环境，共同构成一套隐性的本体论承诺。工具选择，即本体论选择。
+
+## Key Contribution / 核心贡献
+
+### A Novel Mathematical Structure / 一种新的数学结构
+
+The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, co-algebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the universe insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
+
+形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
+
 ## Preprint / 预印本
 
-<https://philpeople.org/profiles/wei-wu-3>
+### English Version / 英文版
+
+*Arche of Being: Logically Necessary Metatheoretical Architecture*
+
+- [English Record](https://philpapers.org/rec/WUTVFF)
+- [English PDF](https://philpapers.org/archive/WUTVFF.pdf)
+
+### Chinese Version / 中文版
+
+*存在之本原：逻辑必然的元理论架构*
+
+- [Chinese Record](https://philpapers.org/rec/WEIJML-2)
+- [Chinese PDF](https://philpapers.org/archive/WEIJML-2.pdf)
 
 ## Dependencies & Build / 依赖与构建
 
-- Agda v2.8.0  
-- Agda Standard Library v2.4  
-- agda-categories v0.3.0
+- [Agda](https://github.com/agda/agda) v2.8.0
+- [Agda Standard Library](https://github.com/agda/agda-stdlib) v2.4
+- [agda-categories](https://github.com/agda/agda-categories) v0.3.0
 
 ## Architecture / 架构
 
@@ -74,12 +99,13 @@ src/ALMA/
     ├── Properties.agda
     ├── StandardModel.agda
     └── Universe.agda
+```
 
 ## Contributing / 贡献指南
 
-Discussions, proof ideas, literature references and code contributions 
-are all welcome
-欢迎参与讨论、提供证明思路与文献指引，或贡献代码
+Discussions, proof ideas, literature references and code contributions are all welcome.
+
+欢迎参与讨论、提供证明思路与文献指引，或贡献代码。
 
 ## References / 参考文献
 

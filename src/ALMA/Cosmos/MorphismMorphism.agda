@@ -11,15 +11,17 @@
 module ALMA.Cosmos.MorphismMorphism where
 
 open import Agda.Primitive using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Agda.Builtin.Equality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality.Core using (sym; subst)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 
-open import Categories.Category using (Category)
-open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
+open import Categories.Category.Core using (Category)
+open import Categories.Functor.Core using (Functor)
+open import Categories.Functor using (id; _∘F_)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
+open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject
   using (MorphismObject; idMorphismObject; compMorphismObject)
@@ -85,7 +87,7 @@ module _ {o h e s p u : Level} {C : Category o h e}
   private
     module UF = Unfolding UF
   idMorphismMorphism :
-    MorphismMorphism UF UF idF (λ p → UF.pos-to-shape _ p)
+    MorphismMorphism UF UF id (λ p → UF.pos-to-shape _ p)
                     (idMorphismObject UF)
                     (λ f s → actPOf FC f s)
   idMorphismMorphism = record { onActP = λ f s p → refl }
