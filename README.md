@@ -1,5 +1,7 @@
 # ALMA — Arche of Being: Logically Necessary Metatheoretical Architecture
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21511879.svg)](https://doi.org/10.5281/zenodo.21511879)
+
 ## Introduction / 简介
 
 ALMA is a formal framework grounded in type theory, category theory, containers, and coalgebras. Its modular, parameterized architecture decouples categorical infrastructures (object-equivalence categories and container functors) from unfolding systems (polynomial coalgebras), thereby supporting composable universe constructions. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
@@ -140,3 +142,44 @@ Penrose, R. (2016). Fashion, faith, and fantasy in the new physics of the univer
 Prigogine, I. (1980). From being to becoming: Time and complexity in the physical sciences. W. H. Freeman.
 
 Wittgenstein, L. (1922/1981). Tractatus logico-philosophicus (C. K. Ogden, Trans.). Routledge & Kegan Paul.
+
+
+## Declarations / 声明
+
+Funding: This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
+
+基金支持：本研究未获得任何公共、商业或非营利部门的专项资助。
+
+Conflict of Interest: The author declares no financial or non-financial conflicts of interest relevant to this study.
+
+利益冲突：作者声明不存在任何与本研究相关的财务或非财务利益冲突。
+
+Ethics Approval: This study is a purely philosophical and theoretical inquiry involving no human or animal experimentation; ethical approval is not applicable.
+
+伦理审批：本研究为纯哲学理论探讨，不涉及人类或动物实验，无需伦理审批。
+
+Informed Consent (Participation): No human participants were involved; informed consent is not applicable.
+
+知情同意（参与）：本研究不涉及人类参与者，无知情同意适用对象。
+
+Informed Consent (Publication): This manuscript contains no individually identifiable information; consent for publication is not applicable.
+
+知情同意（发表）：本研究不包含任何可识别个人身份的信息，无需发表同意。
+
+Data Availability: This study is a theoretical analysis and did not generate empirical data; a data availability statement is not applicable.
+
+数据可用性：本研究为理论分析，未生成实证数据，数据可用性声明不适用。
+
+Author Contributions: The author independently completed the research conception, logical analysis, and manuscript writing.
+
+作者贡献：作者独立完成研究构思、逻辑分析与论文撰写。
+
+Use of AI Tools: Generative AI tools were employed solely in auxiliary capacities during the preparation of this manuscript. AI-generated content was used exclusively as a reference for constructing counterarguments and for preliminary code drafting. All translated passages were verified through back-translation and finalized following sentence-by-sentence review by the author. The author assumes full academic responsibility for the entirety of this manuscript, including text, code, data, citations, and conclusions.
+
+AI工具使用：本研究在辅助性环节使用了生成式人工智能工具。AI生成内容仅用于构建反驳论证的参考及代码草稿；相关翻译文稿均通过回译校验，经作者逐句审核定稿。作者对论文的全部内容（包括文字、代码、数据、引用及结论）承担完整的学术责任。
+
+## Acknowledgments / 致谢
+
+The author wishes to express sincere gratitude to Mr. Liang Wenfeng for his pivotal contributions to the open-source advancement of large language models, from which a broad public community—including the present study—has directly benefited.
+
+谨向梁文峰先生致以诚挚感谢。其在推动AI语言模型开源领域的关键性贡献，令包括本研究在内的广泛公众群体直接受益。
