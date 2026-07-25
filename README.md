@@ -123,15 +123,23 @@ Chalmers, D. J. (1995). Facing up to the problem of consciousness. Journal of Co
 
 Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. Neuron, 70(2), 200–227. https://doi.org/10.1016/j.neuron.2011.03.018
 
+Derrida, J. (1967). De la grammatologie. Les Éditions de Minuit.
+
 Einstein, A. (1905). Zur Elektrodynamik bewegter Körper. Annalen der Physik, 322(10), 891–921. https://doi.org/10.1002/andp.19053221004
 
+Gödel, K. (1931). Über formal unentscheidbare Sätze der Principia Mathematica und verwandter Systeme I [On formally undecidable propositions of Principia Mathematica and related systems I]. Monatshefte für Mathematik und Physik, 38, 173–198. https://doi.org/10.1007/BF01700692
+
 Hawking, S. W. (1988). A brief history of time: From the big bang to black holes. Bantam Books.
+
+Hegel, G. W. F. (1969). Science of logic (A. V. Miller, Trans.). George Allen & Unwin. (Original work published 1812).
 
 Heidegger, M. (1962). Being and time (J. Macquarrie & E. Robinson, Trans.). Harper & Row. (Original work published 1927)
 
 Jacobs, B. (1999). Categorical logic and type theory (Studies in Logic and the Foundations of Mathematics, Vol. 141). Elsevier Science.
 
 Kant, I. (1781/1787). Kritik der reinen Vernunft. Hartknoch.
+
+Landauer, R. (1961). Irreversibility and heat generation in the computing process. IBM Journal of Research and Development, 5(3), 183–191. https://doi.org/10.1147/rd.53.0183
 
 Leibniz, G. W. (1989). Philosophical essays (R. Ariew & D. Garber, Trans.). Hackett Publishing.
 
@@ -142,7 +150,6 @@ Penrose, R. (2016). Fashion, faith, and fantasy in the new physics of the univer
 Prigogine, I. (1980). From being to becoming: Time and complexity in the physical sciences. W. H. Freeman.
 
 Wittgenstein, L. (1922/1981). Tractatus logico-philosophicus (C. K. Ogden, Trans.). Routledge & Kegan Paul.
-
 
 ## Declarations / 声明
 
