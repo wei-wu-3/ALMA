@@ -42,7 +42,7 @@ jobs:
 
       - name: Patch agda-categories dependency
         run: |
-          sed -i 's/standard-library-2.3/standard-library/' \
+          sed -i 's/standard-library-2.3/standard-library-2.4/' \
             agda-categories/agda-categories.agda-lib
 
       - name: Register libraries
@@ -50,7 +50,7 @@ jobs:
           mkdir -p ~/.config/agda
           echo "$(pwd)/agda-stdlib/standard-library.agda-lib" >> ~/.config/agda/libraries
           echo "$(pwd)/agda-categories/agda-categories.agda-lib" >> ~/.config/agda/libraries
-          echo "standard-library" >> ~/.config/agda/defaults
+          echo "standard-library-2.4" >> ~/.config/agda/defaults
           echo "agda-categories" >> ~/.config/agda/defaults
 
       - name: Type-check everything
