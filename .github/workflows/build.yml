@@ -10,18 +10,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
 
-      - uses: haskell-actions/setup@v2
-        with:
-          ghc-version: '9.6.7'
-          cabal-version: '3.10.3.0'
+      - name: Checkout ALMA
+        uses: actions/checkout@v7
 
       - name: Add cabal bin to PATH
-        run: echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+        run: echo "$HOME/.cabal/bin" >> "$GITHUB_PATH"
 
       - name: Cache cabal store
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cabal/store
           key: ${{ runner.os }}-agda-2.8.0-ghc-9.6.7-v2
@@ -40,26 +37,42 @@ jobs:
             --branch v2.4 \
             https://github.com/agda/agda-stdlib.git
 
-      - name: Checkout agda-categories (master for stdlib 2.4 compatibility)
+      - name: Checkout agda-categories 0.3.0
         run: |
-          git clone --depth 1 \
-            --branch master \
-            https://github.com/agda/agda-categories.git
+          TAG=$(git ls-remote --tags --refs https://github.com/agda/agda-categories.git \
+
+                | awk -F'refs/tags/' '{print $2}' \
+                | grep -E '^v?0\.3\.0$' | head -n1)
+          echo "Resolved agda-categories tag: '${TAG}'"
+          : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found on agda-categories}"
+          git clone --depth 1 --branch "$TAG" https://github.com/agda/agda-categories.git
+
+      - name: Inject --cubical-compatible into agda-categories (mirror local setup)
+        run: |
+          LIB=agda-categories/agda-categories.agda-lib
+          echo "--- $LIB before ---"; cat "$LIB"
+          if grep -q '^flags:' "$LIB"; then
+            grep -q -- '--cubical-compatible' "$LIB" \
+
+              || sed -i 's/^flags:.*/& --cubical-compatible/' "$LIB"
+          else
+            printf 'flags: --cubical-compatible\n' >> "$LIB"
+          fi
+          echo "--- $LIB after ---"; cat "$LIB"
 
       - name: Register Agda libraries
         run: |
           mkdir -p ~/.config/agda
-          echo "$(pwd)/agda-stdlib/standard-library.agda-lib" >> ~/.config/agda/libraries
+          echo "$(pwd)/agda-stdlib/standard-library.agda-lib"     >> ~/.config/agda/libraries
           echo "$(pwd)/agda-categories/agda-categories.agda-lib" >> ~/.config/agda/libraries
           echo "standard-library" >> ~/.config/agda/defaults
-          echo "agda-categories" >> ~/.config/agda/defaults
+          echo "agda-categories"  >> ~/.config/agda/defaults
 
-      - name: List registered libraries (debug)
+      - name: Show registered libraries (debug)
         run: |
-          echo "=== ~/.config/agda/libraries ==="
-          cat ~/.config/agda/libraries || true
-          echo "=== ~/.config/agda/defaults ==="
-          cat ~/.config/agda/defaults || true
+          echo "=== ~/.config/agda/libraries ==="; cat ~/.config/agda/libraries || true
+          echo "=== ~/.config/agda/defaults  ==="; cat ~/.config/agda/defaults  || true
+          echo "=== agda-categories.agda-lib ==="; cat agda-categories/agda-categories.agda-lib || true
 
       - name: Type-check project
         run: agda src/Everything.agda
