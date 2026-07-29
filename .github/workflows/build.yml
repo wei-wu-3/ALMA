@@ -14,44 +14,48 @@ jobs:
 
       - uses: haskell-actions/setup@v2
         with:
-          ghc-version: '9.6.4'
+          ghc-version: '9.6.7'
           cabal-version: '3.10.3.0'
+
+      - name: Add cabal bin to PATH
+        run: echo "$HOME/.cabal/bin" >> $GITHUB_PATH
 
       - name: Cache cabal store
         uses: actions/cache@v4
         with:
           path: ~/.cabal/store
-          key: ${{ runner.os }}-agda-2.8.0-ghc-9.6.4-v2
+          key: ${{ runner.os }}-agda-2.8.0-ghc-9.6.7-v2
 
       - name: Install Agda 2.8.0
         run: |
           cabal update
           cabal install Agda-2.8.0 --overwrite-policy=always
 
-      - name: Checkout agda-stdlib
+      - name: Verify Agda installation
+        run: agda --version
+
+      - name: Checkout agda-stdlib v2.4
         run: |
           git clone --depth 1 \
             --branch v2.4 \
             https://github.com/agda/agda-stdlib.git
 
-      - name: Checkout agda-categories
+      - name: Checkout agda-categories (master for stdlib 2.4 compatibility)
         run: |
           git clone --depth 1 \
-            --branch v0.3.0 \
+            --branch master \
             https://github.com/agda/agda-categories.git
 
-      - name: Patch agda-categories dependency
-        run: |
-          sed -i 's/standard-library-2.3/standard-library-2.4/' \
-            agda-categories/agda-categories.agda-lib
-
-      - name: Register libraries
+      - name: Register Agda libraries
         run: |
           mkdir -p ~/.config/agda
           echo "$(pwd)/agda-stdlib/standard-library.agda-lib" >> ~/.config/agda/libraries
           echo "$(pwd)/agda-categories/agda-categories.agda-lib" >> ~/.config/agda/libraries
-          echo "standard-library-2.4" >> ~/.config/agda/defaults
+          echo "standard-library" >> ~/.config/agda/defaults
           echo "agda-categories" >> ~/.config/agda/defaults
 
-      - name: Type-check everything
+      - name: List registered libraries (debug)
+        run: agda --show-libraries
+
+      - name: Type-check project
         run: agda src/Everything.agda
