@@ -48,7 +48,7 @@ jobs:
           : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found on agda-categories}"
           git clone --depth 1 --branch "$TAG" https://github.com/agda/agda-categories.git
 
-      - name: Inject --cubical-compatible into agda-categories (mirror local setup)
+      - name: Patch agda-categories .agda-lib (cubical-compatible + stdlib version)
         run: |
           LIB=agda-categories/agda-categories.agda-lib
           echo "--- $LIB before ---"; cat "$LIB"
@@ -57,6 +57,7 @@ jobs:
           else
             printf 'flags: --cubical-compatible\n' >> "$LIB"
           fi
+          sed -i 's/standard-library-[0-9.]\+/standard-library-2.4/g' "$LIB"
           echo "--- $LIB after ---"; cat "$LIB"
 
       - name: Register Agda libraries
