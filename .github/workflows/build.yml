@@ -55,7 +55,11 @@ jobs:
           echo "agda-categories" >> ~/.config/agda/defaults
 
       - name: List registered libraries (debug)
-        run: agda --show-libraries
+        run: |
+          echo "=== ~/.config/agda/libraries ==="
+          cat ~/.config/agda/libraries || true
+          echo "=== ~/.config/agda/defaults ==="
+          cat ~/.config/agda/defaults || true
 
       - name: Type-check project
         run: agda src/Everything.agda
