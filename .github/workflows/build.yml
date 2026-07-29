@@ -14,6 +14,12 @@ jobs:
       - name: Checkout ALMA
         uses: actions/checkout@v7
 
+      - name: Setup Haskell (GHC 9.10.1 + cabal)
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.1'
+          cabal-version: 'latest'
+
       - name: Add cabal bin to PATH
         run: echo "$HOME/.cabal/bin" >> "$GITHUB_PATH"
 
@@ -21,7 +27,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cabal/store
-          key: ${{ runner.os }}-agda-2.8.0-ghc-9.6.7-v2
+          key: ${{ runner.os }}-agda-2.8.0-ghc-9.10.1-v1
 
       - name: Install Agda 2.8.0
         run: |
