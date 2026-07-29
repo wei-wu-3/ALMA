@@ -29,9 +29,13 @@ jobs:
             --branch v0.3.0 \
             https://github.com/agda/agda-categories.git
 
-      - name: Type-check everything
+      - name: Register libraries
         run: |
-          agda -i src \
-               -i agda-stdlib/src \
-               -i agda-categories/src \
-               src/Everything.agda
+          mkdir -p ~/.config/agda
+          echo "$(pwd)/agda-stdlib/standard-library.agda-lib" >> ~/.config/agda/libraries
+          echo "$(pwd)/agda-categories/agda-categories.agda-lib" >> ~/.config/agda/libraries
+          echo "standard-library" >> ~/.config/agda/defaults
+          echo "agda-categories" >> ~/.config/agda/defaults
+
+      - name: Type-check everything
+        run: agda src/Everything.agda
