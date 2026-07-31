@@ -8,7 +8,7 @@
 
 ALMA is a formal framework grounded in type theory, category theory, containers, and coalgebras. Its modular, parameterized architecture decouples categorical infrastructures (object-equivalence categories and container functors) from unfolding systems (polynomial coalgebras), thereby supporting composable universe constructions. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
 
-ALMA 是基于类型论、范畴论、容器及余代数的形式化框架。其模块化参数化架构将对象等价范畴与容器函子等范畴基础设施，同多项式余代数等展开系统相解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
+ALMA 是基于类型论、范畴论、容器及余代数的形式化框架。其模块化参数化架构将对象等价范畴与容器函子等范畴基础设施，与多项式余代数等展开系统解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
 The project is structured into three modular layers, each corresponding to a distinct stage in the formalization's evolutionary process:
 
@@ -30,7 +30,7 @@ src/ALMA/Cosmos/ —— 当前演进中的最新代码。该项目仍在积极�
 
 The inherent ambiguity and non-computability of natural language render it an unreliable tool for rigorously examining the logical necessity of philosophical thought; mathematics is therefore introduced as a more precise alternative.
 
-自然语言固有的歧义性与不可计算性，使其无法成为严格审查哲学思想逻辑必然性的可靠工具；因此，数学被引入，作为一种更精确的替代。
+自然语言固有的歧义性与不可计算性，使其无法成为严格审查哲学思想逻辑必然性的可靠工具；因此，数学被引入，作为一种更为精确的研究载体。
 
 ### Tool Migration and Ontological Commitment / 工具迁移与本体论承诺
 
@@ -42,7 +42,7 @@ The formalization has undergone three tool migrations, each driven by a fundamen
 
 ### A Novel Mathematical Structure / 一种新的数学结构
 
-The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, co-algebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the universe insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
+The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, co-algebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
 
 形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
@@ -71,38 +71,40 @@ The central construction of the formalization is the coinductive record Cosmos: 
 ## Architecture / 架构
 
 ```text
-src/ALMA/
-├── Cosmos.agda
-├── Cosmos/
-│   ├── ContCategory.agda
-│   ├── ContCategoryLemmas.agda
-│   ├── ContCatEquiv.agda
-│   ├── ContCatEquivLemmas.agda
-│   ├── ContCatEquivFunctor.agda
-│   ├── ContFunctor.agda
-│   ├── MorphismMorphism.agda
-│   ├── MorphismObject.agda
-│   └── Unfolding.agda
-├── InitialPass/
-│   ├── ContCategory.agda
-│   ├── ContCategoryLemmas.agda
-│   ├── ContCatEquiv.agda
-│   ├── ContCatEquivLemmas.agda
-│   ├── ContCatEquivFunctor.agda
+src/
+├── ALMA/
 │   ├── Cosmos.agda
-│   ├── MorphismMorphism.agda
-│   ├── MorphismObject.agda
-│   ├── ObjEquivCat.agda
-│   ├── ObjEquivFunctor.agda
-│   └── Unfolding.agda
-└── Prototype/
-    ├── Beings.agda
-    ├── Cosmos.agda
-    ├── Indestructibility.agda
-    ├── Prelude.agda
-    ├── Properties.agda
-    ├── StandardModel.agda
-    └── Universe.agda
+│   ├── Cosmos/
+│   │   ├── ContCategory.agda
+│   │   ├── ContCategoryLemmas.agda
+│   │   ├── ContCatEquiv.agda
+│   │   ├── ContCatEquivFunctor.agda
+│   │   ├── ContCatEquivLemmas.agda
+│   │   ├── ContFunctor.agda
+│   │   ├── MorphismMorphism.agda
+│   │   ├── MorphismObject.agda
+│   │   └── Unfolding.agda
+│   ├── InitialPass/
+│   │   ├── ContCategory.agda
+│   │   ├── ContCategoryLemmas.agda
+│   │   ├── ContCatEquiv.agda
+│   │   ├── ContCatEquivFunctor.agda
+│   │   ├── ContCatEquivLemmas.agda
+│   │   ├── Cosmos.agda
+│   │   ├── MorphismMorphism.agda
+│   │   ├── MorphismObject.agda
+│   │   ├── ObjEquivCat.agda
+│   │   ├── ObjEquivFunctor.agda
+│   │   └── Unfolding.agda
+│   └── Prototype/
+│       ├── Beings.agda
+│       ├── Cosmos.agda
+│       ├── Indestructibility.agda
+│       ├── Prelude.agda
+│       ├── Properties.agda
+│       ├── StandardModel.agda
+│       └── Universe.agda
+└── Everything.agda
 ```
 
 ## Contributing / 贡献指南
@@ -111,47 +113,47 @@ Discussions, proof ideas, literature references and code contributions are all w
 
 欢迎参与讨论、提供证明思路与文献指引，或贡献代码。
 
-## References / 参考文献
+##  Works Cited / 参考文献
 
-Abbott, M., Altenkirch, T., & Ghani, N. (2003). Categories of containers. In A. D. Gordon (Ed.), Foundations of software science and computation structures (LNCS 2620, pp. 23–38). Springer. https://doi.org/10.1007/3-540-36576-1_2
+Abbott, Michael, Thorsten Altenkirch, and Neil Ghani. 2003. "Categories of Containers." In *Foundations of Software Science and Computation Structures*, edited by Andrew D. Gordon, 23–38. Lecture Notes in Computer Science 2620. Berlin: Springer. https://doi.org/10.1007/3-540-36576-1_2.
 
-Abbott, M., Altenkirch, T., & Ghani, N. (2005). Containers: Constructing strictly positive types. Theoretical Computer Science, 342(1), 3–27. https://doi.org/10.1016/j.tcs.2005.06.002
+Abbott, Michael, Thorsten Altenkirch, and Neil Ghani. 2005. "Containers: Constructing Strictly Positive Types." *Theoretical Computer Science* 342, no. 1: 3–27. https://doi.org/10.1016/j.tcs.2005.06.002.
 
-Baars, B. J. (1989). A cognitive theory of consciousness. Cambridge University Press.
+Baars, Bernard J. 1989. *A Cognitive Theory of Consciousness*. Cambridge: Cambridge University Press.
 
-Bohr, N. (1935). Can quantum-mechanical description of physical reality be considered complete? Physical Review, 48(8), 696–702. https://doi.org/10.1103/PhysRev.48.696
+Bohr, Niels. 1935. "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?" *Physical Review* 48, no. 8: 696–702. https://doi.org/10.1103/PhysRev.48.696.
 
-Chalmers, D. J. (1995). Facing up to the problem of consciousness. Journal of Consciousness Studies, 2(3), 200–209.
+Chalmers, David John. 1995. "Facing Up to the Problem of Consciousness." *Journal of Consciousness Studies* 2, no. 3: 200–209.
 
-Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. Neuron, 70(2), 200–227. https://doi.org/10.1016/j.neuron.2011.03.018
+Dehaene, Stanislas, and Jean-Pierre Changeux. 2011. "Experimental and Theoretical Approaches to Conscious Processing." *Neuron* 70, no. 2: 200–227. https://doi.org/10.1016/j.neuron.2011.03.018.
 
-Derrida, J. (1967). De la grammatologie. Les Éditions de Minuit.
+Derrida, Jacques. 1967. *De la grammatologie*. Paris: Les Éditions de Minuit.
 
-Einstein, A. (1905). Zur Elektrodynamik bewegter Körper. Annalen der Physik, 322(10), 891–921. https://doi.org/10.1002/andp.19053221004
+Einstein, Albert. 1905. "Zur Elektrodynamik bewegter Körper." *Annalen der Physik* 322, no. 10: 891–921. https://doi.org/10.1002/andp.19053221004.
 
-Gödel, K. (1931). Über formal unentscheidbare Sätze der Principia Mathematica und verwandter Systeme I [On formally undecidable propositions of Principia Mathematica and related systems I]. Monatshefte für Mathematik und Physik, 38, 173–198. https://doi.org/10.1007/BF01700692
+Gödel, Kurt. 1931. "Über formal unentscheidbare Sätze der *Principia Mathematica* und verwandter Systeme I" [On Formally Undecidable Propositions of *Principia Mathematica* and Related Systems I]. *Monatshefte für Mathematik und Physik* 38: 173–198. https://doi.org/10.1007/BF01700692.
 
-Hawking, S. W. (1988). A brief history of time: From the big bang to black holes. Bantam Books.
+Hawking, Stephen William. 1988. *A Brief History of Time: From the Big Bang to Black Holes*. New York: Bantam Books.
 
-Hegel, G. W. F. (1969). Science of logic (A. V. Miller, Trans.). George Allen & Unwin. (Original work published 1812).
+Hegel, Georg Wilhelm Friedrich. 1969. *Science of Logic*. Translated by Arthur V. Miller. London: George Allen & Unwin. Originally published 1812.
 
-Heidegger, M. (1962). Being and time (J. Macquarrie & E. Robinson, Trans.). Harper & Row. (Original work published 1927)
+Heidegger, Martin. 1962. *Being and Time*. Translated by John Macquarrie and Edward Robinson. New York: Harper & Row. Originally published 1927.
 
-Jacobs, B. (1999). Categorical logic and type theory (Studies in Logic and the Foundations of Mathematics, Vol. 141). Elsevier Science.
+Jacobs, Bart. 1999. *Categorical Logic and Type Theory*. Studies in Logic and the Foundations of Mathematics 141. Amsterdam: Elsevier Science.
 
-Kant, I. (1781/1787). Kritik der reinen Vernunft. Hartknoch.
+Kant, Immanuel. 1781/1787. *Kritik der reinen Vernunft*. Riga: Hartknoch.
 
-Landauer, R. (1961). Irreversibility and heat generation in the computing process. IBM Journal of Research and Development, 5(3), 183–191. https://doi.org/10.1147/rd.53.0183
+Landauer, Rolf. 1961. "Irreversibility and Heat Generation in the Computing Process." *IBM Journal of Research and Development* 5, no. 3: 183–191. https://doi.org/10.1147/rd.53.0183.
 
-Leibniz, G. W. (1989). Philosophical essays (R. Ariew & D. Garber, Trans.). Hackett Publishing.
+Leibniz, Gottfried Wilhelm. 1989. *Philosophical Essays*. Translated by Roger Ariew and Daniel Garber. Indianapolis: Hackett Publishing.
 
-Parmenides. (1983). Fragments of on nature. In G. S. Kirk, J. E. Raven, & M. Schofield (Eds.), The presocratic philosophers (2nd ed., pp. 239–268). Cambridge University Press.
+Parmenides. 1983. "Fragments of *On Nature*." In *The Presocratic Philosophers*, 2nd ed., edited by Geoffrey S. Kirk, John E. Raven, and Malcolm Schofield, 239–268. Cambridge: Cambridge University Press.
 
-Penrose, R. (2016). Fashion, faith, and fantasy in the new physics of the universe. Princeton University Press.
+Penrose, Roger. 2016. *Fashion, Faith, and Fantasy in the New Physics of the Universe*. Princeton: Princeton University Press.
 
-Prigogine, I. (1980). From being to becoming: Time and complexity in the physical sciences. W. H. Freeman.
+Prigogine, Ilya. 1980. *From Being to Becoming: Time and Complexity in the Physical Sciences*. San Francisco: W. H. Freeman.
 
-Wittgenstein, L. (1922/1981). Tractatus logico-philosophicus (C. K. Ogden, Trans.). Routledge & Kegan Paul.
+Wittgenstein, Ludwig. 1922/1981. *Tractatus Logico-Philosophicus*. Translated by Charles Kay Ogden. London: Routledge & Kegan Paul.
 
 ## Declarations / 声明
 
