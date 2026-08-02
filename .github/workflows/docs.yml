@@ -1,4 +1,4 @@
-name: Build and Deploy Documentation
+name: Deploy Documentation
 
 on:
   push:
@@ -47,22 +47,26 @@ jobs:
 
       - name: Checkout agda-categories 0.3.0
         run: |
-          TAG=$(git ls-remote --tags --refs https://github.com/agda/agda-categories.git | awk -F'refs/tags/' '{print $2}' | grep -E '^v?0\.3\.0$' | head -n1)
+          TAG=$(git ls-remote --tags --refs https://github.com/agda/agda-categories.git \
+
+                | awk -F'refs/tags/' '{print $2}' \
+                | grep -E '^v?0\.3\.0$' | head -n1)
           echo "Resolved agda-categories tag: '${TAG}'"
-          : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found on agda-categories}"
+          : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found}"
           git clone --depth 1 --branch "$TAG" https://github.com/agda/agda-categories.git
 
-      - name: Patch agda-categories .agda-lib (cubical-compatible + stdlib version)
+      - name: Patch agda-categories .agda-lib
         run: |
           LIB=agda-categories/agda-categories.agda-lib
-          echo "--- $LIB before ---"; cat "$LIB"
           if grep -q '^flags:' "$LIB"; then
-            grep -q -- '--cubical-compatible' "$LIB" || sed -i 's/^flags:.*/& --cubical-compatible/' "$LIB"
+            grep -q -- '--cubical-compatible' "$LIB" \
+
+              || sed -i 's/^flags:.*/& --cubical-compatible/' "$LIB"
           else
             printf 'flags: --cubical-compatible\n' >> "$LIB"
           fi
           sed -i 's/standard-library-[0-9.]\+/standard-library-2.4/g' "$LIB"
-          echo "--- $LIB after ---"; cat "$LIB"
+          cat "$LIB"
 
       - name: Register Agda libraries
         run: |
@@ -72,19 +76,59 @@ jobs:
           echo "standard-library" >> ~/.config/agda/defaults
           echo "agda-categories"  >> ~/.config/agda/defaults
 
-      - name: Show registered libraries (debug)
-        run: |
-          echo "=== ~/.config/agda/libraries ==="; cat ~/.config/agda/libraries || true
-          echo "=== ~/.config/agda/defaults  ==="; cat ~/.config/agda/defaults  || true
-          echo "=== agda-categories.agda-lib ==="; cat agda-categories/agda-categories.agda-lib || true
-
       - name: Generate Agda HTML documentation
         run: |
-          agda --html --html-dir=./docs --html-link-prefix=/ALMA/ src/Everything.agda
+          agda --html --html-dir=./docs src/Everything.agda
+
+      - name: Debug – list generated files
+        run: |
+          echo "=== docs/ tree (first 80) ==="
+          find ./docs -type f | sort | head -80
+          echo ""
+          echo "=== Everything.html location ==="
+          find ./docs -name 'Everything.html'
+          echo ""
+          echo "=== Sample of absolute links (before fix) ==="
+          grep -oP 'href="/[^"]*"' "$(find ./docs -name 'Everything.html' | head -1)" | head -10 || true
+
+      - name: Rewrite absolute paths for /ALMA/ subpath
+        run: |
+          # HTML: href="/xxx" → href="/ALMA/xxx"  (排除 //)
+          find ./docs -type f -name '*.html' \
+            -exec sed -i 's|href="/\([^/]\)|href="/ALMA/\1|g' {} +
+
+          # HTML: src="/xxx" → src="/ALMA/xxx"
+          find ./docs -type f -name '*.html' \
+            -exec sed -i 's|src="/\([^/]\)|src="/ALMA/\1|g' {} +
+
+          # CSS: url(/xxx) → url(/ALMA/xxx)
+          find ./docs -type f -name '*.css' \
+            -exec sed -i 's|url(/\([^/]\)|url(/ALMA/\1|g' {} +
+
+          echo "=== Sample after fix ==="
+          grep -oP 'href="[^"]*"' "$(find ./docs -name 'Everything.html' | head -1)" | head -10 || true
 
       - name: Create redirect index.html
         run: |
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=src/Everything.html"></head></html>' > docs/index.html
+          TARGET=$(find ./docs -name 'Everything.html' -printf '%P\n' | head -n1)
+          if [ -z "$TARGET" ]; then
+            echo "::error::Everything.html not found in docs/"
+            exit 1
+          fi
+          echo "Redirect target: $TARGET"
+          cat > docs/index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=$TARGET">
+            <title>ALMA Documentation</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="$TARGET">$TARGET</a>…</p>
+          </body>
+          </html>
+          EOF
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
