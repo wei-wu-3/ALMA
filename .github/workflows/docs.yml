@@ -47,26 +47,22 @@ jobs:
 
       - name: Checkout agda-categories 0.3.0
         run: |
-          TAG=$(git ls-remote --tags --refs https://github.com/agda/agda-categories.git \
-
-                | awk -F'refs/tags/' '{print $2}' \
-                | grep -E '^v?0\.3\.0$' | head -n1)
+          TAG=$(git ls-remote --tags --refs https://github.com/agda/agda-categories.git | awk -F'refs/tags/' '{print $2}' | grep -E '^v?0\.3\.0$' | head -n1)
           echo "Resolved agda-categories tag: '${TAG}'"
-          : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found}"
+          : "${TAG:?ERROR: no tag matching 0.3.0 / v0.3.0 found on agda-categories}"
           git clone --depth 1 --branch "$TAG" https://github.com/agda/agda-categories.git
 
-      - name: Patch agda-categories .agda-lib
+      - name: Patch agda-categories .agda-lib (cubical-compatible + stdlib version)
         run: |
           LIB=agda-categories/agda-categories.agda-lib
+          echo "--- $LIB before ---"; cat "$LIB"
           if grep -q '^flags:' "$LIB"; then
-            grep -q -- '--cubical-compatible' "$LIB" \
-
-              || sed -i 's/^flags:.*/& --cubical-compatible/' "$LIB"
+            grep -q -- '--cubical-compatible' "$LIB" || sed -i 's/^flags:.*/& --cubical-compatible/' "$LIB"
           else
             printf 'flags: --cubical-compatible\n' >> "$LIB"
           fi
           sed -i 's/standard-library-[0-9.]\+/standard-library-2.4/g' "$LIB"
-          cat "$LIB"
+          echo "--- $LIB after ---"; cat "$LIB"
 
       - name: Register Agda libraries
         run: |
