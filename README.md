@@ -141,6 +141,8 @@ Hegel, Georg Wilhelm Friedrich. 1969. *Science of Logic*. Translated by Arthur V
 
 Heidegger, Martin. 1962. *Being and Time*. Translated by John Macquarrie and Edward Robinson. New York: Harper & Row. Originally published 1927.
 
+Hu, Jason Z. S., and Jacques Carette. 2021. "Formalizing Category Theory in Agda." In *Proceedings of the 10th ACM SIGPLAN International Conference on Certified Programs and Proofs*, 327–342. New York, NY, USA: Association for Computing Machinery. https://doi.org/10.1145/3437992.3439922.
+
 Jacobs, Bart. 1999. *Categorical Logic and Type Theory*. Studies in Logic and the Foundations of Mathematics 141. Amsterdam: Elsevier Science.
 
 Kant, Immanuel. 1781/1787. *Kritik der reinen Vernunft*. Riga: Hartknoch.
@@ -148,6 +150,8 @@ Kant, Immanuel. 1781/1787. *Kritik der reinen Vernunft*. Riga: Hartknoch.
 Landauer, Rolf. 1961. "Irreversibility and Heat Generation in the Computing Process." *IBM Journal of Research and Development* 5, no. 3: 183–191. https://doi.org/10.1147/rd.53.0183.
 
 Leibniz, Gottfried Wilhelm. 1989. *Philosophical Essays*. Translated by Roger Ariew and Daniel Garber. Indianapolis: Hackett Publishing.
+
+Norell, Ulf. 2007. "Towards a Practical Programming Language Based on Dependent Type Theory." PhD diss., Department of Computer Science and Engineering, Chalmers University of Technology, Gothenburg.
 
 Parmenides. 1983. "Fragments of *On Nature*." In *The Presocratic Philosophers*, 2nd ed., edited by Geoffrey S. Kirk, John E. Raven, and Malcolm Schofield, 239–268. Cambridge: Cambridge University Press.
 
