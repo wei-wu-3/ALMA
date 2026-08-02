@@ -1,7 +1,9 @@
 # ALMA — Arche of Being: Logically Necessary Metatheoretical Architecture
 
 [![build](https://img.shields.io/github/actions/workflow/status/wei-wu-3/ALMA/build.yml?branch=main&label=build&logo=github&logoColor=white)](https://github.com/wei-wu-3/ALMA/actions/workflows/build.yml)
-
+[![Docs Status](https://github.com/wei-wu-3/ALMA/actions/workflows/docs.yml/badge.svg)](https://github.com/wei-wu-3/ALMA/actions/workflows/docs.yml)
+[![Agda Version](https://img.shields.io/badge/Agda-2.8.0-green)](https://agda.readthedocs.io/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21511879.svg)](https://doi.org/10.5281/zenodo.21511879)
 
 ## Introduction / 简介

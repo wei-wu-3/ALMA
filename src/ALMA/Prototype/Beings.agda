@@ -1,4 +1,16 @@
 {-
+An attempt to encode the arguments of the paper into Agda code,
+before the philosophical thought of the paper fully converges
+upon Cosmos as a new mathematical structure.
+
+Retained to reflect the thinking process from attempting to express
+philosophical thought in Agda to ultimately converging upon Cosmos.
+
+在论文的哲学思想完全收敛于 Cosmos 这一新的数学结构之前，
+将论文各个论证写成 Agda 代码的尝试。
+予以保留，以体现从尝试用 Agda 表达哲学思想
+并最终收敛于 Cosmos 的思考过程。
+
 Fundamental Structure, Composition, and Irreducible Accidental Reconfiguration & Evolutionary Irreversibility of Dynamic Beings
 动态存在者基本结构、复合方式及本质不可消减的偶性形态重构与演化不可逆性
 --
