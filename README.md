@@ -2,8 +2,6 @@
 
 [![build](https://img.shields.io/github/actions/workflow/status/wei-wu-3/ALMA/build.yml?branch=main&label=build&logo=github&logoColor=white)](https://github.com/wei-wu-3/ALMA/actions/workflows/build.yml)
 [![Docs Status](https://github.com/wei-wu-3/ALMA/actions/workflows/docs.yml/badge.svg)](https://github.com/wei-wu-3/ALMA/actions/workflows/docs.yml)
-[![Agda Version](https://img.shields.io/badge/Agda-2.8.0-green)](https://agda.readthedocs.io/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21511879.svg)](https://doi.org/10.5281/zenodo.21511879)
 
 ## Introduction / 简介
@@ -48,27 +46,23 @@ The central construction of the formalization is the coinductive record Cosmos: 
 
 形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
-## Preprint / 预印本
-
-### English Version / 英文版
-
-*Arche of Being: Logically Necessary Metatheoretical Architecture*
-
-- [English Record](https://philpapers.org/rec/WUTVFF)
-- [English PDF](https://philpapers.org/archive/WUTVFF.pdf)
-
-### Chinese Version / 中文版
-
-*存在之本原：逻辑必然的元理论架构*
-
-- [Chinese Record](https://philpapers.org/rec/WEIJML-2)
-- [Chinese PDF](https://philpapers.org/archive/WEIJML-2.pdf)
-
 ## Dependencies & Build / 依赖与构建
 
-- [Agda](https://github.com/agda/agda) v2.8.0
-- [Agda Standard Library](https://github.com/agda/agda-stdlib) v2.4
-- [agda-categories](https://github.com/agda/agda-categories) v0.3.0
+### Prerequisites / 依赖
+
+| Dependency | Version |
+|---|---|
+| [Agda](https://github.com/agda/agda) | 2.8.0 |
+| [Agda Standard Library](https://github.com/agda/agda-stdlib) | 2.4 |
+| [agda-categories](https://github.com/agda/agda-categories) | 0.3.0 |
+
+### Build / 构建
+
+```bash
+git clone https://github.com/wei-wu-3/ALMA.git
+cd ALMA
+agda -i src src/Everything.agda
+```
 
 ## Architecture / 架构
 
@@ -115,7 +109,23 @@ Discussions, proof ideas, literature references and code contributions are all w
 
 欢迎参与讨论、提供证明思路与文献指引，或贡献代码。
 
-##  Works Cited / 参考文献
+## Preprint / 预印本
+
+### English Version / 英文版
+
+*Arche of Being: Logically Necessary Metatheoretical Architecture*
+
+- [English Record](https://philpapers.org/rec/WUTVFF)
+- [English PDF](https://philpapers.org/archive/WUTVFF.pdf)
+
+### Chinese Version / 中文版
+
+*存在之本原：逻辑必然的元理论架构*
+
+- [Chinese Record](https://philpapers.org/rec/WEIJML-2)
+- [Chinese PDF](https://philpapers.org/archive/WEIJML-2.pdf)
+
+## Works Cited / 参考文献
 
 Abbott, Michael, Thorsten Altenkirch, and Neil Ghani. 2003. "Categories of Containers." In *Foundations of Software Science and Computation Structures*, edited by Andrew D. Gordon, 23–38. Lecture Notes in Computer Science 2620. Berlin: Springer. https://doi.org/10.1007/3-540-36576-1_2.
 
