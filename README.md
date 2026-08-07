@@ -10,21 +10,21 @@ ALMA is a formal framework grounded in type theory, category theory, containers,
 
 ALMA 是基于类型论、范畴论、容器及余代数的形式化框架。其模块化参数化架构将对象等价范畴与容器函子等范畴基础设施，与多项式余代数等展开系统解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
-The project is structured into three modular layers, each corresponding to a distinct stage in the formalization's evolutionary process:
+The project is structured into three layers, each corresponding to a distinct stage in the formalization's evolutionary process:
 
-项目结构划分为三个模块化层级，每一层分别对应形式化在演进过程中的特定阶段：
+项目结构划分为三个层级，每一层分别对应形式化在演进过程中的特定阶段：
 
-src/ALMA/Prototype/ — The original, self-contained, hand-unfolded prototype. It serves as the first Agda formalization of the paper's philosophical ideas, designed to trace their conceptual genesis.
+src/ALMA/Prototype/ — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalization of the paper's philosophical ideas, it preserves the genesis of the conceptual framework.
 
-src/ALMA/Prototype/ —— 完全自包含、手工展开的初始原型。它是论文哲学思想在 Agda 中的首次形式化呈现，旨在追溯其思想概念的生成脉络。
+src/ALMA/Prototype/ —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的“subst hell”问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档，保留了概念框架的生成脉络。
 
-src/ALMA/InitialPass/ — The first community-assisted refactoring, developed to resolve the subst complexity in the comp-cong-≃⇒ℱ proof. Based on community feedback, this iteration was rebuilt upon a generalized categorical library.
+src/ALMA/InitialPass/ — An intermediate refactoring that decomposes the monolithic prototype into separate modules. It represents the first structural reorganization following community feedback.
 
-src/ALMA/InitialPass/ —— 基于社区反馈，为解决原型阶段 comp-cong-≃⇒ℱ 证明中的 subst 复杂性问题，依托通用范畴库进行了首次重构。
+src/ALMA/InitialPass/ —— 介于原型与最新架构之间的中间重构层，旨在将单体原型拆分为独立模块。它是吸纳社区反馈后的首次结构性重组。
 
-src/ALMA/Cosmos/ — The ongoing, latest evolution of the codebase. Currently under active development, its core closure mechanisms and internal consistency are still being finalized.
+src/ALMA/Cosmos/ — The active main line of development. Building on the structural decomposition of InitialPass, it achieves full modularization and categorical reconstruction atop the standard library's containers and agda-categories, with unified bilingual Chinese–English comments throughout.
 
-src/ALMA/Cosmos/ —— 当前演进中的最新代码。该项目仍在积极开发中，其核心闭合机制与内部一致性尚待最终确立。
+src/ALMA/Cosmos/ —— 当前活跃开发的主线架构。它在 InitialPass 结构性拆分的基础上，依托标准库容器与 agda-categories 实现模块化及范畴论重建，并统一采用中英文双语注释。
 
 ## Motivation / 动机
 
@@ -34,15 +34,15 @@ The inherent ambiguity and non-computability of natural language render it an un
 
 ### Tool Migration and Ontological Commitment / 工具迁移与本体论承诺
 
-The formalization has undergone three tool migrations, each driven by a fundamental conflict in ontological commitment. In the QS5+BF phase, the Barcan Formula forces all possible worlds to share a single domain of quantification. The subsequent turn to Lean 4 revealed, beyond expressivity bottlenecks, that its mathematical library's unconditional presupposition of the law of excluded middle and classical set theory constitutes a direct conflict at the level of ontological commitment. Agda was ultimately selected: its constructive foundation presupposes no classical axioms whatsoever, and its dependent types and coinductive records align precisely with the ontological commitments of this work. This migratory trajectory itself reveals that formalization languages are not neutral notational vehicles; their logical foundations, type structures, and axiomatic environments collectively constitute an implicit set of ontological commitments. To choose a tool is to choose an ontology.
+The formalization has undergone three tool migrations, each driven by a fundamental conflict in ontological commitment. In the QS5+BF phase, the Barcan Formula forces all possible worlds to share a single domain of quantification. The subsequent turn to Lean 4 revealed, beyond expressivity bottlenecks, that its mathematical library's deep entrenchment in the law of excluded middle and classical set theory constitutes a direct conflict at the level of ontological commitment. Agda was ultimately selected: its constructive foundation presupposes no classical axioms whatsoever, and its dependent types and coinductive records align precisely with the ontological commitments of this work. This migratory trajectory itself reveals that formalization languages are not neutral notational vehicles; their logical foundations, type structures, and axiomatic environments collectively constitute an implicit set of ontological commitments. To choose a tool is to choose an ontology.
 
-形式化历经三次工具迁移，其背后是本体论承诺的根本性冲突。QS5+BF 阶段，Barcan 公式强制所有可能世界共享同一论域。转向 Lean 4 后，除表达力瓶颈外，更发现与其数学库对排中律与经典集合论的无条件预设，直接构成本体论承诺层面的冲突。最终选定 Agda：其构造性基底不预设任何经典公理，依赖类型与余归纳记录恰与该项工作的本体论承诺完全相合。这一迁移历程本身揭示：形式化语言并非中性的记号载体；其逻辑基底、类型结构与公理环境，共同构成一套隐性的本体论承诺。工具选择，即本体论选择。
+形式化历经三次工具迁移，其背后是本体论承诺的根本性冲突。QS5+BF 阶段，Barcan 公式强制所有可能世界共享同一论域。转向 Lean 4 后，除表达力瓶颈外，更发现与其数学库对排中律与经典集合论的深度嵌入，直接构成本体论承诺层面的冲突。最终选定 Agda：其构造性基底不预设任何经典公理，依赖类型与余归纳记录恰与该项工作的本体论承诺完全相合。这一迁移历程本身揭示：形式化语言并非中性的记号载体；其逻辑基底、类型结构与公理环境，共同构成一套隐性的本体论承诺。工具选择，即本体论选择。
 
 ## Key Contribution / 核心贡献
 
 ### A Novel Mathematical Structure / 一种新的数学结构
 
-The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, co-algebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
+The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
 
 形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
