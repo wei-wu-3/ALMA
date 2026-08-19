@@ -17,7 +17,7 @@ open import Agda.Builtin.Equality using (refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Relation.Binary.Bundles using (Setoid)
 open import Data.Product.Base using (_,_)
-open import Data.Container.Core using (shape)
+open import Data.Container.Core using (Container; shape)
 open import Data.Container.Morphism using (id; _∘_)
 open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
 
@@ -152,7 +152,7 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     CCE = record {}
     -- Target category: endofunctor category [Setoids, Setoids]
     -- 目标范畴：自函子范畴 [Setoids, Setoids]
-    Tgt = Functors (Setoids ℓ′ ℓ′) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
+    Tgt = Functors (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
     module TgtCat = Category Tgt
     -- Combinators for natural transformation equivalence
     -- 自然变换等价组合子
@@ -164,26 +164,36 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso using (from)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
+    -- Explicitly instantiate the polynomial functor interpretation
+    -- 显式实例化多项式函子解释
+    ⟦_⟧′ : Container s p → Functor (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
+    ⟦_⟧′ = ⟦_⟧ {s = s} {p = p} {ℓ = ℓ′}
+
   -- Container embedding functor ContCat → [Setoids, Setoids]
   -- 容器嵌入函子 ContCat → [Setoids, Setoids]
-  ContEmb = ContEmbedding {s = s} {p = p} {ℓ′ = ℓ′}
+  ContEmb = ContEmbedding {s = s} {p = p} {ℓ = ℓ′}
   open Functor ContEmb
+
   -- Lifted transport functor: CoreC → [Setoids, Setoids]
   -- 提升的传输函子：CoreC → [Setoids, Setoids]
   liftedTransport : Functor CoreC Tgt
   liftedTransport = ContEmb ∘F transportFunctor
+
   -- Natural transformation induced by transport along isomorphism
   -- 沿同构传输的自然变换
-  transpNat : ∀ {A B} (iso : A ≅ B) → NaturalTransformation ⟦ CF.F₀ A ⟧ ⟦ CF.F₀ B ⟧
+  transpNat : ∀ {A B} (iso : A ≅ B) → NaturalTransformation ⟦ CF.F₀ A ⟧′ ⟦ CF.F₀ B ⟧′
   transpNat iso = F₁ (from (transpIso iso))
+
   transpNat-refl : ∀ {A} → transpNat (C≅.refl {A}) ≈ idF
   transpNat-refl {A} {X} {x = (s , k)} =
     let open _≈M_ (transpCont-refl {A = A}) using (shape-eq; pos-eq)
     in shape-eq s PW., λ p → Setoid.reflexive X (cong k (pos-eq s p))
+
   transpNat-sym : ∀ {A B} (eq : A ≅ B) → transpNat (C≅.sym eq) ∙ transpNat eq ≈ idF
   transpNat-sym {A} {B} eq {X} {x = (s , k)} =
     let open _≈M_ (transpCont-sym eq) using (shape-eq; pos-eq)
     in shape-eq s PW., λ p → Setoid.reflexive X (cong k (pos-eq s p))
+
   transpNat-trans : ∀ {A B C} (eq1 : A ≅ B) (eq2 : B ≅ C) →
                     transpNat (C≅.trans eq1 eq2) ≈ (transpNat eq2 ∙ transpNat eq1)
   transpNat-trans {A} {B} {C} eq1 eq2 {X} {x = (s , k)} =
