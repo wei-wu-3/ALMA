@@ -4,10 +4,10 @@
 --
 -- Builds functor ⟦ C ⟧ and embedding ContCat → [Setoids, Setoids]
 -- Proves preservation of identity, composition, and the equivalence _≈M_
--- Note: faithfulness holds by definition (projection + β-reduction)
+-- Note: faithfulness is obtained by choosing a test object and using projection and β-reduction
 -- 构造函子 ⟦ C ⟧ 及嵌入 ContCat → [Setoids, Setoids]，
 -- 证明恒等态射、复合及等价关系 _≈M_ 的保持性；
--- 注：忠实性由定义直接成立（投影 + β-归约）
+-- 注：忠实性可由选取测试对象并利用投影与 β-归约得证
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -20,7 +20,7 @@ open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence)
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (_∘_)
-open import Function.Bundles using (Func)
+open import Function.Bundles using (Func; _⇔_; mk⇔)
 open import Data.Product.Base using (_,_)
 open import Data.Container.Core using (Container; Shape; Position; map; _⇒_)
 open import Data.Container.Morphism renaming (id to idCont; _∘_ to _∘Cont_)
@@ -61,7 +61,7 @@ module _ {s p ℓ : Level} where
   module FuncCat = Category EndoFunctors
 
   -- Discrete setoid on a type A: equivalence is propositional equality.
-  -- 类型 A 上的离散集合oid：等价关系取命题相等。
+  -- 类型 A 上的离散 setoid：等价关系取命题相等。
   private
     discreteSetoid : ∀ {a} (A : Set a) → Setoid a a
     discreteSetoid A = record
@@ -85,7 +85,7 @@ module _ {s p ℓ : Level} where
       ⟦_⟧ₛ A = setoid A C
 
       -- Morphism mapping: lift a setoid function to the container extension.
-      -- 态射映射：将集合间的函数提升为容器扩张上的函数。
+      -- 态射映射：将 setoid 态射提升为容器扩张上的 setoid 态射。
       mapₛ : {A B : Setoid srcLevel srcLevel} → A Src.⇒S B → ⟦ A ⟧ₛ Tgt.⇒T ⟦ B ⟧ₛ
       mapₛ {A} {B} f = record
         { to   = map {C = C} {X = Setoid.Carrier A} {Y = Setoid.Carrier B} (Func.to f)
@@ -181,17 +181,40 @@ module _ {s p ℓ : Level} where
   -- as test object, and plug k = lift into the naturality equality.
   -- The shape component yields shape-eq directly; the position component,
   -- after applying cong lower, yields exactly pos-eq up to transport.
-  -- 对每个形状 s，取 Lift srcLevel (Position C s) 上的离散集合oid为测试对象，
+  -- 对每个形状 s，取 Lift srcLevel (Position C s) 上的离散 setoid 作为测试对象，
   -- 代入 k = lift。形状分量直接给出 shape-eq；位置分量经 cong lower
-  -- 后恰好给出传输意义下的 pos-eq。
+  -- 后恰好给出在替换（transport）意义下的 pos-eq。
   ContEmbedding-faithful : {C D : Container s p} {m n : C ⇒ D}
-                         → mapNT m FuncCat.≈ mapNT n → m ≈M n
+                          → mapNT m FuncCat.≈ mapNT n → m ≈M n
   ContEmbedding-faithful {C} {D} {m} {n} nt-eq =
     record
-      { shape-eq = λ s →
-          let eq = nt-eq {discreteSetoid (Lift srcLevel (Position C s))} { (s , lift) }
-          in PW.Pointwise.shape eq
-      ; pos-eq   = λ s q →
-          let eq = nt-eq {discreteSetoid (Lift srcLevel (Position C s))} { (s , lift) }
-          in cong lower (PW.Pointwise.position eq q)
+      { shape-eq = λ s → PW.Pointwise.shape (get-eq s)
+      ; pos-eq   = λ s q → cong lower (PW.Pointwise.position (get-eq s) q)
       }
+    where
+      get-eq : (s : Shape C) → _
+      get-eq s = nt-eq {discreteSetoid (Lift srcLevel (Position C s))} { (s , lift) }
+
+  -- Equivalence between container‑morphism equality and natural‑transformation equality
+  -- 容器态射等价与导出自然变换等价之间的双向等价关系
+  --
+  -- Forward direction (to):
+  --   If the lifted natural‑transformations are equal for all setoid‑objects,
+  --   then the original container morphisms are equal under _≈M_.
+  --   This is faithfulness of the embedding functor ContEmbedding.
+  -- 正向（to）：
+  --   若提升得到的两个自然变换在所有 Setoid 对象上均相等，
+  --   则原始容器态射满足容器等价关系 _≈M_。
+  --   该方向证明嵌入函子 ContEmbedding 具有忠实性。
+  --
+  -- Backward direction (from):
+  --   If two container morphisms satisfy _≈M_, then their lifted natural‑transformations
+  --   are point‑wise equal over every setoid object.
+  --   This is equivalence‑preservation of the embedding functor.
+  -- 反向（from）：
+  --   若两个容器态射满足容器等价 _≈M_，则它们导出的自然变换
+  --   在任意 Setoid 对象上分量相等。
+  --   该方向证明嵌入函子保持态射等价关系。
+  mapNT-iff-≈M : {C D : Container s p} {m n : C ⇒ D}
+               → (mapNT m FuncCat.≈ mapNT n) ⇔ (m ≈M n)
+  mapNT-iff-≈M = mk⇔ ContEmbedding-faithful mapNT-resp-≈
