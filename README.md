@@ -170,6 +170,8 @@ Penrose, Roger. 2016. *Fashion, Faith, and Fantasy in the New Physics of the Uni
 
 Prigogine, Ilya. 1980. *From Being to Becoming: Time and Complexity in the Physical Sciences*. San Francisco: W. H. Freeman.
 
+Rutten, Jan J. M. M. 2000. "Universal Coalgebra: A Theory of Systems." *Theoretical Computer Science* 249, no. 1: 3–80. https://doi.org/10.1016/S0304-3975(00)00056-6.
+
 Wittgenstein, Ludwig. 1922/1981. *Tractatus Logico-Philosophicus*. Translated by Charles Kay Ogden. London: Routledge & Kegan Paul.
 
 ## Declarations / 声明
