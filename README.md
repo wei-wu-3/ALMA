@@ -79,6 +79,7 @@ src/
 │   │   ├── ContFunctor.agda
 │   │   ├── MorphismMorphism.agda
 │   │   ├── MorphismObject.agda
+│   │   ├── Terminal.agda
 │   │   └── Unfolding.agda
 │   ├── InitialPass/
 │   │   ├── ContCategory.agda

@@ -12,6 +12,7 @@ import ALMA.Cosmos.MorphismObject
 import ALMA.Cosmos.ContCatEquivLemmas
 import ALMA.Cosmos.MorphismMorphism
 import ALMA.Cosmos
+import ALMA.Cosmos.Terminal
 
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
