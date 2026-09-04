@@ -1,12 +1,14 @@
 ------------------------------------------------------------------------
--- Terminal Coalgebra of CosmosF
--- CosmosF 的终余代数
+-- Terminal Coalgebra of CosmosF (Setoid carrier + ≡ commute)
+-- CosmosF 的终余代数（Setoid 载体 + ≡ 交换条件）
 --
--- Defines general F-coalgebras, the anamorphism (unfold) into Cosmos,
--- a bisimulation relation _≈C_ on Cosmos, and establishes the universal
--- property: Cosmos is the terminal coalgebra of the polynomial functor CosmosF
--- 定义一般 F-余代数、到 Cosmos 的 anamorphism（展开）、Cosmos 上的互模拟关系 _≈C_，
--- 并证明泛性质：Cosmos 是多项式函子 CosmosF 的终余代数
+-- Defines general F-coalgebras with Setoid carriers and Func structure maps,
+-- the anamorphism (unfold) into Cosmos, a bisimulation relation _≈C_ on Cosmos,
+-- and establishes the universal property: Cosmos is the terminal coalgebra of
+-- the polynomial functor CosmosF (up to bisimulation).
+-- 定义具有 Setoid 载体与 Func 结构映射的一般 F-余代数、到 Cosmos 的 anamorphism（展开）、
+-- Cosmos 上的互模拟关系 _≈C_，并证明泛性质：Cosmos 是多项式函子 CosmosF 的
+-- （互模拟意义下的）终余代数。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -21,15 +23,17 @@ open import Relation.Binary.PropositionalEquality.Properties
   using (module ≡-Reasoning; subst-subst; subst-sym-subst)
 open ≡-Reasoning
 open import Relation.Binary.Bundles using (Setoid)
+open import Function.Bundles using (Func)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
-open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding)
+open import ALMA.Cosmos.Unfolding
+  using (Unfolding; mapUnfolding; module UnfoldingSetoid)
 open import ALMA.Cosmos
-  using (Cosmos; CosmosF; out; unfoldingCore; module CosmosMap)
+  using (Cosmos; out; unfoldingCore; module CosmosMap; module CosmosFFunctor )
 open CosmosMap using (mapCosmosF)
 
 -- Parameterised module: fixes a base category C and a container-valued
@@ -44,60 +48,37 @@ module _ {o h e s p : Level}
     -- 本模块中对象的总层级
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
 
-  -- A general F-coalgebra: a carrier set and a structure map into CosmosF
-  -- 一般 F-余代数：一个载体集与到 CosmosF 的结构映射
+    module CFF = CosmosFFunctor
+      {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
+    module US = UnfoldingSetoid
+      {o = o} {h = h} {e = e} {s = s} {p = p} {u = L} {C = C} {F = FC}
+
+  -- Coalgebra: Setoid carrier, Func structure map, ≡ commute
+  -- 余代数：Setoid 载体，Func 结构映射，≡ 交换条件
   record Coalgebra : Set (lsuc L) where
     field
-      -- Carrier set of the coalgebra
-      -- 余代数的载体集
-      Carrier : Set L
-      -- Structure map α : Carrier → F Carrier
-      -- 结构映射 α : Carrier → F Carrier
-      α       : Carrier → CosmosF C FC Carrier
+      -- Carrier setoid of the coalgebra
+      -- 余代数的载体 Setoid
+      Carrier : Setoid L L
+      -- Structure map α : Carrier → CosmosF Carrier, preserving setoid equivalence
+      -- 结构映射 α : Carrier → CosmosF Carrier，保持 setoid 等价
+      α       : Func Carrier (CFF.CosmosFSetoid L Carrier)
 
   -- A homomorphism between coalgebras: a map commuting with the structure maps
-  -- 余代数之间的同态：使结构映射交换的映射
+  -- 余代数之间的同态：与结构映射交换的映射
   record CoalgHom (X Y : Coalgebra) : Set L where
     private module X = Coalgebra X; module Y = Coalgebra Y
     field
-      -- Underlying function between carriers
-      -- 载体之间的底层函数
-      f       : X.Carrier → Y.Carrier
+      -- Underlying setoid morphism between carriers
+      -- 载体之间的底层 setoid 态射
+      f       : Func X.Carrier Y.Carrier
       -- Commutation with the structure maps
       -- 与结构映射的交换性
-      commute : ∀ x → mapCosmosF f (X.α x) ≡ Y.α (f x)
+      commute : ∀ x → mapCosmosF (Func.to f) (Func.to X.α x)
+                     ≡ Func.to Y.α (Func.to f x)
 
-  -- The canonical coalgebra structure on Cosmos itself, given by out
-  -- Cosmos 自身上的典范余代数结构，由 out 给出
-  cosmosCoalg : Coalgebra
-  cosmosCoalg = record { Carrier = Cosmos C FC ; α = out }
-
-  -- Anamorphism (unfold): given any coalgebra (X, α), construct a map
-  -- X → Cosmos by recursively unfolding the next seeds
-  -- anamorphism（展开）：给定任意余代数 (X, α)，
-  -- 通过递归展开下一层种子构造映射 X → Cosmos
-  ana : (X : Coalgebra) → Coalgebra.Carrier X → Cosmos C FC
-  ana X x .out = record
-    { unfoldingCore = record
-        { unfoldFunctor   = u₀.unfoldFunctor
-        ; unfold-next     = λ s → ana X (u₀.unfold-next s)
-        ; pos-to-shape    = u₀.pos-to-shape
-        ; pos-actS-compat = u₀.pos-actS-compat
-        }
-    }
-    where
-      u₀ = unfoldingCore (Coalgebra.α X x)
-      module u₀ = Unfolding u₀
-
-  -- The anamorphism is a coalgebra homomorphism from X to Cosmos
-  -- anamorphism 是从 X 到 Cosmos 的余代数同态
-  ana-hom : (X : Coalgebra) → CoalgHom X cosmosCoalg
-  ana-hom X = record { f = ana X ; commute = λ _ → refl }
-
-  -- Bisimulation relation on Cosmos: two Cosmos values are equivalent if
-  -- their unfolding functors agree and next seeds are coinductively equivalent
-  -- Cosmos 上的互模拟关系：两个 Cosmos 对象等价当且仅当其展开函子一致，
-  -- 且下一层种子余归纳地等价
+  -- Bisimulation _≈C_ on Cosmos and cosmosSetoid
+  -- Cosmos 上的互模拟 _≈C_ 及 cosmosSetoid
   record _≈C_ (F G : Cosmos C FC) : Set L where
     coinductive
     module UF = Unfolding (unfoldingCore (out F))
@@ -107,7 +88,7 @@ module _ {o h e s p : Level}
       -- 展开函子命题相等
       unfoldFunctor-eq : UF.unfoldFunctor ≡ UG.unfoldFunctor
       -- Position-to-shape maps agree after transport along the above equality
-      -- 位置到形状映射沿上述等式输送后一致
+      -- 位置到形状映射沿上述等式传输后一致
       pos-to-shape-eq  : ∀ {A} (s : ShapeOf FC A) (p : PosOf FC s)
                        → subst (λ G → ShapeOf FC (Functor.₀ G (A , s)))
                                 unfoldFunctor-eq
@@ -117,8 +98,7 @@ module _ {o h e s p : Level}
       -- 下一层种子余归纳地等价
       unfold-next-eq   : ∀ {A} (s : ShapeOf FC A)
                        → UF.unfold-next s ≈C UG.unfold-next s
-
-  open _≈C_ public
+  open _≈C_
 
   -- Reflexivity of the bisimulation relation
   -- 互模拟关系的自反性
@@ -182,11 +162,75 @@ module _ {o h e s p : Level}
       { refl  = ≈C-refl ; sym = ≈C-sym ; trans = ≈C-trans }
     }
 
-  -- Uniqueness of the anamorphism: any coalgebra homomorphism to Cosmos
-  -- is bisimilar to the canonical unfold
-  -- anamorphism 的唯一性：任何到 Cosmos 的余代数同态均与典范展开互模拟
+  -- Canonical coalgebra structure on Cosmos
+  -- α.cong maps ≈C to ≈F via ≈C→≈U
+  -- Cosmos 上的典范余代数结构
+  -- α.cong 通过 ≈C→≈U 将 ≈C 映射为 ≈F
+  cosmosCoalg : Coalgebra
+  cosmosCoalg = record
+    { Carrier = cosmosSetoid
+    ; α       = record
+        { to   = out
+        ; cong = λ {F} {G} eq → record
+            { contEquiv-eq = refl
+            ; unfolding-eq  = ≈C→≈U eq
+            }
+        }
+    }
+    where
+      ≈C→≈U : ∀ {F G} → F ≈C G
+             → US._≈U_ {X = cosmosSetoid}
+                 (unfoldingCore (out F)) (unfoldingCore (out G))
+      ≈C→≈U eq = record
+        { unfoldFunctor-eq = eq .unfoldFunctor-eq
+        ; pos-to-shape-eq  = eq .pos-to-shape-eq
+        ; unfold-next-eq   = eq .unfold-next-eq
+        }
+
+  -- Existence: anamorphism
+  -- 存在性：anamorphism
+  ana-to : (X : Coalgebra) → Setoid.Carrier (Coalgebra.Carrier X) → Cosmos C FC
+  ana-to X x .out = record
+    { unfoldingCore = record
+        { unfoldFunctor   = u₀.unfoldFunctor
+        ; unfold-next     = λ s → ana-to X (u₀.unfold-next s)
+        ; pos-to-shape    = u₀.pos-to-shape
+        ; pos-actS-compat = u₀.pos-actS-compat
+        }
+    }
+    where
+      u₀ = unfoldingCore (Func.to (Coalgebra.α X) x)
+      module u₀ = Unfolding u₀
+
+  -- Congruence of ana-to with respect to carrier equivalence
+  -- ana-to 关于载体等价的兼容性
+  ana-cong : (X : Coalgebra)
+           → ∀ {x y} → Setoid._≈_ (Coalgebra.Carrier X) x y
+           → ana-to X x ≈C ana-to X y
+  ana-cong X {x} {y} x≈y .unfoldFunctor-eq =
+    US._≈U_.unfoldFunctor-eq
+      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
+  ana-cong X {x} {y} x≈y .pos-to-shape-eq =
+    US._≈U_.pos-to-shape-eq
+      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
+  ana-cong X {x} {y} x≈y .unfold-next-eq {A} s =
+    ana-cong X (US._≈U_.unfold-next-eq
+      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y)) s)
+
+  -- The anamorphism as a Setoid morphism
+  -- anamorphism 作为 Setoid 态射
+  ana : (X : Coalgebra) → Func (Coalgebra.Carrier X) cosmosSetoid
+  ana X = record { to = ana-to X ; cong = ana-cong X }
+
+  -- The anamorphism is a coalgebra homomorphism from X to Cosmos
+  -- anamorphism 是从 X 到 Cosmos 的余代数同态
+  ana-hom : (X : Coalgebra) → CoalgHom X cosmosCoalg
+  ana-hom X = record { f = ana X ; commute = λ _ → refl }
+
+  -- Uniqueness
+  -- 唯一性
   unique-ana : (X : Coalgebra) (fhom : CoalgHom X cosmosCoalg)
-             → ∀ x → CoalgHom.f fhom x ≈C ana X x
+             → ∀ x → Func.to (CoalgHom.f fhom) x ≈C ana-to X x
   unique-ana X fhom = λ x → helper x refl refl
     where
       module X  = Coalgebra X
@@ -196,16 +240,18 @@ module _ {o h e s p : Level}
 
       -- Lemma: position-to-shape maps agree after transport, given
       -- equalities of unfolding cores
-      -- 引理：给定展开核的等式，位置到形状映射在输送后一致
-      pts-eq-lemma : ∀ {A : Set L} {u v : Unfolding FC (Cosmos C FC)} {u₀ : Unfolding FC A}
+      -- 引理：给定展开核的等式，位置到形状映射在传输后一致
+      pts-eq-lemma : ∀ {A : Set L}
+                       {u v : Unfolding FC (Cosmos C FC)}
+                       {u₀ : Unfolding FC A}
                        (f g : A → Cosmos C FC) {B}
-                   → (eq-u : u ≡ mapUnfolding f u₀)
-                   → (eq-v : v ≡ mapUnfolding g u₀)
-                   → (s : ShapeOf FC B) (p : PosOf FC s)
-                   → subst (λ G → ShapeOf FC (Functor.₀ G (B , s)))
-                            (trans (cong unfoldFunctor eq-u)
-                                   (sym (cong unfoldFunctor eq-v)))
-                            (pos-to-shape u s p)
+                     → (eq-u : u ≡ mapUnfolding f u₀)
+                     → (eq-v : v ≡ mapUnfolding g u₀)
+                     → (s : ShapeOf FC B) (p : PosOf FC s)
+                     → subst (λ G → ShapeOf FC (Functor.₀ G (B , s)))
+                             (trans (cong unfoldFunctor eq-u)
+                                    (sym (cong unfoldFunctor eq-v)))
+                             (pos-to-shape u s p)
                      ≡ pos-to-shape v s p
       pts-eq-lemma _ _ eq-u eq-v s p rewrite eq-u | eq-v = refl
 
@@ -213,50 +259,56 @@ module _ {o h e s p : Level}
       -- prove a ≈C b by coinduction
       -- 核心辅助：给定 x 及等式 a ≡ fhom f x 与 b ≡ ana X x，
       -- 通过余归纳证明 a ≈C b
-      helper : ∀ {a b : Cosmos C FC} (x : X.Carrier)
-            → (a≡fx : a ≡ fh.f x) (b≡anax : b ≡ ana X x)
-            → a ≈C b
+      helper : ∀ {a b : Cosmos C FC} (x : Setoid.Carrier X.Carrier)
+             → (a≡fx : a ≡ Func.to fh.f x)
+             → (b≡anax : b ≡ ana-to X x)
+             → a ≈C b
       helper {a} {b} x a≡fx b≡anax = go
         where
-          u₀ = unfoldingCore (X.α x)
+          u₀ = unfoldingCore (Func.to X.α x)
 
-          eq-UF : unfoldingCore (out a) ≡ mapUnfolding fh.f u₀
+          eq-UF : unfoldingCore (out a) ≡ mapUnfolding (Func.to fh.f) u₀
           eq-UF = begin
             unfoldingCore (out a)
               ≡⟨ cong unfoldingCore (cong out a≡fx) ⟩
-            unfoldingCore (out (fh.f x))
+            unfoldingCore (out (Func.to fh.f x))
               ≡⟨ sym (cong unfoldingCore (fh.commute x)) ⟩
-            mapUnfolding fh.f u₀
+            mapUnfolding (Func.to fh.f) u₀
             ∎
 
-          eq-UG : unfoldingCore (out b) ≡ mapUnfolding (ana X) u₀
+          eq-UG : unfoldingCore (out b) ≡ mapUnfolding (ana-to X) u₀
           eq-UG = begin
             unfoldingCore (out b)
               ≡⟨ cong unfoldingCore (cong out b≡anax) ⟩
-            unfoldingCore (out (ana X x))
+            unfoldingCore (out (ana-to X x))
               ≡⟨ refl ⟩
-            mapUnfolding (ana X) u₀
+            mapUnfolding (ana-to X) u₀
             ∎
 
           go : a ≈C b
-          go .unfoldFunctor-eq = trans (cong unfoldFunctor eq-UF) (sym (cong unfoldFunctor eq-UG))
-          go .pos-to-shape-eq = pts-eq-lemma fh.f (ana X) eq-UF eq-UG
+          go .unfoldFunctor-eq =
+            trans (cong unfoldFunctor eq-UF) (sym (cong unfoldFunctor eq-UG))
+          go .pos-to-shape-eq =
+            pts-eq-lemma (Func.to fh.f) (ana-to X) eq-UF eq-UG
           go .unfold-next-eq {A} s =
             let seed = unfold-next u₀ s
                 a'≡ = cong (λ u → unfold-next u s) eq-UF
                 b'≡ = cong (λ u → unfold-next u s) eq-UG
             in helper seed a'≡ b'≡
 
-  -- Terminality: Cosmos is a terminal coalgebra: existence of anamorphism
-  -- and uniqueness up to bisimulation
-  -- 终余代数性：Cosmos 是终余代数——anamorphism 的存在性以及在互模拟意义下的唯一性
+  -- Terminality (Func morphism, ≡ commute condition)
+  -- 终余代数性（Func 态射，≡ 交换条件）
   terminality : ∀ (X : Coalgebra)
-              → ∃ λ (f : Coalgebra.Carrier X → Cosmos C FC) →
-                  (∀ x → mapCosmosF f (Coalgebra.α X x) ≡ out (f x))
-                × (∀ g → (∀ x → mapCosmosF g (Coalgebra.α X x) ≡ out (g x))
-                        → ∀ x → f x ≈C g x)
+              → ∃ λ (f : Func (Coalgebra.Carrier X) cosmosSetoid) →
+                  (∀ x → mapCosmosF (Func.to f) (Func.to (Coalgebra.α X) x)
+                         ≡ out (Func.to f x))
+                × (∀ (g : Func (Coalgebra.Carrier X) cosmosSetoid)
+                    → (∀ x → mapCosmosF (Func.to g) (Func.to (Coalgebra.α X) x)
+                           ≡ out (Func.to g x))
+                    → ∀ x → Func.to f x ≈C Func.to g x)
   terminality X =
     ( ana X
     , (λ _ → refl)
-    , λ g gcomm x → ≈C-sym (unique-ana X (record { f = g ; commute = gcomm }) x)
+    , λ g gcomm x → ≈C-sym
+        (unique-ana X (record { f = g ; commute = gcomm }) x)
     )

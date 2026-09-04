@@ -73,34 +73,39 @@ src/
 │   ├── Cosmos/
 │   │   ├── ContCategory.agda
 │   │   ├── ContCategoryLemmas.agda
+│   │   ├── ContFunctor.agda
 │   │   ├── ContCatEquiv.agda
 │   │   ├── ContCatEquivFunctor.agda
-│   │   ├── ContCatEquivLemmas.agda
-│   │   ├── ContFunctor.agda
-│   │   ├── MorphismMorphism.agda
+│   │   ├── Unfolding.agda
 │   │   ├── MorphismObject.agda
+│   │   ├── ContCatEquivLemmas.agda
+│   │   ├── MorphismMorphism.agda
 │   │   ├── Terminal.agda
-│   │   └── Unfolding.agda
+│   │   ├── CoalgCat.agda
+│   │   ├── Lambek.agda
+│   │   ├── MorphismCorrespondence.agda
+│   │   ├── ListCosmos.agda
+│   │   └── Closure.agda
 │   ├── InitialPass/
+│   │   ├── ObjEquivCat.agda
+│   │   ├── ObjEquivFunctor.agda
 │   │   ├── ContCategory.agda
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContCatEquiv.agda
 │   │   ├── ContCatEquivFunctor.agda
-│   │   ├── ContCatEquivLemmas.agda
-│   │   ├── Cosmos.agda
-│   │   ├── MorphismMorphism.agda
+│   │   ├── Unfolding.agda
 │   │   ├── MorphismObject.agda
-│   │   ├── ObjEquivCat.agda
-│   │   ├── ObjEquivFunctor.agda
-│   │   └── Unfolding.agda
+│   │   ├── ContCatEquivLemmas.agda
+│   │   ├── MorphismMorphism.agda
+│   │   └── Cosmos.agda
 │   └── Prototype/
-│       ├── Beings.agda
-│       ├── Cosmos.agda
-│       ├── Indestructibility.agda
 │       ├── Prelude.agda
+│       ├── Cosmos.agda
 │       ├── Properties.agda
-│       ├── StandardModel.agda
-│       └── Universe.agda
+│       ├── Indestructibility.agda
+│       ├── Beings.agda
+│       ├── Universe.agda
+│       └── StandardModel.agda
 └── Everything.agda
 ```
 
