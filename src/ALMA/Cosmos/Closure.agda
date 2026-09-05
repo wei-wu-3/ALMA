@@ -17,7 +17,9 @@ open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
 open import Relation.Binary.Bundles using (Setoid)
+import Relation.Binary.Reasoning.Setoid as SetoidReasoning
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Product.Base using (_,_)
 open import Function.Bundles using (Func)
 open import Function.Base using (_∘_)
 
@@ -61,9 +63,6 @@ module _ {o h e s p : Level}
 
   -- Propositional equality implies bisimulation (used for transport)
   -- 命题等式蕴含互模拟（用于传输）
-  ≡→≈C : ∀ {a b : T} → a ≡ b → a ≈C′ b
-  ≡→≈C refl = ≈C′-refl
-
   outFunc : Func CS (CFF.CosmosFSetoid L CS)
   outFunc = Coal.α cosmosCoalg
 
@@ -102,34 +101,36 @@ module _ {o h e s p : Level}
   -- 映射闭包保持恒等（互模拟意义下）
   mapℱ-id : ∀ x → Func.to (mapℱ idCS) x ≈C′ x
   mapℱ-id x =
-    ≈C′-trans
-      (≡→≈C (cong in-F (map-id (out x))))
-      (in∘out≈id x)
+    let open SetoidReasoning CS
+    in begin
+      Func.to (mapℱ idCS) x
+        ≡⟨ refl ⟩
+      in-F (mapCosmosF (λ z → z) (out x))
+        ≡⟨ cong in-F (map-id (out x)) ⟩
+      in-F (out x)
+        ≈⟨ in∘out≈id x ⟩
+      x
+    ∎
 
   -- Map closure preserves composition (up to bisimulation)
   -- 映射闭包保持复合（互模拟意义下）
   mapℱ-comp : ∀ (F G : Func CS CS) x
             → Func.to (mapℱ (compFunc F G)) x ≈C′ Func.to (mapℱ G) (Func.to (mapℱ F) x)
   mapℱ-comp F G x =
-    let mid : FT
-        mid = mapCosmosF (Func.to F) (out x)
-
-        step1 : mapCosmosF (Func.to G ∘ Func.to F) (out x)
-              ≡ mapCosmosF (Func.to G) mid
-        step1 = map-∘ (Func.to G) (Func.to F) (out x)
-
-        step2 : CFF._≈F_ CS mid (out (in-F mid))
-        step2 = CFF.≈F-sym (out∘in≈Fid mid)
-
-        step3 : CFF._≈F_ CS
-                  (mapCosmosF (Func.to G) mid)
-                  (mapCosmosF (Func.to G) (out (in-F mid)))
-        step3 = Func.cong (CFF.mapCosmosF-resp G) step2
-
-        goal  : in-F (mapCosmosF (Func.to G) mid)
-              ≈C′ in-F (mapCosmosF (Func.to G) (out (in-F mid)))
-        goal  = in-F-resp-≈F step3
-    in ≈C′-trans (≡→≈C (cong in-F step1)) goal
+    let open SetoidReasoning CS
+    in begin
+      Func.to (mapℱ (compFunc F G)) x
+        ≡⟨ refl ⟩
+      in-F (mapCosmosF (Func.to G ∘ Func.to F) (out x))
+        ≡⟨ cong in-F (map-∘ (Func.to G) (Func.to F) (out x)) ⟩
+      in-F (mapCosmosF (Func.to G) (mapCosmosF (Func.to F) (out x)))
+        ≈⟨ in-F-resp-≈F
+            (Func.cong (CFF.mapCosmosF-resp G)
+              (CFF.≈F-sym (out∘in≈Fid (mapCosmosF (Func.to F) (out x))))) ⟩
+      in-F (mapCosmosF (Func.to G) (out (in-F (mapCosmosF (Func.to F) (out x)))))
+        ≡⟨ refl ⟩
+      Func.to (mapℱ G) (Func.to (mapℱ F) x)
+    ∎
 
   -- Compatibility of mapℱ with out (counit relation)
   -- mapℱ 与 out 的相容性（余单位关系）
@@ -155,9 +156,11 @@ module _ {ℓ : Level} where
   -- UnitLike 谓词：刻画与 UnitCosmos 具有相同展开结构的宇宙
   record UnitLike (x : T₀) : Set ℓ where
     field
-      unfoldFunctor-eq :
-        Unfolding.unfoldFunctor (unfoldingCore (out x))
-        ≡ Unfolding.unfoldFunctor (unfoldingCore (out UnitCosmos))
+      -- The object parts of the unfolding functors agree pointwise
+      -- 展开函子在对象上逐点命题相等
+      unfoldFunctor₀-eq : ∀ {A} (s : ShapeOf {C = C₀} FC₀ A)
+                        → Functor.₀ (Unfolding.unfoldFunctor (unfoldingCore (out x))) (A , s)
+                        ≡ Functor.₀ (Unfolding.unfoldFunctor (unfoldingCore (out UnitCosmos))) (A , s)
       next-self : ∀ {A} (s : ShapeOf {C = C₀} FC₀ A)
                 → Unfolding.unfold-next (unfoldingCore (out x)) s ≈C₀ x
 
@@ -179,8 +182,8 @@ module _ {ℓ : Level} where
       -- Coinductive helper: from a ≈C₀ x derive a ≈C₀ UnitCosmos
       -- 辅助共归纳证明：由 a ≈C₀ x 推出 a ≈C₀ UnitCosmos
       helper : ∀ {a : T₀} → a ≈C₀ x → a ≈C₀ UnitCosmos
-      helper {a} p .unfoldFunctor-eq =
-        trans (p .unfoldFunctor-eq) UL.unfoldFunctor-eq
+      helper {a} p .unfoldFunctor₀-eq s =
+        trans (p .unfoldFunctor₀-eq s) (UL.unfoldFunctor₀-eq s)
       helper {a} p .pos-to-shape-eq {A} s q = ⊤-≡
       helper {a} p .unfold-next-eq {A} s =
         helper (≈C₀-trans (p .unfold-next-eq s) (UL.next-self s))

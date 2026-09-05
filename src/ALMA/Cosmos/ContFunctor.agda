@@ -17,7 +17,7 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Level using (Lift; lift; lower)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
-open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence)
+open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence) renaming (setoid to discreteSetoid)
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (_∘_)
 open import Function.Bundles using (Func; _⇔_; mk⇔)
@@ -59,16 +59,6 @@ module _ {s p ℓ : Level} where
   -- The category of endofunctors, used for natural transformation equivalence.
   -- 自函子范畴，用于自然变换等价。
   module FuncCat = Category EndoFunctors
-
-  -- Discrete setoid on a type A: equivalence is propositional equality.
-  -- 类型 A 上的离散 setoid：等价关系取命题相等。
-  private
-    discreteSetoid : ∀ {a} (A : Set a) → Setoid a a
-    discreteSetoid A = record
-      { Carrier       = A
-      ; _≈_           = _≡_
-      ; isEquivalence = isEquivalence
-      }
 
   -- Parameterised record: packages C and level parameters as module context.
   -- 参数化 record：将 C 与层级参数封装为模块上下文。

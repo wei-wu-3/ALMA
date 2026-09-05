@@ -90,7 +90,7 @@ module _ where
         { unfoldFunctor   = TrivialUnfoldFunctor
         ; unfold-next     = λ _ → ListCosmos
         ; pos-to-shape    = λ {A} n i → toℕ i
-        ; pos-actS-compat = λ _ _ _ → refl
+        ; pos-actS-compat = λ { f refl p → refl }
         }
     }
 

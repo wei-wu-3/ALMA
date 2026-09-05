@@ -84,14 +84,14 @@ module _ {o h e s p : Level}
     module UF = Unfolding (unfoldingCore (out F))
     module UG = Unfolding (unfoldingCore (out G))
     field
-      -- Unfolding functors are propositionally equal
-      -- 展开函子命题相等
-      unfoldFunctor-eq : UF.unfoldFunctor ≡ UG.unfoldFunctor
+      -- Unfolding functors are pointwise equal on objects
+      -- 展开函子在对象上逐点命题相等
+      unfoldFunctor₀-eq : ∀ {A} (s : ShapeOf FC A)
+                        → Functor.₀ UF.unfoldFunctor (A , s) ≡ Functor.₀ UG.unfoldFunctor (A , s)
       -- Position-to-shape maps agree after transport along the above equality
       -- 位置到形状映射沿上述等式传输后一致
       pos-to-shape-eq  : ∀ {A} (s : ShapeOf FC A) (p : PosOf FC s)
-                       → subst (λ G → ShapeOf FC (Functor.₀ G (A , s)))
-                                unfoldFunctor-eq
+                       → subst (λ x → ShapeOf FC x) (unfoldFunctor₀-eq s)
                                 (UF.pos-to-shape s p)
                        ≡ UG.pos-to-shape s p
       -- Next seeds are coinductively equivalent
@@ -103,23 +103,23 @@ module _ {o h e s p : Level}
   -- Reflexivity of the bisimulation relation
   -- 互模拟关系的自反性
   ≈C-refl : ∀ {F} → F ≈C F
-  ≈C-refl .unfoldFunctor-eq = refl
+  ≈C-refl .unfoldFunctor₀-eq = λ _ → refl
   ≈C-refl .pos-to-shape-eq _ _ = refl
   ≈C-refl .unfold-next-eq _ = ≈C-refl
 
   -- Symmetry of the bisimulation relation
   -- 互模拟关系的对称性
   ≈C-sym : ∀ {F G} → F ≈C G → G ≈C F
-  ≈C-sym {F} {G} eq .unfoldFunctor-eq = sym (eq .unfoldFunctor-eq)
+  ≈C-sym {F} {G} eq .unfoldFunctor₀-eq = λ s → sym (eq .unfoldFunctor₀-eq s)
   ≈C-sym {F} {G} eq .pos-to-shape-eq {A} s p =
     let module UF' = Unfolding (unfoldingCore (out F))
         module UG' = Unfolding (unfoldingCore (out G))
-        P = λ G → ShapeOf FC (Functor.₀ G (A , s))
-        u = eq .unfoldFunctor-eq
+        u = eq .unfoldFunctor₀-eq s
     in begin
-      subst P (sym u) (UG'.pos-to-shape s p)
-        ≡⟨ cong (subst P (sym u)) (sym (eq .pos-to-shape-eq s p)) ⟩
-      subst P (sym u) (subst P u (UF'.pos-to-shape s p))
+      subst (λ x → ShapeOf FC x) (sym u) (UG'.pos-to-shape s p)
+        ≡⟨ cong (subst (λ x → ShapeOf FC x) (sym u)) (sym (eq .pos-to-shape-eq s p)) ⟩
+      subst (λ x → ShapeOf FC x) (sym u)
+            (subst (λ x → ShapeOf FC x) u (UF'.pos-to-shape s p))
         ≡⟨ subst-sym-subst u ⟩
       UF'.pos-to-shape s p
     ∎
@@ -128,24 +128,22 @@ module _ {o h e s p : Level}
   -- Transitivity of the bisimulation relation
   -- 互模拟关系的传递性
   ≈C-trans : ∀ {F G H} → F ≈C G → G ≈C H → F ≈C H
-  ≈C-trans {F} {G} {H} e1 e2 .unfoldFunctor-eq =
-    trans (e1 .unfoldFunctor-eq) (e2 .unfoldFunctor-eq)
+  ≈C-trans {F} {G} {H} e1 e2 .unfoldFunctor₀-eq = λ s → trans (e1 .unfoldFunctor₀-eq s) (e2 .unfoldFunctor₀-eq s)
   ≈C-trans {F} {G} {H} e1 e2 .pos-to-shape-eq {A} s p =
     let module UF' = Unfolding (unfoldingCore (out F))
         module UG' = Unfolding (unfoldingCore (out G))
         module UH' = Unfolding (unfoldingCore (out H))
-        P = λ G → ShapeOf FC (Functor.₀ G (A , s))
-        p₁ = e1 .unfoldFunctor-eq
-        p₂ = e2 .unfoldFunctor-eq
+        p₁ = e1 .unfoldFunctor₀-eq s
+        p₂ = e2 .unfoldFunctor₀-eq s
         uf = UF'.pos-to-shape s p
         ug = UG'.pos-to-shape s p
         uh = UH'.pos-to-shape s p
     in begin
-      subst P (trans p₁ p₂) uf
+      subst (λ x → ShapeOf FC x) (trans p₁ p₂) uf
         ≡⟨ sym (subst-subst p₁ {y≡z = p₂}) ⟩
-      subst P p₂ (subst P p₁ uf)
-        ≡⟨ cong (subst P p₂) (e1 .pos-to-shape-eq s p) ⟩
-      subst P p₂ ug
+      subst (λ x → ShapeOf FC x) p₂ (subst (λ x → ShapeOf FC x) p₁ uf)
+        ≡⟨ cong (subst (λ x → ShapeOf FC x) p₂) (e1 .pos-to-shape-eq s p) ⟩
+      subst (λ x → ShapeOf FC x) p₂ ug
         ≡⟨ e2 .pos-to-shape-eq s p ⟩
       uh
     ∎
@@ -182,7 +180,7 @@ module _ {o h e s p : Level}
              → US._≈U_ {X = cosmosSetoid}
                  (unfoldingCore (out F)) (unfoldingCore (out G))
       ≈C→≈U eq = record
-        { unfoldFunctor-eq = eq .unfoldFunctor-eq
+        { unfoldFunctor₀-eq = eq .unfoldFunctor₀-eq
         ; pos-to-shape-eq  = eq .pos-to-shape-eq
         ; unfold-next-eq   = eq .unfold-next-eq
         }
@@ -207,8 +205,8 @@ module _ {o h e s p : Level}
   ana-cong : (X : Coalgebra)
            → ∀ {x y} → Setoid._≈_ (Coalgebra.Carrier X) x y
            → ana-to X x ≈C ana-to X y
-  ana-cong X {x} {y} x≈y .unfoldFunctor-eq =
-    US._≈U_.unfoldFunctor-eq
+  ana-cong X {x} {y} x≈y .unfoldFunctor₀-eq =
+    US._≈U_.unfoldFunctor₀-eq
       (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
   ana-cong X {x} {y} x≈y .pos-to-shape-eq =
     US._≈U_.pos-to-shape-eq
@@ -237,23 +235,6 @@ module _ {o h e s p : Level}
       module fh = CoalgHom fhom
       open _≈C_
       open Unfolding using (unfoldFunctor; unfold-next; pos-to-shape)
-
-      -- Lemma: position-to-shape maps agree after transport, given
-      -- equalities of unfolding cores
-      -- 引理：给定展开核的等式，位置到形状映射在传输后一致
-      pts-eq-lemma : ∀ {A : Set L}
-                       {u v : Unfolding FC (Cosmos C FC)}
-                       {u₀ : Unfolding FC A}
-                       (f g : A → Cosmos C FC) {B}
-                     → (eq-u : u ≡ mapUnfolding f u₀)
-                     → (eq-v : v ≡ mapUnfolding g u₀)
-                     → (s : ShapeOf FC B) (p : PosOf FC s)
-                     → subst (λ G → ShapeOf FC (Functor.₀ G (B , s)))
-                             (trans (cong unfoldFunctor eq-u)
-                                    (sym (cong unfoldFunctor eq-v)))
-                             (pos-to-shape u s p)
-                     ≡ pos-to-shape v s p
-      pts-eq-lemma _ _ eq-u eq-v s p rewrite eq-u | eq-v = refl
 
       -- Core helper: given x and equalities a ≡ fhom f x and b ≡ ana X x,
       -- prove a ≈C b by coinduction
@@ -285,11 +266,24 @@ module _ {o h e s p : Level}
             mapUnfolding (ana-to X) u₀
             ∎
 
+          unfoldFunctor₀-eq-lem : ∀ {A} (s : ShapeOf FC A)
+                                → Functor.₀ (unfoldFunctor (unfoldingCore (out a))) (A , s)
+                                  ≡ Functor.₀ (unfoldFunctor (unfoldingCore (out b))) (A , s)
+          unfoldFunctor₀-eq-lem {A} s =
+            trans
+              (cong (λ u → Functor.₀ (unfoldFunctor u) (A , s)) eq-UF)
+              (sym (cong (λ u → Functor.₀ (unfoldFunctor u) (A , s)) eq-UG))
+
+          pos-to-shape-eq-lem : ∀ {A} (s : ShapeOf FC A) (p : PosOf FC s)
+                              → subst (λ x → ShapeOf FC x) (unfoldFunctor₀-eq-lem s)
+                                       (pos-to-shape (unfoldingCore (out a)) s p)
+                                ≡ pos-to-shape (unfoldingCore (out b)) s p
+          pos-to-shape-eq-lem {A} s p
+            rewrite eq-UF | eq-UG = refl
+
           go : a ≈C b
-          go .unfoldFunctor-eq =
-            trans (cong unfoldFunctor eq-UF) (sym (cong unfoldFunctor eq-UG))
-          go .pos-to-shape-eq =
-            pts-eq-lemma (Func.to fh.f) (ana-to X) eq-UF eq-UG
+          go .unfoldFunctor₀-eq = unfoldFunctor₀-eq-lem
+          go .pos-to-shape-eq   = pos-to-shape-eq-lem
           go .unfold-next-eq {A} s =
             let seed = unfold-next u₀ s
                 a'≡ = cong (λ u → unfold-next u s) eq-UF

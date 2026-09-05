@@ -17,6 +17,7 @@ import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
 import ALMA.Cosmos.MorphismCorrespondence
 import ALMA.Cosmos.ListCosmos
+import ALMA.Cosmos.CosmosCategory
 import ALMA.Cosmos.Closure
 
 import ALMA.InitialPass.ObjEquivCat

@@ -85,6 +85,7 @@ src/
 │   │   ├── Lambek.agda
 │   │   ├── MorphismCorrespondence.agda
 │   │   ├── ListCosmos.agda
+│   │   ├── CosmosCategory.agda
 │   │   └── Closure.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda

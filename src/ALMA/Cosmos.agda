@@ -25,6 +25,7 @@ open import Data.Product.Base using (_,_; proj₁; proj₂)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Instance.Setoids using (Setoids)
+open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (id)
 
@@ -237,34 +238,8 @@ UnitCosmos .out = record
     }
   }
 
--- StrictSets Category
--- 严格集合范畴
--- The category of strict (proof-irrelevant) sets at level ℓ,
--- with pointwise propositional equality as morphism equivalence
--- 层级 ℓ 上的严格（证明无关）集合范畴，
--- 态射等价取逐点命题相等
-StrictSets : (ℓ : Level) → Category (lsuc ℓ) ℓ ℓ
-StrictSets ℓ = record
-  { Obj       = Set ℓ
-  ; _⇒_       = λ A B → A → B
-  ; _≈_       = λ f g → ∀ {x} → f x ≡ g x
-  ; id        = λ x → x
-  ; _∘_       = λ g f x → g (f x)
-  ; assoc     = refl
-  ; sym-assoc = refl
-  ; identityˡ = refl
-  ; identityʳ = refl
-  ; identity² = refl
-  ; equiv     = record
-    { refl  = refl
-    ; sym   = λ eq → sym eq
-    ; trans = λ eq₁ eq₂ → trans eq₁ eq₂
-    }
-  ; ∘-resp-≈  = λ {_ _ _ h i f g} eq₁ eq₂ {x} → trans (eq₁ {f x}) (cong i (eq₂ {x}))
-  }
-
--- CosmosF Functor: StrictSets → Setoids
--- CosmosF 函子：StrictSets → Setoids
+-- CosmosF Functor: Sets → Setoids
+-- CosmosF 函子：Sets → Setoids
 module CosmosFFunctor {o h e s p : Level}
                       {C : Category o h e}
                       {FC : Functor C (ContCat s p)} where
@@ -278,7 +253,7 @@ module CosmosFFunctor {o h e s p : Level}
   -- 容器等价见证的相等与展开等价
   record _≈F_ {u : Level} (X : Setoid u u)
               (c₁ c₂ : CosmosF C FC (Setoid.Carrier X))
-              : Set (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u) where
+              : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
     field
       contEquiv-eq : contEquiv c₁ ≡ contEquiv c₂
       unfolding-eq : US._≈U_ {X = X} (unfoldingCore c₁) (unfoldingCore c₂)
@@ -303,8 +278,8 @@ module CosmosFFunctor {o h e s p : Level}
   -- CosmosF as a Setoid: carrier is CosmosF, equivalence is ≈F
   -- 将 CosmosF 视为 Setoid：载体为 CosmosF，等价为 ≈F
   CosmosFSetoid : (u : Level) → Setoid u u
-                → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
-                         (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u)
+                  → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
+                          (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
   CosmosFSetoid u X = record
     { Carrier       = CosmosF C FC (Setoid.Carrier X)
     ; _≈_           = _≈F_ X
@@ -329,21 +304,21 @@ module CosmosFFunctor {o h e s p : Level}
         { contEquiv-eq = refl
         ; unfolding-eq = Func.cong (US.mapUnfolding-resp X Y f) ue
         }
-  -- The CosmosF functor: StrictSets u → Setoids
-  -- CosmosF 函子：StrictSets u → Setoids
+  -- The CosmosF functor: Sets u → Setoids
+  -- CosmosF 函子：Sets u → Setoids
   toStdFunc : {u : Level} {X Y : Set u} → (X → Y) → Func (setoid X) (setoid Y)
   toStdFunc f = record { to = f ; cong = cong f }
   cosmosFFunctor : (u : Level)
-                → Functor (StrictSets u)
-                          (Setoids (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
-                                    (lsuc o ⊔ lsuc h ⊔ lsuc e ⊔ lsuc s ⊔ lsuc p ⊔ lsuc u))
+    → Functor (Sets u)
+              (Setoids (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
+                      (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u))
   cosmosFFunctor u = record
     { F₀           = λ X → CosmosFSetoid u (setoid X)
     ; F₁           = λ f → mapCosmosF-resp (toStdFunc f)
     ; identity     = λ {X} → ≈F-refl {X = setoid X}
     ; homomorphism = λ {X Y Z} {f g} → ≈F-refl {X = setoid Z}
-    ; F-resp-≈     = λ {X Y} {f g} f≈g {c} → record
+    ; F-resp-≈ = λ {X Y} {f g} f≈g {c} → record
         { contEquiv-eq = refl
-        ; unfolding-eq = US.mapUnfolding-resp-≈ X Y f g f≈g US.≈U-refl
+        ; unfolding-eq = US.mapUnfolding-resp-≈ X Y f g (λ {x} → f≈g x) US.≈U-refl
         }
     }

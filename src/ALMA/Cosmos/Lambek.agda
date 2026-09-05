@@ -2,23 +2,31 @@
 -- Lambek's lemma for the terminal coalgebra Cosmos
 -- Cosmos 终余代数的 Lambek 引理
 --
--- out : Cosmos → F Cosmos is an isomorphism up to bisimulation.
--- out 在互模拟意义下为同构。
--- Key pivot: commute is ≡, so in-hom.commute gives out ∘ in-F ≡ F(in-F ∘ out).
--- 关键利用 commute 为 ≡：in-hom.commute 给出 out ∘ in-F ≡ F(in-F ∘ out)。
--- Imported cosmosSetoid / cosmosCoalg are explicitly applied to module params
--- to form CS / CC, eliminating implicit-parameter metavariables.
--- 显式应用 Terminal 模块参数生成 CS / CC，消除隐式元变量。
+-- out : Cosmos → CosmosF Cosmos is a weak isomorphism:
+--   in-F ∘ out is bisimilar to id, and out ∘ in-F is ≈F-equivalent to id.
+-- The inverse in-F is obtained from the universal property of the terminal
+-- coalgebra. The key identities are:
+--   in-F ∘ out ≈C id
+--   out ∘ in-F ≈F id
+--   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
+-- out : Cosmos → CosmosF Cosmos 构成弱同构：
+--   in-F ∘ out 与 id 互模拟，out ∘ in-F 与 id 在 ≈F 下等价。
+-- 逆映射 in-F 由终对象的泛性质构造。关键恒等式为：
+--   in-F ∘ out ≈C id
+--   out ∘ in-F ≈F id
+-- 其中第二个恒等式通过余代数同态条件导出的等式
+--   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y 转换而得。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.Lambek where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open ≡-Reasoning
+import Relation.Binary.Reasoning.Setoid as SetoidReasoning
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (_∘_; id)
 open import Function.Bundles using (Func)
@@ -33,7 +41,7 @@ open import ALMA.Cosmos
         ; module CosmosMap; module CosmosFFunctor )
 open CosmosMap using (mapCosmosF; map-∘)
 open import ALMA.Cosmos.Terminal
-  using ( Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana
+  using ( Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana; ana-to
         ; _≈C_; ≈C-trans; ≈C-sym; cosmosSetoid )
 
 module _ {o h e s p : Level}
@@ -53,8 +61,8 @@ module _ {o h e s p : Level}
     FFT : Set L
     FFT = CosmosF C FC FT
 
-    -- Explicitly apply Terminal's module params: no implicit metavariables.
-    -- 显式应用 Terminal 的模块参数：无隐式元变量。
+    -- Explicitly apply Terminal's module params
+    -- 显式应用 Terminal 的模块参数
     CS : Setoid L L
     CS = cosmosSetoid {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
@@ -87,8 +95,8 @@ module _ {o h e s p : Level}
   FT-Coalg : Coalgebra
   FT-Coalg = record { Carrier = FT-Setoid ; α = FT-α }
 
-  -- in-F : FT-Coalg → CC by final universality
-  -- in-F : FT-Coalg → CC（由终泛性质）
+  -- in-F : FT-Coalg → CC by the universal property of the terminal object
+  -- in-F : FT-Coalg → CC（由终对象的泛性质构造）
   in-hom : CoalgHom FT-Coalg CC
   in-hom = ana-hom FT-Coalg
 
@@ -102,8 +110,8 @@ module _ {o h e s p : Level}
     where
       open _≈C_
       helper : ∀ {d₁ d₂} → CFF._≈F_ CS d₁ d₂ → in-F d₁ ≈C in-F d₂
-      helper {d₁} {d₂} eq .unfoldFunctor-eq =
-        US._≈U_.unfoldFunctor-eq (CFF._≈F_.unfolding-eq eq)
+      helper {d₁} {d₂} eq .unfoldFunctor₀-eq =
+        US._≈U_.unfoldFunctor₀-eq (CFF._≈F_.unfolding-eq eq)
       helper {d₁} {d₂} eq .pos-to-shape-eq =
         US._≈U_.pos-to-shape-eq (CFF._≈F_.unfolding-eq eq)
       helper {d₁} {d₂} eq .unfold-next-eq s =
@@ -123,7 +131,7 @@ module _ {o h e s p : Level}
     in∘out-hom = record { f = in∘out-f ; commute = commute-proof }
       where
         commute-proof : ∀ x → mapCosmosF (in-F ∘ out) (out x) ≡ out (in-F (out x))
-        commute-proof x = begin
+        commute-proof x = let open ≡-Reasoning in begin
           mapCosmosF (in-F ∘ out) (out x)
             ≡⟨ map-∘ in-F out (out x) ⟩
           mapCosmosF in-F (mapCosmosF out (out x))
@@ -140,12 +148,14 @@ module _ {o h e s p : Level}
   -- in-F ∘ out ≈C id_T
   in∘out≈id : ∀ x → in-F (out x) ≈C x
   in∘out≈id x =
-    ≈C-trans (unique-ana CC in∘out-hom x)
-             (≈C-sym (unique-ana CC id-hom x))
+    let open SetoidReasoning CS in begin
+      in-F (out x)        ≈⟨ unique-ana CC in∘out-hom x ⟩
+      ana-to CC x         ≈⟨ ≈C-sym (unique-ana CC id-hom x) ⟩
+      x                   ∎
 
   -- out ∘ in-F ≡ F(in-F ∘ out)
   out∘in≡F∘ : ∀ y → out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
-  out∘in≡F∘ y = begin
+  out∘in≡F∘ y = let open ≡-Reasoning in begin
     out (in-F y)
       ≡⟨ sym (CoalgHom.commute in-hom y) ⟩
     mapCosmosF in-F (mapCosmosF out y)
@@ -160,33 +170,34 @@ module _ {o h e s p : Level}
     F∘≈Fid y = record
       { contEquiv-eq = refl
       ; unfolding-eq  = record
-          { unfoldFunctor-eq = refl
+          { unfoldFunctor₀-eq = λ _ → refl
           ; pos-to-shape-eq  = λ _ _ → refl
           ; unfold-next-eq   = λ {A} s →
               in∘out≈id (unfold-next (unfoldingCore y) s)
           }
       }
 
-  -- out ∘ in-F ≈F id_{F T} (transport along ≡ from previous step)
-  -- out ∘ in-F ≈F id_{F T}（沿前步等式传输）
+  -- out ∘ in-F ≈F id_{F T} (obtained by transferring along the previous equality)
+  -- out ∘ in-F ≈F id_{F T}（通过前一步的等式转换而得）
   out∘in≈Fid : ∀ y → CFF._≈F_ CS (out (in-F y)) y
   out∘in≈Fid y =
-    subst (λ z → CFF._≈F_ CS z y)
-          (sym (out∘in≡F∘ y))
-          (F∘≈Fid y)
+    let open SetoidReasoning (CFF.CosmosFSetoid L CS) in begin
+      out (in-F y)                  ≡⟨ out∘in≡F∘ y ⟩
+      mapCosmosF (in-F ∘ out) y     ≈⟨ F∘≈Fid y ⟩
+      y                             ∎
 
-  -- out is an isomorphism up to bisimulation
+  -- out is a weak isomorphism (up to the respective equivalences)
   --   in-F ∘ out ≈C id_T
   --   out ∘ in-F ≈F id_{F T}
-  -- out 在互模拟意义下为同构
+  -- out 为弱同构（模各自等价关系）
   record LambekIso : Set (lsuc L) where
     field
       inverse      : FT → T
       inverse-left : ∀ x → inverse (out x) ≈C x
       inverse-right : ∀ y → CFF._≈F_ CS (out (inverse y)) y
 
-  -- The canonical Lambek isomorphism obtained from the terminal coalgebra.
-  -- 由终余代数得到的典范 Lambek 同构。
+  -- The canonical Lambek isomorphism obtained from the terminal coalgebra
+  -- 由终余代数得到的典范 Lambek 同构
   lambekIso : LambekIso
   lambekIso = record
     { inverse      = in-F

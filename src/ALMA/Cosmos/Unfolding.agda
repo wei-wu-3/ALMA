@@ -15,7 +15,8 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.Definitions using (Reflexive; Symmetric; Transitive)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality.Properties using (setoid)
+open import Relation.Binary.PropositionalEquality.Properties
+  using (setoid; subst-subst; subst-sym-subst; module ≡-Reasoning)
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func)
@@ -45,6 +46,7 @@ module _ {o h e s p u : Level}
     module F   = Functor F
     ShapeCat′ : Category (o ⊔ s) (h ⊔ s) e
     ShapeCat′ = ShapeCat C F
+
   record Unfolding : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
     field
       -- The unfolding functor: ShapeCat(F) → C
@@ -58,11 +60,12 @@ module _ {o h e s p u : Level}
       pos-to-shape    : ∀ {A} (s : ShapeOf F A) → PosOf F s → ShapeOf F (Functor.₀ unfoldFunctor (A , s))
       -- Compatibility: pos-to-shape commutes with the functorial action on shapes/positions
       -- 相容性：pos-to-shape 与形状/位置上的函子作用交换
-      pos-actS-compat : ∀ {A B} (f : A C.⇒ B) (s : ShapeOf F A)
+      pos-actS-compat : ∀ {A B} {s : ShapeOf F A} {t : ShapeOf F B}
+                      → (f : A C.⇒ B) (q : actSOf F f s ≡ t)
                       → (p : PosOf F (actSOf F f s))
-                      → pos-to-shape (actSOf F f s) p
-                        ≡ actSOf F (Functor.₁ unfoldFunctor (f , refl))
-                                 (pos-to-shape s (actPOf F f s p))
+                      → pos-to-shape t (subst (PosOf F) q p)
+                        ≡ actSOf F (Functor.₁ unfoldFunctor (f , q))
+                                (pos-to-shape s (actPOf F f s p))
   open Unfolding public
 
 -- Functorial action on unfoldings: map the seed set along a function X → Y
@@ -96,14 +99,15 @@ mapUnfolding-∘ f g u = refl
 module UnfoldingSetoid {o h e s p u : Level}
                        {C : Category o h e}
                        {F : Functor C (ContCat s p)} where
+  open ≡-Reasoning
   private
     module C = Category C
     module F = Functor F
     ShapeOf′ = ShapeOf F
     PosOf′   = PosOf F
-  -- Equivalence on unfoldings: equal unfolding functors, compatible pos-to-shape,
-  -- and pointwise equivalent next-seed assignments
-  -- 展开上的等价关系：展开函子相等，pos-to-shape 相容，
+  -- Equivalence on unfoldings: pointwise equal object maps of the unfolding functors,
+  -- compatible pos-to-shape, and pointwise equivalent next-seed assignments
+  -- 展开上的等价关系：展开函子的对象映射逐点相等，pos-to-shape 相容，
   -- 下一层种子赋值逐点等价
   record _≈U_ {X : Setoid u u}
               (u₁ u₂ : Unfolding F (Setoid.Carrier X))
@@ -113,15 +117,14 @@ module UnfoldingSetoid {o h e s p u : Level}
       module U₁ = Unfolding u₁
       module U₂ = Unfolding u₂
     field
-      -- The unfolding functors are propositionally equal
-      -- 展开函子取命题相等
-      unfoldFunctor-eq : U₁.unfoldFunctor ≡ U₂.unfoldFunctor
-      -- pos-to-shape agrees after transporting along unfoldFunctor-eq
-      -- pos-to-shape 在沿 unfoldFunctor-eq 传输后一致
+      -- The unfolding functors are pointwise equal on objects
+      -- 展开函子在对象上的作用逐点命题相等
+      unfoldFunctor₀-eq : ∀ {A} (s : ShapeOf′ A)
+                        → Functor.₀ U₁.unfoldFunctor (A , s) ≡ Functor.₀ U₂.unfoldFunctor (A , s)
+      -- pos-to-shape agrees after transporting along unfoldFunctor₀-eq
+      -- pos-to-shape 在沿 unfoldFunctor₀-eq 传输后一致
       pos-to-shape-eq  : ∀ {A} (s : ShapeOf′ A) (p : PosOf′ s)
-                       → subst (λ G → ShapeOf′ (Functor.₀ G (A , s)))
-                                unfoldFunctor-eq
-                                (U₁.pos-to-shape s p)
+                       → subst (λ x → ShapeOf′ x) (unfoldFunctor₀-eq s) (U₁.pos-to-shape s p)
                        ≡ U₂.pos-to-shape s p
       -- Next-seed assignments are pointwise equivalent in X
       -- 下一层种子赋值在 X 中逐点等价
@@ -132,29 +135,48 @@ module UnfoldingSetoid {o h e s p u : Level}
   -- _≈U_ 的自反性
   ≈U-refl : {X : Setoid u u} → Reflexive (_≈U_ {X})
   ≈U-refl {X = X} = record
-    { unfoldFunctor-eq = refl
-    ; pos-to-shape-eq  = λ _ _ → refl
-    ; unfold-next-eq   = λ _ → Setoid.refl X
+    { unfoldFunctor₀-eq = λ _ → refl
+    ; pos-to-shape-eq   = λ _ _ → refl
+    ; unfold-next-eq    = λ _ → Setoid.refl X
     }
   -- Symmetry of _≈U_
   -- _≈U_ 的对称性
   ≈U-sym : (X : Setoid u u) → Symmetric (_≈U_ {X})
-  ≈U-sym X (record { unfoldFunctor-eq = refl ; pos-to-shape-eq = pts ; unfold-next-eq = un })
+  ≈U-sym X {u₁} {u₂} (record { unfoldFunctor₀-eq = eq₀ ; pos-to-shape-eq = pts ; unfold-next-eq = un })
     = record
-    { unfoldFunctor-eq = refl
-    ; pos-to-shape-eq  = λ s p → sym (pts s p)
-    ; unfold-next-eq   = λ s → Setoid.sym X (un s)
-    }
+      { unfoldFunctor₀-eq = λ s → sym (eq₀ s)
+      ; pos-to-shape-eq   = λ {A} s p →
+          let P = λ x → ShapeOf′ x in
+          begin
+            subst P (sym (eq₀ s)) (Unfolding.pos-to-shape u₂ s p)
+              ≡⟨ cong (subst P (sym (eq₀ s))) (sym (pts s p)) ⟩
+            subst P (sym (eq₀ s)) (subst P (eq₀ s) (Unfolding.pos-to-shape u₁ s p))
+              ≡⟨ subst-sym-subst (eq₀ s) ⟩
+            Unfolding.pos-to-shape u₁ s p
+            ∎
+      ; unfold-next-eq    = λ s → Setoid.sym X (un s)
+      }
   -- Transitivity of _≈U_
   -- _≈U_ 的传递性
   ≈U-trans : (X : Setoid u u) → Transitive (_≈U_ {X})
-  ≈U-trans X (record { unfoldFunctor-eq = refl ; pos-to-shape-eq = pts₁ ; unfold-next-eq = un₁ })
-             (record { unfoldFunctor-eq = refl ; pos-to-shape-eq = pts₂ ; unfold-next-eq = un₂ })
+  ≈U-trans X {u₁} {u₂} {u₃}
+           (record { unfoldFunctor₀-eq = eq₁ ; pos-to-shape-eq = pts₁ ; unfold-next-eq = un₁ })
+           (record { unfoldFunctor₀-eq = eq₂ ; pos-to-shape-eq = pts₂ ; unfold-next-eq = un₂ })
     = record
-    { unfoldFunctor-eq = refl
-    ; pos-to-shape-eq  = λ s p → trans (pts₁ s p) (pts₂ s p)
-    ; unfold-next-eq   = λ s → Setoid.trans X (un₁ s) (un₂ s)
-    }
+      { unfoldFunctor₀-eq = λ s → trans (eq₁ s) (eq₂ s)
+      ; pos-to-shape-eq   = λ {A} s p →
+          let P = λ x → ShapeOf′ x in
+          begin
+            subst P (trans (eq₁ s) (eq₂ s)) (Unfolding.pos-to-shape u₁ s p)
+              ≡⟨ sym (subst-subst (eq₁ s) {y≡z = eq₂ s}) ⟩
+            subst P (eq₂ s) (subst P (eq₁ s) (Unfolding.pos-to-shape u₁ s p))
+              ≡⟨ cong (subst P (eq₂ s)) (pts₁ s p) ⟩
+            subst P (eq₂ s) (Unfolding.pos-to-shape u₂ s p)
+              ≡⟨ pts₂ s p ⟩
+            Unfolding.pos-to-shape u₃ s p
+            ∎
+      ; unfold-next-eq    = λ s → Setoid.trans X (un₁ s) (un₂ s)
+      }
 
   -- Assemble the setoid of unfoldings over a given setoid X
   -- 组装给定集合 X 上的展开 Setoid
@@ -185,12 +207,12 @@ module UnfoldingSetoid {o h e s p u : Level}
       helper : {u₁ u₂ : Unfolding F (Setoid.Carrier X)}
              → _≈U_ {X} u₁ u₂
              → _≈U_ {Y} (mapUnfolding (Func.to f) u₁) (mapUnfolding (Func.to f) u₂)
-      helper (record { unfoldFunctor-eq = refl ; pos-to-shape-eq = pts ; unfold-next-eq = un })
+      helper (record { unfoldFunctor₀-eq = eq₀ ; pos-to-shape-eq = pts ; unfold-next-eq = un })
         = record
-        { unfoldFunctor-eq = refl
-        ; pos-to-shape-eq  = λ s p → pts s p
-        ; unfold-next-eq   = λ s → Func.cong f (un s)
-        }
+          { unfoldFunctor₀-eq = eq₀
+          ; pos-to-shape-eq   = pts
+          ; unfold-next-eq    = λ s → Func.cong f (un s)
+          }
 
   -- Pointwise version: if f ≈ g pointwise and u₁ _≈U_ u₂, then mapUnfolding f u₁ _≈U_ mapUnfolding g u₂
   -- 逐点版本：若 f ≈ g 逐点成立且 u₁ _≈U_ u₂，则 mapUnfolding f u₁ _≈U_ mapUnfolding g u₂
@@ -209,9 +231,9 @@ module UnfoldingSetoid {o h e s p u : Level}
       module R = Func (mapUnfolding-resp SA SB sf)
       fg-eq : _≈U_ {SB} (mapUnfolding f u₂) (mapUnfolding g u₂)
       fg-eq = record
-        { unfoldFunctor-eq = refl
-        ; pos-to-shape-eq  = λ s p → refl
-        ; unfold-next-eq   = λ s → f≈g {unfold-next u₂ s}
+        { unfoldFunctor₀-eq = λ s → refl
+        ; pos-to-shape-eq   = λ s p → refl
+        ; unfold-next-eq    = λ s → f≈g {unfold-next u₂ s}
         }
       module SBS = Setoid (unfoldingSetoid SB)
     in SBS.trans (R.cong u₁≈u₂) fg-eq
