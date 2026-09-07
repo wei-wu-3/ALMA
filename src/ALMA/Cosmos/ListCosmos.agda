@@ -18,7 +18,7 @@ open import Level using (lift)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; toℕ; splitAt; join; opposite)
   renaming (zero to fzero; suc to fsuc)
-open import Data.Unit using (tt)
+open import Data.Unit.Polymorphic.Base using (tt)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Product using (∃)
 open import Relation.Binary.PropositionalEquality.Core using (_≢_; sym; cong; subst)
@@ -71,11 +71,11 @@ module _ where
   private
     TrivialUnfoldFunctor : Functor (ShapeCat C₀ ListFC) C₀
     TrivialUnfoldFunctor = record
-      { F₀           = λ _ → lift tt
-      ; F₁           = λ _ → lift tt
-      ; identity     = lift tt
-      ; homomorphism = lift tt
-      ; F-resp-≈     = λ _ → lift tt
+      { F₀           = λ _ → tt
+      ; F₁           = λ _ → tt
+      ; identity     = tt
+      ; homomorphism = tt
+      ; F-resp-≈     = λ _ → tt
       }
 
   -- mapCosmosF specialised to C₀ / ListFC, opened after their definitions
