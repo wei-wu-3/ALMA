@@ -13,6 +13,7 @@ module ALMA.Cosmos.Unfolding where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.Definitions using (Reflexive; Symmetric; Transitive)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
 open import Relation.Binary.PropositionalEquality.Properties
@@ -20,7 +21,6 @@ open import Relation.Binary.PropositionalEquality.Properties
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func)
-open import Data.Product.Base using (_,_)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
@@ -78,11 +78,13 @@ mapUnfolding f u = record
   ; pos-to-shape    = pos-to-shape u
   ; pos-actS-compat = pos-actS-compat u
   }
+
 -- Identity law: mapUnfolding id u ≡ u
 -- 恒等律：mapUnfolding id u ≡ u
 mapUnfolding-id : ∀ {o h e s p u} {C : Category o h e} {F : Functor C (ContCat s p)} {X : Set u}
                  (u : Unfolding F X) → mapUnfolding id u ≡ u
 mapUnfolding-id u = refl
+
 -- Composition law: mapUnfolding (f ∘ g) u ≡ mapUnfolding f (mapUnfolding g u)
 -- 复合律：mapUnfolding (f ∘ g) u ≡ mapUnfolding f (mapUnfolding g u)
 mapUnfolding-∘ : ∀ {o h e s p u v w}
@@ -96,7 +98,7 @@ mapUnfolding-∘ f g u = refl
 
 -- Setoid structure for unfoldings
 -- 展开的集合（Setoid）结构
-module UnfoldingSetoid {o h e s p u : Level}
+module UnfoldingSetoid {o h e s p : Level}
                        {C : Category o h e}
                        {F : Functor C (ContCat s p)} where
   open ≡-Reasoning
@@ -105,13 +107,14 @@ module UnfoldingSetoid {o h e s p u : Level}
     module F = Functor F
     ShapeOf′ = ShapeOf F
     PosOf′   = PosOf F
+
   -- Equivalence on unfoldings: pointwise equal object maps of the unfolding functors,
   -- compatible pos-to-shape, and pointwise equivalent next-seed assignments
   -- 展开上的等价关系：展开函子的对象映射逐点相等，pos-to-shape 相容，
   -- 下一层种子赋值逐点等价
-  record _≈U_ {X : Setoid u u}
+  record _≈U_ {u v : Level} {X : Setoid u v}
               (u₁ u₂ : Unfolding F (Setoid.Carrier X))
-              : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
+              : Set (o ⊔ s ⊔ p ⊔ v) where
     private
       module X  = Setoid X
       module U₁ = Unfolding u₁
@@ -133,15 +136,16 @@ module UnfoldingSetoid {o h e s p u : Level}
 
   -- Reflexivity of _≈U_
   -- _≈U_ 的自反性
-  ≈U-refl : {X : Setoid u u} → Reflexive (_≈U_ {X})
+  ≈U-refl : {u v : Level} {X : Setoid u v} → Reflexive (_≈U_ {X = X})
   ≈U-refl {X = X} = record
     { unfoldFunctor₀-eq = λ _ → refl
     ; pos-to-shape-eq   = λ _ _ → refl
     ; unfold-next-eq    = λ _ → Setoid.refl X
     }
+
   -- Symmetry of _≈U_
   -- _≈U_ 的对称性
-  ≈U-sym : (X : Setoid u u) → Symmetric (_≈U_ {X})
+  ≈U-sym : {u v : Level} (X : Setoid u v) → Symmetric (_≈U_ {X = X})
   ≈U-sym X {u₁} {u₂} (record { unfoldFunctor₀-eq = eq₀ ; pos-to-shape-eq = pts ; unfold-next-eq = un })
     = record
       { unfoldFunctor₀-eq = λ s → sym (eq₀ s)
@@ -156,9 +160,10 @@ module UnfoldingSetoid {o h e s p u : Level}
             ∎
       ; unfold-next-eq    = λ s → Setoid.sym X (un s)
       }
+
   -- Transitivity of _≈U_
   -- _≈U_ 的传递性
-  ≈U-trans : (X : Setoid u u) → Transitive (_≈U_ {X})
+  ≈U-trans : {u v : Level} (X : Setoid u v) → Transitive (_≈U_ {X = X})
   ≈U-trans X {u₁} {u₂} {u₃}
            (record { unfoldFunctor₀-eq = eq₁ ; pos-to-shape-eq = pts₁ ; unfold-next-eq = un₁ })
            (record { unfoldFunctor₀-eq = eq₂ ; pos-to-shape-eq = pts₂ ; unfold-next-eq = un₂ })
@@ -180,13 +185,13 @@ module UnfoldingSetoid {o h e s p u : Level}
 
   -- Assemble the setoid of unfoldings over a given setoid X
   -- 组装给定集合 X 上的展开 Setoid
-  unfoldingSetoid : Setoid u u → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
-                                        (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
+  unfoldingSetoid : {u v : Level} → Setoid u v
+                  → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) (o ⊔ s ⊔ p ⊔ v)
   unfoldingSetoid X = record
     { Carrier       = Unfolding F (Setoid.Carrier X)
-    ; _≈_           = _≈U_ {X}
+    ; _≈_           = _≈U_ {X = X}
     ; isEquivalence = record
-      { refl  = ≈U-refl {X}
+      { refl  = ≈U-refl {X = X}
       ; sym   = ≈U-sym X
       ; trans = ≈U-trans X
       }
@@ -194,10 +199,9 @@ module UnfoldingSetoid {o h e s p u : Level}
 
   -- mapUnfolding respects setoid equivalence: lifts Func X Y to Func (Unf X) (Unf Y)
   -- mapUnfolding 保持集合等价：将 Func X Y 提升为 Func (Unf X) (Unf Y)
-  mapUnfolding-resp : (X Y : Setoid u u)
-                    → Func X Y
+  mapUnfolding-resp : {u v : Level} {X Y : Setoid u v} → Func X Y
                     → Func (unfoldingSetoid X) (unfoldingSetoid Y)
-  mapUnfolding-resp X Y f = record
+  mapUnfolding-resp {X = X} {Y = Y} f = record
     { to   = λ u → mapUnfolding (Func.to f) u
     ; cong = λ {u₁ u₂} eq → helper eq
     }
@@ -205,8 +209,8 @@ module UnfoldingSetoid {o h e s p u : Level}
       module X = Setoid X
       module Y = Setoid Y
       helper : {u₁ u₂ : Unfolding F (Setoid.Carrier X)}
-             → _≈U_ {X} u₁ u₂
-             → _≈U_ {Y} (mapUnfolding (Func.to f) u₁) (mapUnfolding (Func.to f) u₂)
+             → _≈U_ {X = X} u₁ u₂
+             → _≈U_ {X = Y} (mapUnfolding (Func.to f) u₁) (mapUnfolding (Func.to f) u₂)
       helper (record { unfoldFunctor₀-eq = eq₀ ; pos-to-shape-eq = pts ; unfold-next-eq = un })
         = record
           { unfoldFunctor₀-eq = eq₀
@@ -216,20 +220,20 @@ module UnfoldingSetoid {o h e s p u : Level}
 
   -- Pointwise version: if f ≈ g pointwise and u₁ _≈U_ u₂, then mapUnfolding f u₁ _≈U_ mapUnfolding g u₂
   -- 逐点版本：若 f ≈ g 逐点成立且 u₁ _≈U_ u₂，则 mapUnfolding f u₁ _≈U_ mapUnfolding g u₂
-  mapUnfolding-resp-≈ : (A B : Set u)
+  mapUnfolding-resp-≈ : {u : Level} (A B : Set u)
                       (f g : A → B)
                       → (∀ {x} → f x ≡ g x)
                       → {u₁ u₂ : Unfolding F A}
-                      → _≈U_ {setoid A} u₁ u₂
-                      → _≈U_ {setoid B} (mapUnfolding f u₁) (mapUnfolding g u₂)
+                      → _≈U_ {X = setoid A} u₁ u₂
+                      → _≈U_ {X = setoid B} (mapUnfolding f u₁) (mapUnfolding g u₂)
   mapUnfolding-resp-≈ A B f g f≈g {u₁} {u₂} u₁≈u₂ =
     let
       SA = setoid A
       SB = setoid B
       sf : Func SA SB
       sf = record { to = f ; cong = cong f }
-      module R = Func (mapUnfolding-resp SA SB sf)
-      fg-eq : _≈U_ {SB} (mapUnfolding f u₂) (mapUnfolding g u₂)
+      module R = Func (mapUnfolding-resp {X = SA} {Y = SB} sf)
+      fg-eq : _≈U_ {X = SB} (mapUnfolding f u₂) (mapUnfolding g u₂)
       fg-eq = record
         { unfoldFunctor₀-eq = λ s → refl
         ; pos-to-shape-eq   = λ s p → refl

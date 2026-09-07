@@ -4,7 +4,7 @@
 --
 -- shape-level laws for ≈M (sym, trans, assoc, whiskering) and
 -- basic container functor projections (ShapeOf, PosOf, actSOf, actPOf)
--- ≈M 的形状层代数律（对称、传递、结合、削）
+-- ≈M 的形状层代数律（对称、传递、结合、左/右 whiskering）
 -- 及容器函子的基本投影（ShapeOf、PosOf、actSOf、actPOf）
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
@@ -13,7 +13,6 @@ module ALMA.Cosmos.ContCategoryLemmas where
 
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
-open import Relation.Binary.PropositionalEquality.Properties using (trans-reflʳ)
 open import Data.Container.Core using (Container; shape; position; _⇒_)
 
 open import Categories.Category.Core using (Category)
@@ -55,15 +54,15 @@ shape-eq-assoc : ∀ {s p} {A B C D : Container s p}
               → shape-eq-from-≈M (∘M-assoc {A = A} {B} {C} {D} {f} {g} {h}) x ≡ refl
 shape-eq-assoc _ = refl
 -- Shape component respects left whiskering: precomposition with f
--- 形状分量关于左削（与 f 的前复合）的相容性
+-- 形状分量关于左 whiskering（与 f 的前复合）的相容性
 shape-eq-resp-ˡ : ∀ {s p} {A B C : Container s p}
                   → {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
                   → (eq : g₁ ≈M g₂) (x : Container.Shape A)
                   → shape-eq-from-≈M (∘M-resp-≈ˡ {f = f} eq) x
                     ≡ shape-eq-from-≈M eq (_⇒_.shape f x)
-shape-eq-resp-ˡ {f = f} eq x = trans-reflʳ (shape-eq-from-≈M eq (_⇒_.shape f x))
+shape-eq-resp-ˡ {f = f} eq x = refl
 -- Shape component respects right whiskering: postcomposition with g
--- 形状分量关于右削（与 g 的后复合）的相容性
+-- 形状分量关于右 whiskering（与 g 的后复合）的相容性
 shape-eq-resp-ʳ : ∀ {s p} {A B C : Container s p}
                 → {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
                 → (eq : f₁ ≈M f₂) (x : Container.Shape A)

@@ -10,9 +10,10 @@
 module ALMA.Cosmos.ContCatEquivLemmas where
 
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open import Data.Product.Base using (_,_; proj₂)
+open import Data.Product.Base using (proj₂)
 open import Data.Container.Core using (shape)
 
 open import Categories.Category.Core using (Category)

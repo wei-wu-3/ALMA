@@ -30,7 +30,7 @@ open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
 open import ALMA.Cosmos
-  using (Cosmos; out; unfoldingCore; _⇒ℱ_; ⇒ℱLayer; module CosmosMap)
+  using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; module CosmosMap)
 open CosmosMap using (mapCosmosF)
 open import ALMA.Cosmos.Terminal using (Coalgebra; CoalgHom; cosmosCoalg; _≈C_)
 open import ALMA.Cosmos.CoalgCat using (_≈Coalg_)
@@ -44,10 +44,10 @@ module _ {o h e s p : Level}
     T = Cosmos C FC
     CC = cosmosCoalg {C = C} {FC = FC}
 
-  -- _≈C_ implies _⇒ℱ_
-  -- _≈C_ 蕴含 _⇒ℱ_
+  -- _≈C_ implies _⇒ℱ[_]_
+  -- _≈C_ 蕴含 _⇒ℱ[_]_
   ≈C→⇒ℱ : ∀ {x y : T} → x ≈C y → x ⇒ℱ y
-  ≈C→⇒ℱ {x} {y} eq ._⇒ℱ_.out = record
+  ≈C→⇒ℱ {x} {y} eq ._⇒ℱ[_]_.out = record
     { shapeTrans  = λ {A} {s} p → UY.pos-to-shape s p
     ; morphismObj = record
       { onPos      = λ p → p
@@ -59,25 +59,25 @@ module _ {o h e s p : Level}
     ; onunfold-next = λ {A} s → ≈C→⇒ℱ (eq .unfold-next-eq s)
     }
     where
-      UY = unfoldingCore (out y)
+      UY = out y
       module UY = Unfolding UY
 
-  -- Transport _⇒ℱ_ along equality
-  -- 沿等式传输 _⇒ℱ_
+  -- Transport _⇒ℱ[_]_ along equality
+  -- 沿等式传输 _⇒ℱ[_]_
   ⇒ℱ-respˡ : ∀ {x x' y : T} → x ≡ x' → x ⇒ℱ y → x' ⇒ℱ y
   ⇒ℱ-respˡ refl m = m
 
   ⇒ℱ-respʳ : ∀ {x y y' : T} → y ≡ y' → x ⇒ℱ y → x ⇒ℱ y'
   ⇒ℱ-respʳ refl m = m
 
-  -- Forget functor: CoalgHom → pointwise _⇒ℱ_
-  -- 忘却函子：CoalgHom → 逐点 _⇒ℱ_
+  -- Forget functor: CoalgHom → pointwise _⇒ℱ[_]_
+  -- 忘却函子：CoalgHom → 逐点 _⇒ℱ[_]_
   -- forget-helper：从 CoalgHom h 和 x 构造 x ⇒ℱ b（b ≡ f x）。
   -- b≡fx 用于将 commute 等式传输到 b，并在递归步骤中关联下一层种子。
   forget-helper : (h : CoalgHom CC CC)
                 → ∀ {b : T} (x : T) (b≡fx : b ≡ Func.to (CoalgHom.f h) x)
                 → x ⇒ℱ b
-  forget-helper h {b} x b≡fx ._⇒ℱ_.out = record
+  forget-helper h {b} x b≡fx ._⇒ℱ[_]_.out = record
     { shapeTrans  = λ {A} {s} p → UB.pos-to-shape s p
     ; morphismObj = record
       { onPos      = λ p → p
@@ -89,26 +89,26 @@ module _ {o h e s p : Level}
     ; onunfold-next = λ {A} s →
         let seed        = UX.unfold-next s
             commute-next = cong (λ u → Unfolding.unfold-next u s)
-                               (cong unfoldingCore (fh.commute x))
+                               (fh.commute x)
             b-next       = cong (λ u → Unfolding.unfold-next u s)
-                               (cong unfoldingCore (cong out b≡fx))
+                               (cong out b≡fx)
             b'≡fseed    = trans b-next (sym commute-next)
         in forget-helper h seed b'≡fseed
     }
     where
       f  = Func.to (CoalgHom.f h)
       module fh = CoalgHom h
-      UX  = unfoldingCore (out x)
-      UFX = unfoldingCore (out (f x))
-      UB  = unfoldingCore (out b)
+      UX  = out x
+      UFX = out (f x)
+      UB  = out b
       module UX  = Unfolding UX
       module UB  = Unfolding UB
 
   forget : (h : CoalgHom CC CC) → ∀ x → x ⇒ℱ Func.to (CoalgHom.f h) x
   forget h x = forget-helper h x refl
 
-  -- Structured function carrying _⇒ℱ_ witnesses
-  -- 携带 _⇒ℱ_ 见证的结构化函数
+  -- Structured function carrying _⇒ℱ[_]_ witnesses
+  -- 携带 _⇒ℱ[_]_ 见证的结构化函数
   record StructuredFunc : Set (lsuc L) where
     field
       f       : T → T
@@ -132,11 +132,11 @@ module _ {o h e s p : Level}
   record StandardConditions {x y : T} (m : x ⇒ℱ y) : Set L where
     coinductive
     private
-      UX = unfoldingCore (out x)
-      UY = unfoldingCore (out y)
+      UX = out x
+      UY = out y
       module UX = Unfolding UX
       module UY = Unfolding UY
-      module ml = ⇒ℱLayer (m ._⇒ℱ_.out)
+      module ml = ⇒ℱLayer[_] (m .out)
       module mo = MorphismObject ml.morphismObj
     field
       uf-eq : UX.unfoldFunctor ≡ UY.unfoldFunctor
@@ -172,29 +172,29 @@ module _ {o h e s p : Level}
              → StandardConditions (forget-helper h x b≡fx)
 
       helper {b} x b≡fx .StandardConditions.uf-eq =
-        let UX = unfoldingCore (out x)
-            UFX = unfoldingCore (out (f x))
-            UB = unfoldingCore (out b)
-            eq-commute = cong unfoldingCore (fh.commute x)
-            eq-b = cong unfoldingCore (cong out b≡fx)
+        let UX = out x
+            UFX = out (f x)
+            UB = out b
+            eq-commute = fh.commute x
+            eq-b = cong out b≡fx
         in trans (cong Unfolding.unfoldFunctor eq-commute)
                  (cong Unfolding.unfoldFunctor (sym eq-b))
 
       helper {b} x b≡fx .StandardConditions.pts-preserved {A} {sh} p =
-        let UX = unfoldingCore (out x)
-            UFX = unfoldingCore (out (f x))
-            UB = unfoldingCore (out b)
-            eq-commute = cong unfoldingCore (fh.commute x)
-            eq-b = cong unfoldingCore (cong out b≡fx)
+        let UX = out x
+            UFX = out (f x)
+            UB = out b
+            eq-commute = fh.commute x
+            eq-b = cong out b≡fx
         in pts-lemma2 {f = f} {UX = UX} {UFX = UFX} {UB = UB}
                        eq-commute eq-b {A = A} {sh = sh} p
 
       helper {b} x b≡fx .StandardConditions.recursive {A} sh =
-        let UX = unfoldingCore (out x)
-            UFX = unfoldingCore (out (f x))
-            UB = unfoldingCore (out b)
-            eq-commute = cong unfoldingCore (fh.commute x)
-            eq-b = cong unfoldingCore (cong out b≡fx)
+        let UX = out x
+            UFX = out (f x)
+            UB = out b
+            eq-commute = fh.commute x
+            eq-b = cong out b≡fx
             b-next       = cong (λ u → Unfolding.unfold-next u sh) eq-b
             commute-next = cong (λ u → Unfolding.unfold-next u sh) eq-commute
             b'≡fseed    = trans b-next (sym commute-next)

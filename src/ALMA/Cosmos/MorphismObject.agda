@@ -12,7 +12,8 @@ module ALMA.Cosmos.MorphismObject where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Product.Base using (_,_; proj₂)
+open import Agda.Builtin.Sigma using (_,_)
+open import Data.Product.Base using (proj₂)
 open import Data.Container.Core using (shape)
 
 open import Categories.Category.Core using (Category)

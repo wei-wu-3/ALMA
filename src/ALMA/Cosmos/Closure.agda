@@ -2,10 +2,10 @@
 -- Closure Properties of Cosmos
 -- Cosmos 的闭包性质
 --
--- out / in-F form an adjoint equivalence between Cosmos and CosmosF Cosmos
+-- out / in-F form an adjoint equivalence between Cosmos and Unfolding Cosmos
 -- map closure: any Setoid endofunction lifts to a universe transformation
 -- UnitCosmos uniqueness among UnitLike cosmoi
--- out / in-F 构成 Cosmos 与 CosmosF Cosmos 之间的伴随等价
+-- out / in-F 构成 Cosmos 与 Unfolding Cosmos 之间的伴随等价
 -- 映射闭包：任意 Setoid 自映射可提升为宇宙变换
 -- UnitCosmos 在 UnitLike 宇宙中的唯一性
 ------------------------------------------------------------------------
@@ -13,13 +13,13 @@
 
 module ALMA.Cosmos.Closure where
 
-open import Agda.Primitive using (Level; lsuc; _⊔_)
+open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
 open import Relation.Binary.Bundles using (Setoid)
 import Relation.Binary.Reasoning.Setoid as SetoidReasoning
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Product.Base using (_,_)
 open import Function.Bundles using (Func)
 open import Function.Base using (_∘_)
 
@@ -30,7 +30,7 @@ open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos
-  using (Cosmos; CosmosF; out; unfoldingCore
+  using (Cosmos; out
         ; UnitCosmos; UnitCat; UnitContainerFunctor
         ; module CosmosFFunctor; module CosmosMap)
 open CosmosMap
@@ -44,7 +44,7 @@ module _ {o h e s p : Level}
   private
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
     T = Cosmos C FC
-    FT = CosmosF C FC T
+    FT = Unfolding FC T
     CS : Setoid L L
     CS = cosmosSetoid {C = C} {FC = FC}
     module CFF = CosmosFFunctor {C = C} {FC = FC}
@@ -53,20 +53,20 @@ module _ {o h e s p : Level}
     -- Instantiate bisimulation relation and lemmas for current C/FC
     -- 实例化当前 C/FC 下的互模拟关系及相关引理
     _≈C′_ : T → T → Set L
-    _≈C′_ = _≈C_ {C = C} {FC = FC}
+    _≈C′_ = _≈C_ {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     ≈C′-refl : ∀ {x} → x ≈C′ x
-    ≈C′-refl = ≈C-refl {C = C} {FC = FC}
+    ≈C′-refl = ≈C-refl {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     ≈C′-trans : ∀ {x y z} → x ≈C′ y → y ≈C′ z → x ≈C′ z
-    ≈C′-trans = ≈C-trans {C = C} {FC = FC}
+    ≈C′-trans = ≈C-trans {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
   -- Propositional equality implies bisimulation (used for transport)
   -- 命题等式蕴含互模拟（用于传输）
-  outFunc : Func CS (CFF.CosmosFSetoid L CS)
+  outFunc : Func CS (CFF.CosmosFSetoid CS)
   outFunc = Coal.α cosmosCoalg
 
-  inFFunc : Func (CFF.CosmosFSetoid L CS) CS
+  inFFunc : Func (CFF.CosmosFSetoid CS) CS
   inFFunc = record { to = in-F ; cong = in-F-resp-≈F }
 
   -- Unit (left inverse) and counit (right inverse) of Lambek isomorphism
@@ -159,10 +159,10 @@ module _ {ℓ : Level} where
       -- The object parts of the unfolding functors agree pointwise
       -- 展开函子在对象上逐点命题相等
       unfoldFunctor₀-eq : ∀ {A} (s : ShapeOf {C = C₀} FC₀ A)
-                        → Functor.₀ (Unfolding.unfoldFunctor (unfoldingCore (out x))) (A , s)
-                        ≡ Functor.₀ (Unfolding.unfoldFunctor (unfoldingCore (out UnitCosmos))) (A , s)
+                        → Functor.₀ (Unfolding.unfoldFunctor (out x)) (A , s)
+                        ≡ Functor.₀ (Unfolding.unfoldFunctor (out UnitCosmos)) (A , s)
       next-self : ∀ {A} (s : ShapeOf {C = C₀} FC₀ A)
-                → Unfolding.unfold-next (unfoldingCore (out x)) s ≈C₀ x
+                → Unfolding.unfold-next (out x) s ≈C₀ x
 
   -- Any cosmo satisfying UnitLike is bisimilar to UnitCosmos
   -- 满足 UnitLike 的宇宙与 UnitCosmos 互模拟等价

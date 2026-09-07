@@ -3,10 +3,11 @@
 -- 容器（多项式函子）范畴
 --
 -- Defines the equivalence _≈M_ on morphisms between containers (polynomial functors)
--- (propositional equality of shapes, heterogeneous equality of positions
--- via transport), verifies the category laws, and constructs a Category instance
+-- (pointwise propositional equality of the shape maps, equality of position
+-- components up to transport along the shape equality), verifies the category
+-- laws, and constructs a Category instance
 -- 定义容器（多项式函子）态射上的等价关系 _≈M_
--- （形状分量取命题相等，位置分量经传输后取异质相等），
+-- （形状函数逐点命题相等，位置分量经传输（subst）后取命题相等），
 -- 验证范畴公理，并构造 Category 实例
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
@@ -26,7 +27,7 @@ open import Data.Container.Morphism using (id; _∘_)
 
 open import Categories.Category.Core using (Category)
 
--- The equivalence relation on morphisms: equal on shapes, and on positions up to transport
+-- The equivalence relation on morphisms: pointwise equal on shape maps, and on positions up to transport
 -- 态射上的等价关系：形状分量逐点相等，位置分量在传输意义下相等
 module _ {s p} {C D : Container s p} where
   infix 4 _≈M_
@@ -96,6 +97,12 @@ module _ {s p} {C D : Container s p} where
       { Carrier = C ⇒ D ; _≈_ = _≈M_ ; isEquivalence = ≈M-isEquiv })
       public
 
+module _ {s p} {B : Container s p} {C : Container s p} where
+  position-natural : ∀ (g : B ⇒ C) {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂)
+                    (q : Position C (_⇒_.shape g t₁)) →
+                    subst (Position B) eq (_⇒_.position g {t₁} q)
+                    ≡ _⇒_.position g {t₂} (subst (Position C) (cong (_⇒_.shape g) eq) q)
+  position-natural g refl q = refl
 -- Composition respects equivalence
 -- 复合保持等价（相容性）
 ∘M-resp-≈ : ∀ {s p} {A B C : Container s p}
@@ -109,7 +116,7 @@ module _ {s p} {C D : Container s p} where
       F2.position {s} (subst (Position B) (F.shape-eq s) (G1.position {F1.shape s} p))
         ≡⟨ cong (F2.position {s}) (cong (subst (Position B) (F.shape-eq s)) (G.pos-eq (F1.shape s) p)) ⟩
       F2.position {s} (subst (Position B) (F.shape-eq s) (G2.position {F1.shape s} (subst (Position C) (G.shape-eq (F1.shape s)) p)))
-        ≡⟨ cong (F2.position {s}) (swap-onPos (F.shape-eq s) (subst (Position C) (G.shape-eq (F1.shape s)) p)) ⟩
+        ≡⟨ cong (F2.position {s}) (position-natural g₂ (F.shape-eq s) (subst (Position C) (G.shape-eq (F1.shape s)) p)) ⟩
       F2.position {s} (G2.position {F2.shape s} (subst (Position C) (cong G2.shape (F.shape-eq s)) (subst (Position C) (G.shape-eq (F1.shape s)) p)))
         ≡⟨ cong (F2.position {s}) (cong (G2.position {F2.shape s}) (subst-subst (G.shape-eq (F1.shape s)) {y≡z = cong G2.shape (F.shape-eq s)})) ⟩
       F2.position {s} (G2.position {F2.shape s} (subst (Position C) (shape-compat s) p))
@@ -124,35 +131,51 @@ module _ {s p} {C D : Container s p} where
     module G  = _≈M_ eq-g
     shape-compat : ∀ (s : Shape A) → G1.shape (F1.shape s) ≡ G2.shape (F2.shape s)
     shape-compat s = trans (G.shape-eq (F1.shape s)) (cong G2.shape (F.shape-eq s))
-    swap-onPos : ∀ {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂) (q : Position C (G2.shape t₁))
-                → subst (Position B) eq (G2.position {t₁} q)
-                ≡ G2.position {t₂} (subst (Position C) (cong G2.shape eq) q)
-    swap-onPos refl q = refl
 -- Left whiskering: g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
--- 左削：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
+-- 左复合保持等价：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
 ∘M-resp-≈ˡ : ∀ {s p} {A B C : Container s p} {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
            → g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
-∘M-resp-≈ˡ {f = f} g₁≈g₂ = ∘M-resp-≈ g₁≈g₂ (≈M-refl {f = f})
+∘M-resp-≈ˡ {s} {p} {A} {B} {C} {g₁} {g₂} {f} eq = record
+  { shape-eq = λ s → eq.shape-eq (f.shape s)
+  ; pos-eq   = λ s p → cong (f.position {s}) (eq.pos-eq (f.shape s) p)
+  }
+  where
+    module f  = _⇒_ f
+    module eq = _≈M_ eq
 -- Right whiskering: f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
--- 右削：f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
+-- 右复合保持等价：f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
 ∘M-resp-≈ʳ : ∀ {s p} {A B C : Container s p} {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
            → f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
-∘M-resp-≈ʳ {g = g} f₁≈f₂ = ∘M-resp-≈ (≈M-refl {f = g}) f₁≈f₂
+∘M-resp-≈ʳ {s} {p} {A} {B} {C} {g} {f₁} {f₂} eq = record
+  { shape-eq = λ s → cong (g.shape) (eq.shape-eq s)
+  ; pos-eq   = λ s p → begin
+      f₁.position {s} (g.position {f₁.shape s} p)
+        ≡⟨ eq.pos-eq s (g.position {f₁.shape s} p) ⟩
+      f₂.position {s} (subst (Position B) (eq.shape-eq s) (g.position {f₁.shape s} p))
+        ≡⟨ cong (f₂.position {s}) (position-natural g (eq.shape-eq s) p) ⟩
+      f₂.position {s} (g.position {f₂.shape s} (subst (Position C) (cong (g.shape) (eq.shape-eq s)) p))
+        ∎
+  }
+  where
+    module f₁ = _⇒_ f₁
+    module f₂ = _⇒_ f₂
+    module g  = _⇒_ g
+    module eq = _≈M_ eq
 
--- Associativity of composition
--- 复合的结合律
-∘M-assoc : ∀ {s p} {A B C D : Container s p}
-           {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
-         → (h ∘ g) ∘ f ≈M h ∘ (g ∘ f)
-∘M-assoc = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
--- Left identity law
--- 左单位律
-∘M-identityˡ : ∀ {s p} {A B : Container s p} {f : A ⇒ B} → id B ∘ f ≈M f
-∘M-identityˡ = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
--- Right identity law
--- 右单位律
-∘M-identityʳ : ∀ {s p} {A B : Container s p} {f : A ⇒ B} → f ∘ id A ≈M f
-∘M-identityʳ = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
+module _ {s p} where
+  -- Associativity of composition
+  -- 复合的结合律
+  ∘M-assoc : ∀ {A B C D : Container s p} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
+             → (h ∘ g) ∘ f ≈M h ∘ (g ∘ f)
+  ∘M-assoc = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
+  -- Left identity law
+  -- 左单位律
+  ∘M-identityˡ : ∀ {A B : Container s p} {f : A ⇒ B} → id B ∘ f ≈M f
+  ∘M-identityˡ = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
+  -- Right identity law
+  -- 右单位律
+  ∘M-identityʳ : ∀ {A B : Container s p} {f : A ⇒ B} → f ∘ id A ≈M f
+  ∘M-identityʳ = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
 
 -- Assemble the components into a Category instance
 -- 将上述各组件组装为 Category 实例

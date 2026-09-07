@@ -2,12 +2,13 @@
 -- Containers as polynomial functors on Setoids
 -- 容器作为 Setoids 上的多项式函子
 --
--- Builds functor ⟦ C ⟧ and embedding ContCat → [Setoids, Setoids]
+-- Builds functor ⟦ C ⟧ and embedding ContCat → HeteroFunctors
 -- Proves preservation of identity, composition, and the equivalence _≈M_
--- Note: faithfulness is obtained by choosing a test object and using projection and β-reduction
--- 构造函子 ⟦ C ⟧ 及嵌入 ContCat → [Setoids, Setoids]，
+-- Note: faithfulness is obtained by choosing a test object and using
+-- projection (lower) and congruence
+-- 构造函子 ⟦ C ⟧ 及嵌入 ContCat → 异构函子范畴
 -- 证明恒等态射、复合及等价关系 _≈M_ 的保持性；
--- 注：忠实性可由选取测试对象并利用投影与 β-归约得证
+-- 注：忠实性可由选取测试对象并利用投影（lower）与同余得证
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -15,13 +16,14 @@ module ALMA.Cosmos.ContFunctor where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Level using (Lift; lift; lower)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
-open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence) renaming (setoid to discreteSetoid)
+open import Relation.Binary.PropositionalEquality.Properties
+  renaming (setoid to discreteSetoid)
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Base using (_∘_)
 open import Function.Bundles using (Func; _⇔_; mk⇔)
-open import Data.Product.Base using (_,_)
 open import Data.Container.Core using (Container; Shape; Position; map; _⇒_)
 open import Data.Container.Morphism renaming (id to idCont; _∘_ to _∘Cont_)
 open import Data.Container.Relation.Binary.Equality.Setoid using (setoid)
@@ -52,13 +54,13 @@ module _ {s p ℓ : Level} where
   -- 目标层级需容纳形状（s）、位置（p）以及 ℓ。
   tgtLevel = s ⊔ p ⊔ ℓ
 
-  -- The endofunctor category [Setoids, Setoids] on appropriate levels.
-  -- 相应层级上的自函子范畴 [Setoids, Setoids]。
-  EndoFunctors = Functors (Setoids srcLevel srcLevel) (Setoids tgtLevel tgtLevel)
+  -- The heterogeneous functor category [Setoids, Setoids] on appropriate levels.
+  -- 相应层级上的异构函子范畴。
+  HeteroFunctors = Functors (Setoids srcLevel srcLevel) (Setoids tgtLevel tgtLevel)
 
-  -- The category of endofunctors, used for natural transformation equivalence.
-  -- 自函子范畴，用于自然变换等价。
-  module FuncCat = Category EndoFunctors
+  -- The category of HeteroFunctors, used for natural transformation equivalence.
+  -- 异构函子范畴，用于自然变换等价。
+  module FuncCat = Category HeteroFunctors
 
   -- Parameterised record: packages C and level parameters as module context.
   -- 参数化 record：将 C 与层级参数封装为模块上下文。
@@ -155,7 +157,7 @@ module _ {s p ℓ : Level} where
 
   -- The embedding functor ContCat → [Setoids, Setoids].
   -- 嵌入函子 ContCat → [Setoids, Setoids]。
-  ContEmbedding : Functor (ContCat s p) EndoFunctors
+  ContEmbedding : Functor (ContCat s p) HeteroFunctors
   ContEmbedding = record
     { F₀         = ⟦_⟧
     ; F₁         = mapNT

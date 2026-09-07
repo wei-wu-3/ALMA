@@ -21,19 +21,21 @@ open import Data.Fin.Base using (Fin; toℕ; splitAt; join; opposite)
 open import Data.Unit using (tt)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Product using (∃)
-open import Relation.Binary.PropositionalEquality.Core using (_≢_; cong)
+open import Relation.Binary.PropositionalEquality.Core using (_≢_; sym; cong; subst)
 open import Relation.Nullary.Negation using (¬_)
 open import Data.Container.Core using (Container)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
+open import Categories.Functor using (id)
 
 open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos.MorphismMorphism using (MorphismMorphism)
-open import ALMA.Cosmos using (Cosmos; out; unfoldingCore; _⇒ℱ_; ⇒ℱLayer; UnitCat; module CosmosMap)
+open import ALMA.Cosmos.MorphismMorphism using (MorphismMorphism; actP-from-S)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; module CosmosMap)
 open import ALMA.Cosmos.MorphismCorrespondence using (StructuredFunc; NontrivialCosmos; not-full)
 
 module _ where
@@ -86,12 +88,10 @@ module _ where
   -- 该展开结构自指：unfold-next 始终返回 ListCosmos 自身。
   ListCosmos : T
   ListCosmos .out = record
-    { unfoldingCore = record
-        { unfoldFunctor   = TrivialUnfoldFunctor
-        ; unfold-next     = λ _ → ListCosmos
-        ; pos-to-shape    = λ {A} n i → toℕ i
-        ; pos-actS-compat = λ { f refl p → refl }
-        }
+    { unfoldFunctor   = TrivialUnfoldFunctor
+    ; unfold-next     = λ _ → ListCosmos
+    ; pos-to-shape    = λ {A} n i → toℕ i
+    ; pos-actS-compat = λ { f refl p → refl }
     }
 
   -- OtherCosmos: same unfoldFunctor / unfold-next, but pos-to-shape = 0
@@ -102,12 +102,10 @@ module _ where
   -- 该逐点差异是非交换性证明的起点。
   OtherCosmos : T
   OtherCosmos .out = record
-    { unfoldingCore = record
-        { unfoldFunctor   = TrivialUnfoldFunctor
-        ; unfold-next     = λ _ → OtherCosmos
-        ; pos-to-shape    = λ {A} n i → 0
-        ; pos-actS-compat = λ _ _ _ → refl
-        }
+    { unfoldFunctor   = TrivialUnfoldFunctor
+    ; unfold-next     = λ _ → OtherCosmos
+    ; pos-to-shape    = λ {A} n i → 0
+    ; pos-actS-compat = λ _ _ _ → refl
     }
 
   -- swapFin2: the non‑identity permutation on Fin 2.
@@ -143,23 +141,27 @@ module _ where
   -- 形状翻译与位置映射均由 swap01 给出；
   -- 因范畴退化，相容性证明平凡。
   swap-⇒ℱ : ListCosmos ⇒ℱ ListCosmos
-  swap-⇒ℱ ._⇒ℱ_.out = record
+  swap-⇒ℱ ._⇒ℱ[_]_.out = record
     { shapeTrans  = λ {A} {n} i → toℕ (swap01 n i)
     ; morphismObj = record
       { onPos      = λ {A} {n} i → swap01 n i
       ; pts-compat = λ _ → refl
       }
-    ; morphismMor = record
-      { onActP = λ _ _ _ → refl
-      }
+    ; morphismMor = record { onActP = onActP-swapped }
     ; onunfold-next = λ _ → swap-⇒ℱ
     }
+    where
+    onActP-swapped : ∀ {A B} (f : Category._⇒_ C₀ A B) {s : ShapeOf ListFC A} {t : ShapeOf ListFC B}
+                  → (p : actSOf ListFC f s ≡ t) (q : PosOf ListFC t)
+                  → swap01 s (actPOf ListFC f s (subst (PosOf ListFC) (sym p) q))
+                    ≡ actP-from-S ListFC ListFC id f p (swap01 t q)
+    onActP-swapped f {s} {t} refl q = refl
 
   -- swap-⇒ℱ is non‑standard at n ≥ 2 because onPos ≠ id.
   -- swap-⇒ℱ 在 n ≥ 2 处非标准，因为 onPos ≠ id。
   swap-⇒ℱ-nonstandard : ∀ {n}
     → let open MorphismObject
-          open ⇒ℱLayer (swap-⇒ℱ .out)
+          open ⇒ℱLayer[_] (swap-⇒ℱ .out)
        in onPos morphismObj {s = suc (suc n)} fzero ≢ fzero
   swap-⇒ℱ-nonstandard = swap01-fzero≠fzero
 
@@ -170,7 +172,7 @@ module _ where
   -- onPos = id，shapeTrans = 0（与 OtherCosmos.pos-to-shape 匹配）。
   -- 余归纳：递归调用在 onunfold-next lambda 体头部。
   toOther : ∀ x → x ⇒ℱ OtherCosmos
-  toOther x ._⇒ℱ_.out = record
+  toOther x ._⇒ℱ[_]_.out = record
     { shapeTrans  = λ {A} {n} i → 0
     ; morphismObj = record
       { onPos      = λ {A} {n} i → i
@@ -180,7 +182,7 @@ module _ where
       { onActP = λ _ _ _ → refl
       }
     ; onunfold-next = λ {A} s →
-        toOther (Unfolding.unfold-next (unfoldingCore (out x)) s)
+        toOther (Unfolding.unfold-next (out x) s)
     }
 
   -- otherSF: StructuredFunc with f = const OtherCosmos
@@ -200,7 +202,7 @@ module _ where
       ¬ (∀ x → mapCosmosF (λ _ → OtherCosmos) (out x) ≡ out OtherCosmos)
   otherSF-not-coalg h
     with cong
-          (λ c → Unfolding.pos-to-shape (unfoldingCore c)
+          (λ c → Unfolding.pos-to-shape c
                                 (suc (suc zero)) pos2)
           (h ListCosmos)
   ... | ()
@@ -210,7 +212,7 @@ module _ where
   otherSF-not-commute-ListCosmos :
       ¬ (mapCosmosF (λ _ → OtherCosmos) (out ListCosmos) ≡ out OtherCosmos)
   otherSF-not-commute-ListCosmos eq
-    with cong (λ c → Unfolding.pos-to-shape (unfoldingCore c) (suc (suc zero)) pos2) eq
+    with cong (λ c → Unfolding.pos-to-shape c (suc (suc zero)) pos2) eq
   ... | ()
 
   -- Concrete non-trivial instance for non-fullness.

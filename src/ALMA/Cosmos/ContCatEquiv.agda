@@ -14,9 +14,9 @@ module ALMA.Cosmos.ContCatEquiv where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Relation.Binary.Bundles using (Setoid)
-open import Data.Product.Base using (_,_)
 open import Data.Container.Core using (Container; shape)
 open import Data.Container.Morphism using (id; _∘_)
 open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
