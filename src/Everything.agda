@@ -5,6 +5,7 @@ module Everything where
 import ALMA.Cosmos.ContCategory
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
+import ALMA.Cosmos.ContFunctorStrongEquiv
 import ALMA.Cosmos.ContCatEquiv
 import ALMA.Cosmos.ContCatEquivFunctor
 import ALMA.Cosmos.Unfolding
@@ -18,7 +19,10 @@ import ALMA.Cosmos.Lambek
 import ALMA.Cosmos.MorphismCorrespondence
 import ALMA.Cosmos.ListCosmos
 import ALMA.Cosmos.CosmosCategory
+import ALMA.Cosmos.ContainerAutomorphism
 import ALMA.Cosmos.Closure
+import ALMA.Cosmos.CumulativeHierarchy
+import ALMA.Cosmos.CumulativeHierarchyInstances
 
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
@@ -38,6 +42,7 @@ import ALMA.Prototype.Indestructibility
 import ALMA.Prototype.Beings
 import ALMA.Prototype.Universe
 import ALMA.Prototype.StandardModel
--- A subst-related complexity issue was encountered in the proof of comp-cong-≃⇒ℱ, which left a hole in the development
--- 遭遇comp-cong-≃⇒ℱ 证明中的 subst 复杂性问题，留下了一个洞
+
+-- comp-cong-≃⇒ℱ hit a subst coherence obstruction and was left as a hole, excluded from CI
+-- comp-cong-≃⇒ℱ 撞上 subst 相干性障碍，留为洞，从 CI 排除
 -- import ALMA.Prototype.Properties

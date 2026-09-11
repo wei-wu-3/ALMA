@@ -15,11 +15,9 @@ module ALMA.Cosmos.ContCatEquiv where
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (refl)
 open import Agda.Builtin.Sigma using (_,_)
-open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Relation.Binary.Bundles using (Setoid)
 open import Data.Container.Core using (Container; shape)
 open import Data.Container.Morphism using (id; _∘_)
-open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Construction.Functors using (Functors)
@@ -174,6 +172,8 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
   ContEmb = ContEmbedding {s = s} {p = p} {ℓ = ℓ′}
   open Functor ContEmb
 
+  module TF = Functor transportFunctor
+
   -- Lifted transport functor: CoreC → [Setoids, Setoids]
   -- 提升的传输函子：CoreC → [Setoids, Setoids]
   liftedTransport : Functor CoreC Tgt
@@ -182,23 +182,27 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
   -- Natural transformation induced by transport along isomorphism
   -- 沿同构传输的自然变换
   transpNat : ∀ {A B} (iso : A ≅ B) → NaturalTransformation ⟦ CF.F₀ A ⟧′ ⟦ CF.F₀ B ⟧′
-  transpNat iso = F₁ (from (transpIso iso))
+  transpNat = Functor.F₁ liftedTransport
 
   transpNat-refl : ∀ {A} → transpNat (C≅.refl {A}) ≈ idF
   transpNat-refl {A} {X} {x = (s , k)} =
-    let open _≈M_ (transpCont-refl {A = A}) using (shape-eq; pos-eq)
-    in shape-eq s PW., λ p → Setoid.reflexive X (cong k (pos-eq s p))
+    Functor.identity liftedTransport {A} {X} {x = (s , k)}
 
-  transpNat-sym : ∀ {A B} (eq : A ≅ B) → transpNat (C≅.sym eq) ∙ transpNat eq ≈ idF
-  transpNat-sym {A} {B} eq {X} {x = (s , k)} =
-    let open _≈M_ (transpCont-sym eq) using (shape-eq; pos-eq)
-    in shape-eq s PW., λ p → Setoid.reflexive X (cong k (pos-eq s p))
+  transpNat-sym : ∀ {A B} (eq : A ≅ B) →
+                  transpNat (C≅.sym eq) ∙ transpNat eq ≈ idF
+  transpNat-sym {A} {B} eq {X} {x} =
+    let
+      S = Functor.F₀ ⟦ CF.F₀ A ⟧′ X
+      h = homomorphism {f = TF.F₁ eq} {g = TF.F₁ (C≅.sym eq)} {X} {x}
+      r = F-resp-≈ (transpCont-sym eq) {X} {x}
+      i = identity {A = CF.F₀ A} {X} {x}
+    in
+    Setoid.trans S (Setoid.sym S h) (Setoid.trans S r i)
 
   transpNat-trans : ∀ {A B C} (eq1 : A ≅ B) (eq2 : B ≅ C) →
                     transpNat (C≅.trans eq1 eq2) ≈ (transpNat eq2 ∙ transpNat eq1)
-  transpNat-trans {A} {B} {C} eq1 eq2 {X} {x = (s , k)} =
-    let open _≈M_ (transpCont-trans eq1 eq2) using (shape-eq; pos-eq)
-    in shape-eq s PW., λ p → Setoid.reflexive X (cong k (pos-eq s p))
+  transpNat-trans eq1 eq2 {X} {x} =
+    Functor.homomorphism liftedTransport {f = eq1} {g = eq2} {X} {x}
 
 -- ShapeCat: the category of shapes (Grothendieck construction)
 -- 形状范畴（Grothendieck 构造）
@@ -214,11 +218,7 @@ module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
     ; homomorphism = λ _ → refl
     ; F-resp-≈     = λ f≈g x → _≈M_.shape-eq f≈g x
     }
-  -- The shape functor: extracts the shape set from the container functor
-  -- 形状函子：从容器函子中提取形状集
-  shapeFunctor : Functor C (Sets s)
-  shapeFunctor = ShapeForget ∘F F
   -- The category of shapes over C (Grothendieck construction / Elements)
   -- C 上的形状范畴（Grothendieck 构造 / Elements 构造）
   ShapeCat : Category (o ⊔ s) (h ⊔ s) e
-  ShapeCat = Elements shapeFunctor
+  ShapeCat = Elements (ShapeForget ∘F F)

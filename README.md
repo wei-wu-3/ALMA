@@ -74,6 +74,7 @@ src/
 │   │   ├── ContCategory.agda
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContFunctor.agda
+│   │   ├── ContFunctorStrongEquiv.agda
 │   │   ├── ContCatEquiv.agda
 │   │   ├── ContCatEquivFunctor.agda
 │   │   ├── Unfolding.agda
@@ -86,7 +87,10 @@ src/
 │   │   ├── MorphismCorrespondence.agda
 │   │   ├── ListCosmos.agda
 │   │   ├── CosmosCategory.agda
-│   │   └── Closure.agda
+│   │   ├── ContainerAutomorphism.agda
+│   │   ├── Closure.agda
+│   │   ├── CumulativeHierarchy.agda
+│   │   └── CumulativeHierarchyInstances.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda

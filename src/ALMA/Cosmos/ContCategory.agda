@@ -29,33 +29,36 @@ open import Categories.Category.Core using (Category)
 
 -- The equivalence relation on morphisms: pointwise equal on shape maps, and on positions up to transport
 -- 态射上的等价关系：形状分量逐点相等，位置分量在传输意义下相等
-module _ {s p} {C D : Container s p} where
+module _ {s p} {X Y : Container s p} where
   infix 4 _≈M_
-  record _≈M_ (f g : C ⇒ D) : Set (s ⊔ p) where
+  record _≈M_ (f g : X ⇒ Y) : Set (s ⊔ p) where
     private
       module f = _⇒_ f
       module g = _⇒_ g
     field
       shape-eq : f.shape ≗ g.shape
-      pos-eq   : ∀ (s : Shape C) (p : Position D (f.shape s))
-                → f.position {s} p ≡ g.position {s} (subst (Position D) (shape-eq s) p)
+      pos-eq   : ∀ (sh : Shape X) (q : Position Y (f.shape sh))
+                → f.position {sh} q ≡ g.position {sh} (subst (Position Y) (shape-eq sh) q)
 
   -- Reflexivity of _≈M_
   -- _≈M_ 的自反性
-  ≈M-refl : ∀ {f : C ⇒ D} → f ≈M f
+  ≈M-refl : ∀ {f : X ⇒ Y} → f ≈M f
   ≈M-refl = record { shape-eq = λ _ → refl ; pos-eq = λ _ _ → refl }
   -- Symmetry of _≈M_
   -- _≈M_ 的对称性
-  ≈M-sym : ∀ {f g : C ⇒ D} → f ≈M g → g ≈M f
+  ≈M-sym : ∀ {f g : X ⇒ Y} → f ≈M g → g ≈M f
   ≈M-sym {f} {g} eq = record
-    { shape-eq = λ s → sym (eq.shape-eq s)
-    ; pos-eq   = λ s q → sym (begin
-        F.position {s} (subst (Position D) (sym (eq.shape-eq s)) q)
-          ≡⟨ eq.pos-eq s (subst (Position D) (sym (eq.shape-eq s)) q) ⟩
-        G.position {s} (subst (Position D) (eq.shape-eq s) (subst (Position D) (sym (eq.shape-eq s)) q))
-          ≡⟨ cong (G.position {s}) (subst-subst-sym (eq.shape-eq s)) ⟩
-        G.position {s} q
-          ∎)
+    { shape-eq = λ sh → sym (eq.shape-eq sh)
+    ; pos-eq   = λ sh q →
+        let e = eq.shape-eq sh in
+        begin
+          G.position {sh} q
+            ≡˘⟨ cong (G.position {sh}) (subst-subst-sym e) ⟩
+          G.position {sh}
+            (subst (Position Y) e (subst (Position Y) (sym e) q))
+            ≡˘⟨ eq.pos-eq sh (subst (Position Y) (sym e) q) ⟩
+          F.position {sh} (subst (Position Y) (sym e) q)
+        ∎
     }
     where
       module F  = _⇒_ f
@@ -63,18 +66,21 @@ module _ {s p} {C D : Container s p} where
       module eq = _≈M_ eq
   -- Transitivity of _≈M_
   -- _≈M_ 的传递性
-  ≈M-trans : ∀ {f g h : C ⇒ D} → f ≈M g → g ≈M h → f ≈M h
+  ≈M-trans : ∀ {f g h : X ⇒ Y} → f ≈M g → g ≈M h → f ≈M h
   ≈M-trans {f} {g} {h} eq-fg eq-gh = record
-    { shape-eq = λ s → trans (FG.shape-eq s) (GH.shape-eq s)
-    ; pos-eq   = λ s p → begin
-        F.position {s} p
-          ≡⟨ FG.pos-eq s p ⟩
-        G.position {s} (subst (Position D) (FG.shape-eq s) p)
-          ≡⟨ GH.pos-eq s (subst (Position D) (FG.shape-eq s) p) ⟩
-        H.position {s} (subst (Position D) (GH.shape-eq s) (subst (Position D) (FG.shape-eq s) p))
-          ≡⟨ cong (H.position {s}) (subst-subst (FG.shape-eq s) {y≡z = GH.shape-eq s}) ⟩
-        H.position {s} (subst (Position D) (trans (FG.shape-eq s) (GH.shape-eq s)) p)
-          ∎
+    { shape-eq = λ sh → trans (FG.shape-eq sh) (GH.shape-eq sh)
+    ; pos-eq   = λ sh q →
+        let q₁ = subst (Position Y) (FG.shape-eq sh) q in
+        begin
+          F.position {sh} q
+            ≡⟨ FG.pos-eq sh q ⟩
+          G.position {sh} q₁
+            ≡⟨ GH.pos-eq sh q₁ ⟩
+          H.position {sh} (subst (Position Y) (GH.shape-eq sh) q₁)
+            ≡⟨ cong (H.position {sh})
+                 (subst-subst (FG.shape-eq sh) {y≡z = GH.shape-eq sh}) ⟩
+          H.position {sh} (subst (Position Y) (trans (FG.shape-eq sh) (GH.shape-eq sh)) q)
+            ∎
     }
     where
       module F  = _⇒_ f
@@ -94,50 +100,25 @@ module _ {s p} {C D : Container s p} where
   -- 容器态射等价 _≈M_ 的等式推理组合子
   module ≈M-Reasoning where
     open import Relation.Binary.Reasoning.Setoid (record
-      { Carrier = C ⇒ D ; _≈_ = _≈M_ ; isEquivalence = ≈M-isEquiv })
+      { Carrier = X ⇒ Y ; _≈_ = _≈M_ ; isEquivalence = ≈M-isEquiv })
       public
 
+-- Position commutes with substitution along shape equalities
+-- (naturality of position in the shape index)
+-- position 与沿形状相等的 subst 交换（position 在形状指标上的自然性）
 module _ {s p} {B : Container s p} {C : Container s p} where
-  position-natural : ∀ (g : B ⇒ C) {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂)
+  position-subst : ∀ (g : B ⇒ C) {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂)
                     (q : Position C (_⇒_.shape g t₁)) →
                     subst (Position B) eq (_⇒_.position g {t₁} q)
                     ≡ _⇒_.position g {t₂} (subst (Position C) (cong (_⇒_.shape g) eq) q)
-  position-natural g refl q = refl
--- Composition respects equivalence
--- 复合保持等价（相容性）
-∘M-resp-≈ : ∀ {s p} {A B C : Container s p}
-            {g₁ g₂ : B ⇒ C} {f₁ f₂ : A ⇒ B}
-          → g₁ ≈M g₂ → f₁ ≈M f₂ → g₁ ∘ f₁ ≈M g₂ ∘ f₂
-∘M-resp-≈ {s} {p} {A} {B} {C} {g₁} {g₂} {f₁} {f₂} eq-g eq-f = record
-  { shape-eq = shape-compat
-  ; pos-eq   = λ s p → begin
-      F1.position {s} (G1.position {F1.shape s} p)
-        ≡⟨ F.pos-eq s (G1.position {F1.shape s} p) ⟩
-      F2.position {s} (subst (Position B) (F.shape-eq s) (G1.position {F1.shape s} p))
-        ≡⟨ cong (F2.position {s}) (cong (subst (Position B) (F.shape-eq s)) (G.pos-eq (F1.shape s) p)) ⟩
-      F2.position {s} (subst (Position B) (F.shape-eq s) (G2.position {F1.shape s} (subst (Position C) (G.shape-eq (F1.shape s)) p)))
-        ≡⟨ cong (F2.position {s}) (position-natural g₂ (F.shape-eq s) (subst (Position C) (G.shape-eq (F1.shape s)) p)) ⟩
-      F2.position {s} (G2.position {F2.shape s} (subst (Position C) (cong G2.shape (F.shape-eq s)) (subst (Position C) (G.shape-eq (F1.shape s)) p)))
-        ≡⟨ cong (F2.position {s}) (cong (G2.position {F2.shape s}) (subst-subst (G.shape-eq (F1.shape s)) {y≡z = cong G2.shape (F.shape-eq s)})) ⟩
-      F2.position {s} (G2.position {F2.shape s} (subst (Position C) (shape-compat s) p))
-        ∎
-  }
-  where
-    module F1 = _⇒_ f₁
-    module F2 = _⇒_ f₂
-    module G1 = _⇒_ g₁
-    module G2 = _⇒_ g₂
-    module F  = _≈M_ eq-f
-    module G  = _≈M_ eq-g
-    shape-compat : ∀ (s : Shape A) → G1.shape (F1.shape s) ≡ G2.shape (F2.shape s)
-    shape-compat s = trans (G.shape-eq (F1.shape s)) (cong G2.shape (F.shape-eq s))
+  position-subst g refl q = refl
 -- Left whiskering: g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
 -- 左复合保持等价：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
 ∘M-resp-≈ˡ : ∀ {s p} {A B C : Container s p} {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
            → g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
 ∘M-resp-≈ˡ {s} {p} {A} {B} {C} {g₁} {g₂} {f} eq = record
-  { shape-eq = λ s → eq.shape-eq (f.shape s)
-  ; pos-eq   = λ s p → cong (f.position {s}) (eq.pos-eq (f.shape s) p)
+  { shape-eq = λ sh → eq.shape-eq (f.shape sh)
+  ; pos-eq   = λ sh q → cong (f.position {sh}) (eq.pos-eq (f.shape sh) q)
   }
   where
     module f  = _⇒_ f
@@ -147,20 +128,40 @@ module _ {s p} {B : Container s p} {C : Container s p} where
 ∘M-resp-≈ʳ : ∀ {s p} {A B C : Container s p} {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
            → f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
 ∘M-resp-≈ʳ {s} {p} {A} {B} {C} {g} {f₁} {f₂} eq = record
-  { shape-eq = λ s → cong (g.shape) (eq.shape-eq s)
-  ; pos-eq   = λ s p → begin
-      f₁.position {s} (g.position {f₁.shape s} p)
-        ≡⟨ eq.pos-eq s (g.position {f₁.shape s} p) ⟩
-      f₂.position {s} (subst (Position B) (eq.shape-eq s) (g.position {f₁.shape s} p))
-        ≡⟨ cong (f₂.position {s}) (position-natural g (eq.shape-eq s) p) ⟩
-      f₂.position {s} (g.position {f₂.shape s} (subst (Position C) (cong (g.shape) (eq.shape-eq s)) p))
-        ∎
+  { shape-eq = λ sh → cong (g.shape) (eq.shape-eq sh)
+  ; pos-eq   = λ sh q →
+      let q₁ = g.position {f₁.shape sh} q
+          e  = eq.shape-eq sh
+      in begin
+        f₁.position {sh} q₁
+          ≡⟨ eq.pos-eq sh q₁ ⟩
+        f₂.position {sh} (subst (Position B) e q₁)
+          ≡⟨ cong (f₂.position {sh}) (position-subst g e q) ⟩
+        f₂.position {sh}
+          (g.position {f₂.shape sh} (subst (Position C) (cong (g.shape) e) q))
+          ∎
   }
   where
     module f₁ = _⇒_ f₁
     module f₂ = _⇒_ f₂
     module g  = _⇒_ g
     module eq = _≈M_ eq
+-- Composition respects equivalence: derive from whiskering + transitivity
+-- 复合保持等价：由左右 whiskering 与传递性组合得到
+∘M-resp-≈ : ∀ {s p} {A B C : Container s p}
+            {g₁ g₂ : B ⇒ C} {f₁ f₂ : A ⇒ B}
+          → g₁ ≈M g₂ → f₁ ≈M f₂ → g₁ ∘ f₁ ≈M g₂ ∘ f₂
+∘M-resp-≈ {A = A} {C = C} {g₁ = g₁} {g₂ = g₂} {f₁ = f₁} {f₂ = f₂}
+          eq-g eq-f =
+  R.begin
+    g₁ ∘ f₁
+  R.≈⟨ ∘M-resp-≈ˡ {f = f₁} eq-g ⟩
+    g₂ ∘ f₁
+  R.≈⟨ ∘M-resp-≈ʳ {g = g₂} eq-f ⟩
+    g₂ ∘ f₂
+  R.∎
+  where
+    module R = ≈M-Reasoning {X = A} {Y = C}
 
 module _ {s p} where
   -- Associativity of composition

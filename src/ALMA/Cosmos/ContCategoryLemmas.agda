@@ -96,4 +96,4 @@ actPOf : ∀ {o ℓ e s p} {C : Category o ℓ e}
         → (F : Functor C (ContCat s p)) {A B : Category.Obj C}
         → (f : Category._⇒_ C A B) (s : ShapeOf F A)
         → PosOf F (actSOf F f s) → PosOf F s
-actPOf F f s = position (Functor.₁ F f) {s}
+actPOf F f s = position (Functor.₁ F f) {s = s}
