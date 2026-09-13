@@ -43,16 +43,17 @@ module _ {o h e s p : Level}
          {FC : Functor C (ContCat s p)} where
   private
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
+    Lʳ = o ⊔ s ⊔ p
     T = Cosmos C FC
     FT = Unfolding FC T
-    CS : Setoid L L
+    CS : Setoid L Lʳ
     CS = cosmosSetoid {C = C} {FC = FC}
     module CFF = CosmosFFunctor {C = C} {FC = FC}
     module Coal = Coalgebra
 
     -- Instantiate bisimulation relation and lemmas for current C/FC
     -- 实例化当前 C/FC 下的互模拟关系及相关引理
-    _≈C′_ : T → T → Set L
+    _≈C′_ : T → T → Set Lʳ
     _≈C′_ = _≈C_ {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     ≈C′-refl : ∀ {x} → x ≈C′ x
@@ -61,11 +62,17 @@ module _ {o h e s p : Level}
     ≈C′-trans : ∀ {x y z} → x ≈C′ y → y ≈C′ z → x ≈C′ z
     ≈C′-trans = ≈C-trans {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
-  -- Propositional equality implies bisimulation (used for transport)
-  -- 命题等式蕴含互模拟（用于传输）
+  -- out as a Setoid morphism from Cosmos (carrying bisimulation) to the
+  -- Unfolding Setoid; the forward direction of the Lambek isomorphism
+  -- out 作为 Setoid 态射，从 Cosmos（携带互模拟等价）到 Unfolding Setoid；
+  -- 即 Lambek 同构的正向
   outFunc : Func CS (CFF.CosmosFSetoid CS)
   outFunc = Coal.α cosmosCoalg
 
+  -- in-F as a Setoid morphism, the backward direction of the Lambek
+  -- isomorphism; congruence is supplied by in-F-resp-≈F
+  -- in-F 作为 Setoid 态射，即 Lambek 同构的逆向；
+  -- 其同态性由 in-F-resp-≈F 提供
   inFFunc : Func (CFF.CosmosFSetoid CS) CS
   inFFunc = record { to = in-F ; cong = in-F-resp-≈F }
 
@@ -78,9 +85,15 @@ module _ {o h e s p : Level}
   counit = out∘in≈Fid
 
   private
+    -- Identity Setoid endomorphism on Cosmos (with bisimulation), used as
+    -- the unit for the map-closure construction
+    -- Cosmos（携带互模拟等价）上的恒等 Setoid 自态射，用作映射闭包构造的单位
     idCS : Func CS CS
     idCS = record { to = λ x → x ; cong = λ x≈y → x≈y }
 
+    -- Composition of two Setoid endomorphisms on Cosmos, used to state the
+    -- composition law for the map-closure construction
+    -- Cosmos 上两个 Setoid 自态射的复合，用于陈述映射闭包的复合律
     compFunc : Func CS CS → Func CS CS → Func CS CS
     compFunc F G = record
       { to   = λ z → Func.to G (Func.to F z)
@@ -137,6 +150,14 @@ module _ {o h e s p : Level}
   out-mapℱ : ∀ (F : Func CS CS) x
            → CFF._≈F_ CS (out (Func.to (mapℱ F) x)) (mapCosmosF (Func.to F) (out x))
   out-mapℱ F x = counit (mapCosmosF (Func.to F) (out x))
+
+  -- Triangle identities for the adjoint equivalence out ⊣ in-F
+  -- 伴随等价 out ⊣ in-F 的三角恒等式
+  triangle-left : ∀ (x : T) → CFF._≈F_ CS (out (in-F (out x))) (out x)
+  triangle-left x = counit (out x)
+
+  triangle-right : ∀ (y : FT) → in-F (out (in-F y)) ≈C′ in-F y
+  triangle-right y = unit (in-F y)
 
 -- Uniqueness of UnitCosmos
 -- UnitCosmos 的唯一性

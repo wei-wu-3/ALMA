@@ -39,6 +39,7 @@ module _ {o h e o′ ℓ′ e′ s p : Level}
     (FD : Functor D (ContCat s p))
     (baseFunctor : Functor C D)
     (containerNat : NaturalTransformation FC (FD ∘F baseFunctor)) where
+
   -- Parameterised record: packages two ContCat-valued functors FC, FD,
   -- a base functor C → D, and a natural transformation FC ⟹ FD ∘F baseFunctor
   -- as module context; has no fields, so instantiation is trivial (record {})

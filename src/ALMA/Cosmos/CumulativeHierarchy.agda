@@ -61,6 +61,9 @@ FC∘π {C = C} FC = FC ∘F π C FC
 record Layer (o h e s p : Level) : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
   field
     C  : Category o h e
+    -- The container-valued functor over C, whose unfolding defines
+    -- the next layer
+    -- C 上的容器值函子，其展开定义下一层
     FC : Functor C (ContCat s p)
 
 open Layer public
@@ -92,11 +95,10 @@ embed-unfoldFunctor {C = C} FC = record
   }
   where open Category C
 
--- EmbeddingData provides, for each shape s of a cosmos x, a retraction
--- morphism from the unfolded object back to the original object, together
--- with naturality and recursive data for the next level
--- 嵌入数据为宇宙 x 的每个形状 s 提供一个从展开对象回到原对象的
--- 收缩态射，连同自然性及下一层的递归数据
+-- EmbeddingData packages, for a cosmos x, a retraction per shape together
+-- with its naturality and the recursive data on next seeds
+-- 嵌入数据为宇宙 x 打包：逐形状的收缩态射、其自然性、
+-- 以及下一层种子上的递归数据
 record EmbeddingData {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
   (x : Cosmos C FC) : Set (o ⊔ h ⊔ e ⊔ s ⊔ p) where
   coinductive
@@ -105,12 +107,23 @@ record EmbeddingData {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s
     UX = out x
     module UX = Unfolding UX
   field
+    -- Retraction: for each shape s, a C-morphism from the unfolded
+    -- object back to the original object A
+    -- 收缩态射：对每个形状 s，给出从展开对象回到原对象 A 的 C-态射
     retract : ∀ {A} (s : ShapeOf FC A)
             → C._⇒_ (Functor.₀ UX.unfoldFunctor (A , s)) A
+
+    -- Naturality of the retraction: pre-composing with f then retracting
+    -- equals retracting then applying the functorial action of UX
+    -- 收缩态射的自然性：先与 f 前复合再收缩，等于先收缩再施加 UX 的函子作用
     retract-natural : ∀ {A B} {s : ShapeOf FC A} {t : ShapeOf FC B}
                     → (f : A C.⇒ B) (eq : actSOf FC f s ≡ t)
                     → C._≈_ (f C.∘ retract s)
                              (retract t C.∘ Functor.₁ UX.unfoldFunctor (f , eq))
+
+    -- Recursive data: each next seed carries its own embedding data,
+    -- making the construction coinductive
+    -- 递归数据：每个下一层种子携带其自身的嵌入数据，使该构造成为余归纳的
     next : ∀ {A} (s : ShapeOf FC A) → EmbeddingData (UX.unfold-next s)
 
 -- embed constructs the embedded cosmos from an EmbeddingData
@@ -165,6 +178,7 @@ record EmbeddingFamily {o h e s p} {C : Category o h e} {FC : Functor C (ContCat
   : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
   field
     getData : (x : Cosmos C FC) → EmbeddingData x
+
   embed′ : Cosmos C FC → Cosmos (ShapeCat C FC) (FC∘π FC)
   embed′ x = embed x (getData x)
 
@@ -174,9 +188,15 @@ record EmbeddingFamily {o h e s p} {C : Category o h e} {FC : Functor C (ContCat
 record UniformEmbeddingFamily {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
   : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
   field
+    -- The underlying (non-uniform) embedding family
+    -- 底层的（非一致）嵌入族
     family : EmbeddingFamily {C = C} {FC = FC}
   open EmbeddingFamily family public
   field
+    -- Consistency: data assigned to x via shape s agrees with data
+    -- assigned to the next seed of x directly
+    -- 一致性：经形状 s 分配给 x 的数据，
+    -- 与直接分配给 x 的下一层种子的数据一致
     next-consistent : ∀ (x : Cosmos C FC) {A} (s : ShapeOf FC A)
                     → getData x .EmbeddingData.next s
                       ≡ getData (Unfolding.unfold-next (out x) s)
@@ -187,9 +207,13 @@ record UniformEmbeddingFamily {o h e s p} {C : Category o h e} {FC : Functor C (
 record FunctorialEmbeddingFamily {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
   : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
   field
+    -- The underlying uniform embedding family
+    -- 底层的一致嵌入族
     uniform : UniformEmbeddingFamily {C = C} {FC = FC}
   open UniformEmbeddingFamily uniform public
   field
+    -- Turns embed′ into a genuine functor between setoids
+    -- 使 embed′ 成为 Setoid 之间的真正函子
     embed′-resp-≈C : ∀ {x y} → x ≈C y → embed′ x ≈C embed′ y
 
 -- liftUnfolding packages the unfolding of an embedded cosmos
@@ -225,10 +249,9 @@ collapsible→ShapeCat-collapsible : ∀ {o h e s p}
   → Collapsible C → Collapsible (ShapeCat C FC)
 collapsible→ShapeCat-collapsible collapse (f , _) (g , _) = collapse f g
 
--- LambekConsistency records the two key consistency laws between the
--- embedding and the terminal-coalgebra structure (in-F/out weak isomorphism)
--- Lambek 一致性记录嵌入与终余代数结构（in-F/out 弱同构）之间的
--- 两条关键一致性定律
+-- LambekConsistency records how the embedding interacts with the
+-- terminal-coalgebra structure (in-F/out weak isomorphism)
+-- Lambek 一致性记录嵌入与终余代数结构（in-F/out 弱同构）的交互
 record LambekConsistency {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
   (fam : UniformEmbeddingFamily {C = C} {FC = FC})
   : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
@@ -236,25 +259,35 @@ record LambekConsistency {o h e s p} {C : Category o h e} {FC : Functor C (ContC
   private
     C′ = ShapeCat C FC
     FC′ = FC∘π FC
+    -- Lambek inverse of the embedded layer
+    -- 嵌入层的 Lambek 逆
     in-F′ : Unfolding FC′ (Cosmos C′ FC′) → Cosmos C′ FC′
     in-F′ = in-F {C = C′} {FC = FC′}
+    -- Left inverse law of the embedded layer's Lambek isomorphism
+    -- 嵌入层 Lambek 同构的左逆律
     in∘out≈id′ : ∀ (z : Cosmos C′ FC′) → in-F′ (out z) ≈C z
     in∘out≈id′ = in∘out≈id {C = C′} {FC = FC′}
+    -- Next-seed map of x, used to state out-consistency
+    -- x 的下一层种子映射，用于陈述 out-consistency
     UX-next : (x : Cosmos C FC) {A₀ : Category.Obj C} (s : ShapeOf FC A₀)
             → Cosmos C FC
     UX-next x {A₀} s = Unfolding.unfold-next (out x) {A = A₀} s
 
   field
+    -- Consistency with in-F: embedding commutes with the Lambek inverse
+    -- up to bisimulation
+    -- 与 in-F 的一致性：嵌入与 Lambek 逆在互模拟意义下交换
     in-F-consistency : ∀ (y : Unfolding FC (Cosmos C FC))
                      → in-F′ (out (embed′ (in-F y))) ≈C embed′ (in-F y)
+
+    -- Consistency with out: embedding commutes with the next-seed map
+    -- on the nose
+    -- 与 out 的一致性：嵌入与下一层种子映射严格交换
     out-consistency : ∀ (x : Cosmos C FC) {A₀ : Category.Obj C} (s : ShapeOf FC A₀)
                     → Unfolding.unfold-next (out (embed′ x)) {A = (A₀ , s)} s
                       ≡ embed′ (UX-next x s)
 
--- mkLambekConsistency constructs the Lambek consistency proof from a
--- uniform family; the laws follow directly from the Lambek lemma and the
--- next-consistent condition
--- mkLambekConsistency 从一致族构造 Lambek 一致性证明；
+-- The laws follow directly from the Lambek lemma and next-consistent
 -- 定律直接来自 Lambek 引理与 next-consistent 条件
 mkLambekConsistency : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
   → (fam : UniformEmbeddingFamily {C = C} {FC = FC})

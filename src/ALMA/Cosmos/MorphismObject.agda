@@ -100,6 +100,7 @@ module _ {o h e o′ ℓ′ e′ s p u v : Level}
     module UG  = Unfolding UG
     module FD  = Functor FD
     module UFf = Functor UF.unfoldFunctor
+
   -- Given:
   -- cf : a ContCatEquivFunctor witnessing FC ≈ FD ∘ H
   -- ni : a natural isomorphism H ∘ unfoldFunctor UF ≅ unfoldFunctor UG ∘ S

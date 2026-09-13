@@ -45,7 +45,7 @@ open import ALMA.Cosmos.ContCategory using (_≈M_; ContCat)
 
 -- Categorical equivalence, stated as fully faithful + split
 -- essentially surjective
--- 范畴等价，陈述为满忠实 + 分裂本质满射
+-- 范畴等价，陈述为满忠实与分裂本质满射
 private
   variable
     oc ℓc ec od ℓd ed : Level
@@ -184,7 +184,7 @@ module _ {s p ℓ : Level} where
   mapNT-resp-≈ : {C D : Container s p} {m n : C ⇒ D}
                → m ≈M n → mapNT m FuncCat.≈ mapNT n
   mapNT-resp-≈ {C} {D} {m} {n} eq {X} {x = (s , k)} =
-    eqM.shape-eq s PW., λ q → Setoid.reflexive X (cong k (eqM.pos-eq s q))
+    eqM.shape-eq s PW., λ q → Setoid.reflexive X (cong k (eqM.position-eq s q))
     where module eqM = _≈M_ eq
 
   -- The embedding functor ContCat → [Setoids, Setoids]
@@ -203,7 +203,7 @@ module _ {s p ℓ : Level} where
   ContEmbedding-faithful : Faithful ContEmbedding
   ContEmbedding-faithful {C} {D} {m} {n} nt-eq = record
     { shape-eq = λ s → PW.Pointwise.shape (get-eq s)
-    ; pos-eq   = λ s q → cong lower (PW.Pointwise.position (get-eq s) q)
+    ; position-eq   = λ s q → cong lower (PW.Pointwise.position (get-eq s) q)
     }
     where
       get-eq : (s : Shape C) → _

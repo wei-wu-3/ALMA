@@ -90,6 +90,7 @@ src/
 │   │   ├── ContainerAutomorphism.agda
 │   │   ├── Closure.agda
 │   │   ├── CumulativeHierarchy.agda
+│   │   ├── StrictLift.agda
 │   │   └── CumulativeHierarchyInstances.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda

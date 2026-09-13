@@ -3,7 +3,6 @@
 -- ContCatEquivEmbedding: lift this transport to natural transformations
 -- via the embedding ContCat → [Setoids, Setoids]
 -- ShapeCat: Grothendieck construction of the shape functor
---
 -- 分别定义：容器同构沿 C 中同构的传输结构 ContCatEquiv、
 -- 通过容器嵌入将传输提升为自然变换的 ContCatEquivEmbedding、
 -- 形状范畴 ShapeCat（由形状函子的 Grothendieck 构造得到）
@@ -37,6 +36,7 @@ open import ALMA.Cosmos.ContFunctor using (ContEmbedding; ⟦_⟧)
 module _ {o h e s p : Level}
          (C : Category o h e)
          (containerFunctor : Functor C (ContCat s p)) where
+
   -- Parameterised record: packages the source category C and the
   -- functor containerFunctor as module context; has no fields, so
   -- instantiation is trivial (record {})
@@ -59,6 +59,7 @@ module _ {o h e s p : Level}
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
     open _≅_ using (from; to)
     open import Categories.Morphism.IsoEquiv C using (_≃_; module _≃_)
+
     Core→C : Functor CoreC C
     Core→C = record
       { F₀ = λ X → X
@@ -77,13 +78,16 @@ module _ {o h e s p : Level}
     -- 融贯性定理：均由函子定律直接得出
     private
       module TF = Functor transportFunctor
+
     transpCont-refl : ∀ {A} → TF.F₁ (C≅.refl {A}) ≈M id (F₀ A)
     transpCont-refl = TF.identity
+
     transpCont-sym : ∀ {A B} (eq : A ≅ B) →
       TF.F₁ (C≅.sym eq) ∘ TF.F₁ eq ≈M id (F₀ A)
     transpCont-sym eq = ≈M-trans
       (≈M-sym (TF.homomorphism {f = eq} {g = C≅.sym eq}))
       (≈M-trans (F-resp-≈ (_≅_.isoˡ eq)) TF.identity)
+
     transpCont-trans : ∀ {A₁ A₂ A₃} (eq1 : A₁ ≅ A₂) (eq2 : A₂ ≅ A₃) →
       TF.F₁ (C≅.trans eq1 eq2) ≈M (TF.F₁ eq2 ∘ TF.F₁ eq1)
     transpCont-trans eq1 eq2 = TF.homomorphism {f = eq1} {g = eq2}
@@ -148,13 +152,16 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     module CF = Functor F
     CCE : ContCatEquiv C F
     CCE = record {}
-    -- Target category: endofunctor category [Setoids, Setoids]
-    -- 目标范畴：自函子范畴 [Setoids, Setoids]
+
+    -- Target category: functor category [Setoids, Setoids]
+    -- 目标范畴：函子范畴 [Setoids, Setoids]
     Tgt = Functors (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
     module TgtCat = Category Tgt
+
     -- Combinators for natural transformation equivalence
     -- 自然变换等价组合子
     open TgtCat using (_≈_) renaming (_∘_ to _∙_; id to idF)
+
     -- Import transport structure from ContCatEquiv
     -- 从 ContCatEquiv 导入传输结构
     open ContCatEquiv CCE
@@ -162,6 +169,7 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso using (from)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
+
     -- Explicitly instantiate the polynomial functor interpretation
     -- 显式实例化多项式函子解释
     ⟦_⟧′ : Container s p → Functor (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
@@ -208,6 +216,7 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
 -- 形状范畴（Grothendieck 构造）
 module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
   open Functor F
+
   -- Functor forgetting positions, retaining only shapes
   -- 遗忘位置、仅保留形状的函子
   ShapeForget : Functor (ContCat s p) (Sets s)
@@ -218,6 +227,7 @@ module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
     ; homomorphism = λ _ → refl
     ; F-resp-≈     = λ f≈g x → _≈M_.shape-eq f≈g x
     }
+
   -- The category of shapes over C (Grothendieck construction / Elements)
   -- C 上的形状范畴（Grothendieck 构造 / Elements 构造）
   ShapeCat : Category (o ⊔ s) (h ⊔ s) e

@@ -14,13 +14,12 @@ module ALMA.Cosmos.ListCosmos where
 
 open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Level using (lift)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; toℕ; splitAt; join; opposite)
   renaming (zero to fzero; suc to fsuc)
 open import Data.Unit.Polymorphic.Base using (tt)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Product using (∃)
+open import Data.Product.Base using (∃)
 open import Relation.Binary.PropositionalEquality.Core using (_≢_; sym; cong; subst)
 open import Relation.Nullary.Negation using (¬_)
 open import Data.Container.Core using (Container)
@@ -34,7 +33,7 @@ open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos.MorphismMorphism using (MorphismMorphism; actP-from-S)
+open import ALMA.Cosmos.MorphismMorphism using (actP-from-S)
 open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; module CosmosMap)
 open import ALMA.Cosmos.MorphismCorrespondence using (StructuredFunc; NontrivialCosmos; not-full)
 

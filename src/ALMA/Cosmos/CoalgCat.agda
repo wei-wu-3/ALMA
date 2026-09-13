@@ -35,16 +35,16 @@ module _ {o h e s p : Level}
          {FC : Functor C (ContCat s p)} where
   private
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
+    Lʳ = o ⊔ s ⊔ p
     module Coal = Coalgebra
     module Hom  = CoalgHom
 
-    -- Pin C/FC explicitly to avoid metavariable leakage from Terminal's anonymous module.
-    -- 显式指定 C/FC，避免 Terminal 匿名模块中的元变量泄漏。
-    Coalgebra′ : Set (lsuc L)
-    Coalgebra′ = Coalgebra {o} {h} {e} {s} {p} {C} {FC}
+    Coalgebra′ : (r : Level) → Set (lsuc (L ⊔ r))
+    Coalgebra′ r = Coalgebra {o} {h} {e} {s} {p} {C} {FC} r
 
-    CoalgHom′ : Coalgebra′ → Coalgebra′ → Set L
-    CoalgHom′ = CoalgHom {o} {h} {e} {s} {p} {C} {FC}
+    CoalgHom′ : {r₁ r₂ : Level} → Coalgebra′ r₁ → Coalgebra′ r₂
+              → Set (L ⊔ r₁ ⊔ r₂)
+    CoalgHom′ {r₁} {r₂} = CoalgHom {o} {h} {e} {s} {p} {C} {FC} {r₁} {r₂}
 
   -- Same as above: explicit C/FC for CosmosMap.
   -- 同上：为 CosmosMap 显式指定 C/FC。
@@ -53,8 +53,8 @@ module _ {o h e s p : Level}
 
   -- Identity and composition of coalgebra homomorphisms
   -- 余代数同态的恒等与复合
-  idCoalg : ∀ {X : Coalgebra′} → CoalgHom′ X X
-  idCoalg {X} = record
+  idCoalg : ∀ {r} {X : Coalgebra′ r} → CoalgHom′ X X
+  idCoalg {X = X} = record
     { f       = record { to = id; cong = λ eq → eq }
     ; commute = λ x → map-id (Func.to (Coal.α X) x)
     }
@@ -63,9 +63,10 @@ module _ {o h e s p : Level}
   -- then f.commute and g.commute chain to Z.α.
   -- 复合：map-∘ 将 mapCosmosF (g∘f) 归约为 mapCosmosF g ∘ mapCosmosF f，
   -- 再经 f.commute 与 g.commute 链式得到 Z.α。
-  _∘Coalg_ : ∀ {X Y Z : Coalgebra′}
+  _∘Coalg_ : ∀ {r₁ r₂ r₃}
+               {X : Coalgebra′ r₁} {Y : Coalgebra′ r₂} {Z : Coalgebra′ r₃}
            → CoalgHom′ Y Z → CoalgHom′ X Y → CoalgHom′ X Z
-  _∘Coalg_ {X} {Y} {Z} g f = record
+  _∘Coalg_ {X = X} {Y = Y} {Z = Z} g f = record
     { f       = record
       { to   = λ x → Func.to (Hom.f g) (Func.to (Hom.f f) x)
       ; cong = λ x≈y → Func.cong (Hom.f g) (Func.cong (Hom.f f) x≈y)
@@ -83,7 +84,8 @@ module _ {o h e s p : Level}
 
   -- Pointwise _≡_ on underlying functions; stronger than _≈C_
   -- 底层函数的逐点 _≡_；强于 _≈C_
-  _≈Coalg_ : ∀ {X Y : Coalgebra′} → CoalgHom′ X Y → CoalgHom′ X Y → Set L
+  _≈Coalg_ : ∀ {r} {X Y : Coalgebra′ r}
+           → CoalgHom′ X Y → CoalgHom′ X Y → Set L
   _≈Coalg_ f g = ∀ x → Func.to (Hom.f f) x ≡ Func.to (Hom.f g) x
 
   -- Category instance
@@ -94,10 +96,10 @@ module _ {o h e s p : Level}
   -- ∘-resp-≈：先外层 f≈，再内层 g≈；证明以 (x) 结尾。
   CoalgCat : Category (lsuc L) L L
   CoalgCat = record
-    { Obj       = Coalgebra′
-    ; _⇒_       = CoalgHom′
-    ; _≈_       = _≈Coalg_
-    ; id        = idCoalg
+    { Obj       = Coalgebra′ L
+    ; _⇒_       = λ X Y → CoalgHom′ {r₁ = L} {r₂ = L} X Y
+    ; _≈_       = λ f g → _≈Coalg_ {r = L} f g
+    ; id        = idCoalg {r = L}
     ; _∘_       = _∘Coalg_
     ; assoc     = λ {A B C D} {f g h} x → refl
     ; sym-assoc = λ {A B C D} {f g h} x → refl
@@ -109,7 +111,8 @@ module _ {o h e s p : Level}
       ; sym   = λ {f g} eq x → sym (eq x)
       ; trans = λ {f g h} eq1 eq2 x → trans (eq1 x) (eq2 x)
       }
-    ; ∘-resp-≈  = λ {A B C} {f h : CoalgHom′ B C} {g i : CoalgHom′ A B}
+    ; ∘-resp-≈  = λ {A B C} {f h : CoalgHom′ {r₁ = L} {r₂ = L} B C}
+                       {g i : CoalgHom′ {r₁ = L} {r₂ = L} A B}
                   f≈ g≈ x →
         trans (f≈ (Func.to (Hom.f g) x)) (cong (Func.to (Hom.f h)) (g≈ x))
     }
@@ -120,8 +123,9 @@ module _ {o h e s p : Level}
   -- 唯一性仅到互模拟 _≈C_；强化到 _≡_ 需要函数外延性与证明无关性。
   record IsTerminalUpToBisim : Set (lsuc L) where
     field
-      !        : (X : Coalgebra′) → CoalgHom′ X cosmosCoalg
-      !-unique : ∀ {X : Coalgebra′} (f : CoalgHom′ X cosmosCoalg)
+      !        : (X : Coalgebra′ Lʳ) → CoalgHom′ {r₁ = Lʳ} {r₂ = Lʳ} X cosmosCoalg
+      !-unique : ∀ {X : Coalgebra′ Lʳ}
+                   (f : CoalgHom′ {r₁ = Lʳ} {r₂ = Lʳ} X cosmosCoalg)
                → ∀ x → Func.to (Hom.f f) x ≈C Func.to (Hom.f (! X)) x
 
   -- cosmosCoalg is terminal up to _≈C_: ! = ana-hom, uniqueness = unique-ana.

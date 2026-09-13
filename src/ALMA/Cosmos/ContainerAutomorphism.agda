@@ -1,22 +1,18 @@
 ------------------------------------------------------------------------
--- Container position automorphisms induce _⇒ℱ_ endomorphisms
--- 容器位置自同构诱导 _⇒ℱ_ 自态射
+-- Position automorphisms of a container C and their induced
+-- endomorphisms on Cosmos objects over the constant functor returning C
+-- 容器 C 的位置自同构及其在基于常值函子返回 C 的 Cosmos 对象上
+-- 诱导的自态射
 --
--- This module systematises the ad‑hoc construction swap-⇒ℱ from
--- ListCosmos: for a container C and a position automorphism (identity on
--- shapes), we obtain a canonical structured simulation x ⇒ℱ x for any
--- universe x over the constant functor returning C.
--- 本模块将 ListCosmos 中的临时构造 swap-⇒ℱ 系统化：
--- 对容器 C 和位置自同构（形状映射为恒等），
--- 可获得任意基于常值函子返回 C 的宇宙 x 上的典范结构化模拟 x ⇒ℱ x。
--- The induced endomorphisms form a group under _∘⇒ℱ_ and _≈ℱ_, and the
--- map from position automorphisms to ≈ℱ‑classes is a group homomorphism.
--- 诱导的自态射在 _∘⇒ℱ_ 与 _≈ℱ_ 下构成一个群，
--- 从位置自同构到 ≈ℱ‑等价类的映射是群同态。
--- We package PosAut as a standard library Group and prove the
--- map is injective and respects the equivalence.
--- 我们将 PosAut 打包为标准库的 Group（群），并证明该映射
--- 是单射且保持等价关系。
+-- Defines PosAut (position automorphisms with naturality), its group
+-- structure under composition (posAutGroup), and the map aut→⇒ℱ sending
+-- each position automorphism to a structured simulation x ⇒ℱ x. Proves
+-- aut→⇒ℱ is a group homomorphism (aut-id, aut-comp, aut-inv), injective
+-- (aut-injective), and respects _≈PA_ (aut→⇒ℱ-resp-≈)
+-- 定义 PosAut（具有自然性的位置自同构）、其复合下的群结构
+-- （posAutGroup），以及将每个位置自同构映射为结构化模拟 x ⇒ℱ x 的
+-- 映射 aut→⇒ℱ。证明 aut→⇒ℱ 是群同态（aut-id、aut-comp、aut-inv）、
+-- 单射（aut-injective），并保持 _≈PA_（aut→⇒ℱ-resp-≈）
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 

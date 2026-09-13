@@ -60,18 +60,19 @@ module _ {o h e s p : Level}
 
   -- Coalgebra: Setoid carrier, Func structure map, ≡ commute
   -- 余代数：Setoid 载体，Func 结构映射，≡ 交换条件
-  record Coalgebra : Set (lsuc L) where
+  record Coalgebra (r : Level) : Set (lsuc (L ⊔ r)) where
     field
       -- Carrier setoid of the coalgebra
       -- 余代数的载体 Setoid
-      Carrier : Setoid L L
+      Carrier : Setoid L r
       -- Structure map α : Carrier → Unfolding Carrier, preserving setoid equivalence
       -- 结构映射 α : Carrier → Unfolding Carrier，保持 setoid 等价
       α       : Func Carrier (CFF.CosmosFSetoid Carrier)
 
   -- A homomorphism between coalgebras: a map commuting with the structure maps
   -- 余代数之间的同态：与结构映射交换的映射
-  record CoalgHom (X Y : Coalgebra) : Set L where
+  record CoalgHom {r₁ r₂ : Level} (X : Coalgebra r₁) (Y : Coalgebra r₂)
+      : Set (L ⊔ r₁ ⊔ r₂) where
     private module X = Coalgebra X; module Y = Coalgebra Y
     field
       -- Underlying setoid morphism between carriers
@@ -84,7 +85,7 @@ module _ {o h e s p : Level}
 
   -- Bisimulation _≈C_ on Cosmos and cosmosSetoid
   -- Cosmos 上的互模拟 _≈C_ 及 cosmosSetoid
-  record _≈C_ (F G : Cosmos C FC) : Set L where
+  record _≈C_ (F G : Cosmos C FC) : Set (o ⊔ s ⊔ p) where
     coinductive
     module UF = Unfolding (out F)
     module UG = Unfolding (out G)
@@ -157,7 +158,7 @@ module _ {o h e s p : Level}
 
   -- The setoid of Cosmos objects under bisimulation equivalence
   -- 互模拟等价下的 Cosmos 对象构成的 Setoid
-  cosmosSetoid : Setoid L L
+  cosmosSetoid : Setoid L (o ⊔ s ⊔ p)
   cosmosSetoid = record
     { Carrier       = Cosmos C FC
     ; _≈_           = _≈C_
@@ -169,20 +170,17 @@ module _ {o h e s p : Level}
   -- α.cong maps ≈C to ≈F via ≈C→≈U
   -- Cosmos 上的典范余代数结构
   -- α.cong 通过 ≈C→≈U 将 ≈C 映射为 ≈F
-  cosmosCoalg : Coalgebra
+  cosmosCoalg : Coalgebra (o ⊔ s ⊔ p)
   cosmosCoalg = record
     { Carrier = cosmosSetoid
     ; α       = record
         { to   = out
-        ; cong = λ {F} {G} eq → record
-            { unfolding-eq = ≈C→≈U eq
-            }
+        ; cong = λ {F} {G} eq → record { unfolding-eq = ≈C→≈U eq }
         }
     }
     where
       ≈C→≈U : ∀ {F G} → F ≈C G
-             → US._≈U_ {X = cosmosSetoid}
-                 (out F) (out G)
+             → US._≈U_ {X = cosmosSetoid} (out F) (out G)
       ≈C→≈U eq = record
         { unfoldFunctor₀-eq = eq .unfoldFunctor₀-eq
         ; pos-to-shape-eq  = eq .pos-to-shape-eq
@@ -191,7 +189,8 @@ module _ {o h e s p : Level}
 
   -- Existence: anamorphism
   -- 存在性：anamorphism
-  ana-to : (X : Coalgebra) → Setoid.Carrier (Coalgebra.Carrier X) → Cosmos C FC
+  ana-to : {r : Level} (X : Coalgebra r)
+         → Setoid.Carrier (Coalgebra.Carrier X) → Cosmos C FC
   ana-to X x .out = record
     { unfoldFunctor   = u₀.unfoldFunctor
     ; unfold-next     = λ s → ana-to X (u₀.unfold-next s)
@@ -204,9 +203,9 @@ module _ {o h e s p : Level}
 
   -- Congruence of ana-to with respect to carrier equivalence
   -- ana-to 关于载体等价的兼容性
-  ana-cong : (X : Coalgebra)
-           → ∀ {x y} → Setoid._≈_ (Coalgebra.Carrier X) x y
-           → ana-to X x ≈C ana-to X y
+  ana-cong : {r : Level} (X : Coalgebra r)
+          → ∀ {x y} → Setoid._≈_ (Coalgebra.Carrier X) x y
+          → ana-to X x ≈C ana-to X y
   ana-cong X {x} {y} x≈y .unfoldFunctor₀-eq =
     US._≈U_.unfoldFunctor₀-eq
       (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
@@ -219,18 +218,20 @@ module _ {o h e s p : Level}
 
   -- The anamorphism as a Setoid morphism
   -- anamorphism 作为 Setoid 态射
-  ana : (X : Coalgebra) → Func (Coalgebra.Carrier X) cosmosSetoid
+  ana : {r : Level} (X : Coalgebra r)
+      → Func (Coalgebra.Carrier X) cosmosSetoid
   ana X = record { to = ana-to X ; cong = ana-cong X }
 
   -- The anamorphism is a coalgebra homomorphism from X to Cosmos
   -- anamorphism 是从 X 到 Cosmos 的余代数同态
-  ana-hom : (X : Coalgebra) → CoalgHom X cosmosCoalg
+  ana-hom : {r : Level} (X : Coalgebra r)
+          → CoalgHom {r₁ = r} {r₂ = o ⊔ s ⊔ p} X cosmosCoalg
   ana-hom X = record { f = ana X ; commute = λ _ → refl }
 
   -- Uniqueness
   -- 唯一性
-  unique-ana : (X : Coalgebra) (fhom : CoalgHom X cosmosCoalg)
-             → ∀ x → Func.to (CoalgHom.f fhom) x ≈C ana-to X x
+  unique-ana : {r : Level} (X : Coalgebra r) (fhom : CoalgHom X cosmosCoalg)
+            → ∀ x → Func.to (CoalgHom.f fhom) x ≈C ana-to X x
   unique-ana X fhom = λ x → helper x refl refl
     where
       module X  = Coalgebra X
@@ -294,7 +295,7 @@ module _ {o h e s p : Level}
 
   -- Terminality (Func morphism, ≡ commute condition)
   -- 终余代数性（Func 态射，≡ 交换条件）
-  terminality : ∀ (X : Coalgebra)
+  terminality : {r : Level} (X : Coalgebra r)
               → ∃ λ (f : Func (Coalgebra.Carrier X) cosmosSetoid) →
                   (∀ x → mapCosmosF (Func.to f) (Func.to (Coalgebra.α X) x)
                          ≡ out (Func.to f x))

@@ -3,19 +3,18 @@
 -- Cosmos 终余代数的 Lambek 引理
 --
 -- out : Cosmos → Unfolding Cosmos is a weak isomorphism:
---   in-F ∘ out is bisimilar to id, and out ∘ in-F is ≈F-equivalent to id.
+--   in-F ∘ out is bisimilar to id, and out ∘ in-F is ≈F-equivalent to id
 -- The inverse in-F is obtained from the universal property of the terminal
 -- coalgebra. The key identities are:
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
 --   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
 -- out : Cosmos → Unfolding Cosmos 构成弱同构：
---   in-F ∘ out 与 id 互模拟，out ∘ in-F 与 id 在 ≈F 下等价。
+--   in-F ∘ out 与 id 互模拟，out ∘ in-F 与 id 在 ≈F 下等价
 -- 逆映射 in-F 由终对象的泛性质构造。关键恒等式为：
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
--- 其中第二个恒等式通过余代数同态条件导出的等式
---   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y 转换而得。
+--   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -47,6 +46,7 @@ module _ {o h e s p : Level}
     -- Overall level of objects and carriers.
     -- 由于 Lambek 引理涉及 Unfolding 的载体类型，必须包含所有结构层级。
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
+    Lʳ = o ⊔ s ⊔ p
 
     -- Instantiate Unfolding setoid module for the current parameters
     -- 为当前参数实例化 Unfolding 的集合模块
@@ -64,14 +64,10 @@ module _ {o h e s p : Level}
     FFT : Set L
     FFT = Unfolding FC FT
 
-    -- Cosmos bisimulation setoid.
-    -- 注意：此处仍使用 Setoid L L，因为 Terminal 模块中的 Coalgebra 定义
-    -- 要求 Carrier : Setoid L L。若未来将 Coalgebra 改为多态关系层级，
-    -- 可进一步降低 cosmosSetoid 的关系层级。
-    CS : Setoid L L
+    CS : Setoid L Lʳ
     CS = cosmosSetoid {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
-    CC : Coalgebra
+    CC : Coalgebra Lʳ
     CC = cosmosCoalg {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     -- out as a Setoid morphism
@@ -99,12 +95,12 @@ module _ {o h e s p : Level}
 
   -- coalgebra (F T, F out)
   -- 余代数 (F T, F out)
-  FT-Coalg : Coalgebra
+  FT-Coalg : Coalgebra L
   FT-Coalg = record { Carrier = FT-Setoid ; α = FT-α }
 
   -- in-F : FT-Coalg → CC by the universal property of the terminal object
   -- in-F : FT-Coalg → CC（由终对象的泛性质构造）
-  in-hom : CoalgHom FT-Coalg CC
+  in-hom : CoalgHom {r₁ = L} {r₂ = Lʳ} FT-Coalg CC
   in-hom = ana-hom FT-Coalg
 
   in-F : FT → T

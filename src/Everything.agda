@@ -22,6 +22,7 @@ import ALMA.Cosmos.CosmosCategory
 import ALMA.Cosmos.ContainerAutomorphism
 import ALMA.Cosmos.Closure
 import ALMA.Cosmos.CumulativeHierarchy
+import ALMA.Cosmos.StrictLift
 import ALMA.Cosmos.CumulativeHierarchyInstances
 
 import ALMA.InitialPass.ObjEquivCat
