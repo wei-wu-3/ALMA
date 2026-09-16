@@ -28,6 +28,7 @@ open import Data.Product.Base using (proj₁)
 open import Function.Base using (_∘_)
 
 open import Categories.Category.Core using (Category)
+open import Categories.Category.Indiscrete using (Indiscrete)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
@@ -36,11 +37,10 @@ open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos using (Cosmos; out; UnitCat; UnitContainerFunctor; UnitCosmos)
 open import ALMA.Cosmos.Terminal using (_≈C_)
-open import ALMA.Cosmos.CumulativeHierarchy
-open import ALMA.Cosmos.StrictLift using (StrictLayer; strictStep-suc; strictEmbed;
-                                           StrictLambekConsistency;
-                                           StrictFunctorialEmbeddingFamily)
 open import ALMA.Cosmos.Lambek using (in-F; in∘out≈id)
+open import ALMA.Cosmos.CumulativeHierarchy
+open import ALMA.Cosmos.StrictLift using (StrictLayer; strictStep-suc; strictEmbed
+  ; StrictLambekConsistency; EmbeddingRule; EmbedFamily; outer-rule)
 
 -- Shared uniform family builder
 -- 公共一致族构造子
@@ -70,27 +70,6 @@ module BuildUniformFrom {o h e s p : Level}
     { family = record { getData = mkEmbeddingData retract collapse }
     ; next-consistent = λ _ _ → refl
     }
-
--- UnitCat instance
--- 终范畴的嵌入数据：唯一态射作为收缩，且所有态射相等
--- Embedding data for the terminal category: the unique morphism serves
--- as retraction, and all morphisms are equal
-UnitCat-EmbeddingData : ∀ {ℓ} {FC : Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)}
-                    → (x : Cosmos (UnitCat {ℓ}) FC) → EmbeddingData x
-UnitCat-EmbeddingData {ℓ} =
-  mkEmbeddingData (λ _ _ → Category.id (UnitCat {ℓ}))
-                  (λ _ _ → Category.Equiv.refl (UnitCat {ℓ}))
-
-UnitCat-EmbeddingFamily : ∀ {ℓ} {FC : Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)}
-                        → EmbeddingFamily {C = UnitCat {ℓ}} {FC = FC}
-UnitCat-EmbeddingFamily = record { getData = UnitCat-EmbeddingData }
-
-UnitCat-UniformEmbeddingFamily : ∀ {ℓ} {FC : Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)}
-  → UniformEmbeddingFamily {C = UnitCat {ℓ}} {FC = FC}
-UnitCat-UniformEmbeddingFamily = record
-  { family          = UnitCat-EmbeddingFamily
-  ; next-consistent = λ _ _ → refl
-  }
 
 -- Unit hierarchy (stagnating levels)
 -- 单位层级（层级保持不变）
@@ -200,16 +179,7 @@ module FinCatHierarchy where
   -- between any two objects
   -- FinCat n：恰有 n 个对象、任意两对象间恰有一个态射的范畴
   FinCat : (n : ℕ) → Category lzero lzero lzero
-  FinCat n = record
-    { Obj = Fin n
-    ; _⇒_ = λ _ _ → ⊤
-    ; _≈_ = λ _ _ → ⊤
-    ; id = tt
-    ; _∘_ = λ _ _ → tt
-    ; equiv = record { refl = tt ; sym = λ _ → tt ; trans = λ _ _ → tt }
-    ; ∘-resp-≈ = λ _ _ → tt
-    ; assoc = tt ; sym-assoc = tt ; identityˡ = tt ; identityʳ = tt ; identity² = tt
-    }
+  FinCat n = Indiscrete (Fin n)
 
   -- Container whose shape and position are both Fin 2
   -- 形状与位置均为 Fin 2 的容器
@@ -228,10 +198,10 @@ module FinCatHierarchy where
     }
 
   FinCat-collapsible : (n : ℕ) → Collapsible (FinCat n)
-  FinCat-collapsible n _ _ = tt
+  FinCat-collapsible n _ _ = refl
 
   Fin-EmbeddingData : (n : ℕ) (x : Cosmos (FinCat n) (FinFC n)) → EmbeddingData x
-  Fin-EmbeddingData n = mkEmbeddingData (λ _ _ → tt) (λ _ _ → tt)
+  Fin-EmbeddingData n = mkEmbeddingData (λ _ _ → tt) (λ _ _ → refl)
 
   Fin-EmbeddingFamily : (n : ℕ) → EmbeddingFamily {C = FinCat n} {FC = FinFC n}
   Fin-EmbeddingFamily n = record { getData = Fin-EmbeddingData n }
@@ -265,6 +235,14 @@ module FinCatHierarchy where
         ≡ Unfolding.pos-to-shape (out y) {A = proj₁ A} s p
     embedFin-pos-to-shape n y A s p = refl
 
+    embedFin-uf₀-eq
+        : ∀ n {x y : Cosmos (FinCat n) (FinFC n)}
+            {A : Category.Obj (ShapeCat (FinCat n) (FinFC n))}
+            (s : ShapeOf (FC∘π (FinFC n)) A)
+        → Functor.₀ (Unfolding.unfoldFunctor (out (embedFin n x))) (A , s)
+        ≡ Functor.₀ (Unfolding.unfoldFunctor (out (embedFin n y))) (A , s)
+    embedFin-uf₀-eq n {x} {y} {A} s = refl
+
     Fin-resp-≈C : (n : ℕ) {x y : Cosmos (FinCat n) (FinFC n)}
       → x ≈C y
       → _≈C_ {C = ShapeCat (FinCat n) (FinFC n)} {FC = FC∘π (FinFC n)}
@@ -272,20 +250,17 @@ module FinCatHierarchy where
     Fin-resp-≈C n {x} {y} x≈y ._≈C_.unfoldFunctor₀-eq {A = A} s = refl
     Fin-resp-≈C n {x} {y} x≈y ._≈C_.pos-to-shape-eq {A = A} s p =
       let
-        A₀ : Fin n
         A₀     = proj₁ A
+        uf-eq  = embedFin-uf₀-eq n {x} {y} {A} s
         eq₀    = _≈C_.unfoldFunctor₀-eq x≈y {A = A₀} s
         pts-eq = _≈C_.pos-to-shape-eq x≈y {A = A₀} s p
         x-pts  = Unfolding.pos-to-shape (out x) {A = A₀} s p
         y-pts  = Unfolding.pos-to-shape (out y) {A = A₀} s p
       in
       begin
-        subst (ShapeOf (FC∘π (FinFC n)))
-          (Fin-resp-≈C n {x} {y} x≈y ._≈C_.unfoldFunctor₀-eq {A = A} s)
+        subst (ShapeOf (FC∘π (FinFC n))) uf-eq
           (Unfolding.pos-to-shape (out (embedFin n x)) {A = A} s p)
-          ≡⟨ subst-FinFCπ
-               (Fin-resp-≈C n {x} {y} x≈y ._≈C_.unfoldFunctor₀-eq {A = A} s)
-               _ ⟩
+          ≡⟨ subst-FinFCπ uf-eq _ ⟩
         Unfolding.pos-to-shape (out (embedFin n x)) {A = A} s p
           ≡⟨ embedFin-pos-to-shape n x A s p ⟩
         x-pts
@@ -325,7 +300,7 @@ module FinCatHierarchy where
     embed₀₁ = embedFin 2
 
     collapse₁ : Collapsible (C Layer₁)
-    collapse₁ _ _ = tt
+    collapse₁ _ _ = refl
 
 -- Strict Unit Hierarchy: strictly-growing counterpart of UnitHierarchy
 -- 严格单位层级：UnitHierarchy 的严格增长对应物
@@ -473,10 +448,10 @@ module StrictUnitHierarchy {ℓ : Level} where
   se₀₂-resp-≈C : ∀ {x y : SU₀} → x ≈C y → se₀₂ x ≈C se₀₂ y
   se₀₂-resp-≈C x≈y = se₁₂-resp-≈C (se₀₁-resp-≈C x≈y)
 
-  strictFunctorial₀ : StrictFunctorialEmbeddingFamily SL₀
+  strictFunctorial₀ : EmbedFamily outer-rule SL₀
   strictFunctorial₀ = record { uniform = uniform₀ ; resp-≈C = se₀₁-resp-≈C }
 
-  strictFunctorial₁ : StrictFunctorialEmbeddingFamily SL₁
+  strictFunctorial₁ : EmbedFamily outer-rule SL₁
   strictFunctorial₁ = record { uniform = uniform₁ ; resp-≈C = se₁₂-resp-≈C }
 
   -- StrictLambekConsistency for SL₀, SL₁

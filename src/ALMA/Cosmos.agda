@@ -14,8 +14,6 @@ module ALMA.Cosmos where
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
-open import Relation.Binary.Definitions using (Reflexive; Symmetric; Transitive)
-open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.PropositionalEquality.Core using (sym; trans; cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (setoid)
 open import Function.Base using (_∘_)
@@ -26,6 +24,7 @@ open import Data.Product.Base using (proj₁; proj₂)
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Instance.Sets using (Sets)
+open import Categories.Category.Instance.One using (One)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (id; _∘F_)
 
@@ -39,12 +38,12 @@ open import ALMA.Cosmos.MorphismMorphism
   using (MorphismMorphism; idMorphismMorphism; actP-from-S; compMorphismMorphism)
 
 -- Core Definitions: Cosmos as Terminal Coalgebra
--- 核心定义：Cosmos 作为终余代数
 -- One-layer unfolding of Cosmos: a container-shaped functorial structure
 -- over a parameter X
--- Cosmos 的单层展开：参数 X 上的容器形状函子结构
 -- Cosmos: the terminal coalgebra of the polynomial functor Unfolding
 -- Defined coinductively: out : Cosmos → Unfolding (Cosmos)
+-- 核心定义：Cosmos 作为终余代数
+-- Cosmos 的单层展开：参数 X 上的容器形状函子结构
 -- Cosmos：多项式函子 Unfolding 的终余代数
 -- 以余归纳定义：out : Cosmos → Unfolding (Cosmos)
 record Cosmos {o h e s p : Level}
@@ -85,12 +84,12 @@ module CosmosMap {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContC
   map-cong refl = refl
 
 -- Universe Morphisms: Coalgebra Homomorphisms
--- 宇宙态射：余代数同态
--- Generalized homomorphism _⇒ℱ[_]_ parameterized by a shape functor S.
+-- Generalized homomorphism _⇒ℱ[_]_ parameterized by a shape functor S
 -- S : Functor (ShapeCat C FC) (ShapeCat C FC) controls how shape indices
--- are transported from source to target.
--- 广义同态 _⇒ℱ[_]_ 以形状函子 S 为参数。
--- S 控制形状索引从源到目标的传输。
+-- are transported from source to target
+-- 宇宙态射：余代数同态
+-- 广义同态 _⇒ℱ[_]_ 以形状函子 S 为参数
+-- S 控制形状索引从源到目标的传输
 mutual
   record _⇒ℱ[_]_ {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)}
                   (F : Cosmos C FC)
@@ -140,9 +139,9 @@ _⇒ℱ_ {C = C} {FC = FC} F G = F ⇒ℱ[ id ] G
 
 -- Identity homomorphism exists only at S = id:
 -- onunfold-next target = unfold-next UF (proj₂ (id.₀ (A,s))) = unfold-next UF s,
--- so id⇒ℱ applies recursively. For S ≠ id source and target differ, no canonical map.
+-- so id⇒ℱ applies recursively. For S ≠ id source and target differ, no canonical map
 -- 恒等同态仅在 S = id 存在：
--- onunfold-next 目标 = unfold-next UF s，与源相同，可递归应用 id⇒ℱ。
+-- onunfold-next 目标 = unfold-next UF s，与源相同，可递归应用 id⇒ℱ
 id⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
      → {F : Cosmos C FC} → F ⇒ℱ F
 id⇒ℱ {F = F} .out = record
@@ -153,10 +152,10 @@ id⇒ℱ {F = F} .out = record
   }
   where UF = out F
 
--- Generalized composition: S₂ ∘F S₁, morphismMor via compMorphismMorphism.
--- Non-mixfix name because composite S is determined by argument types.
--- 广义复合：S 按 S₂ ∘F S₁ 封闭，morphismMor 由 compMorphismMorphism 自动导出。
--- 使用非 mixfix 名称，因为复合 S 由参数类型决定。
+-- Generalized composition: S₂ ∘F S₁, morphismMor via compMorphismMorphism
+-- Non-mixfix name because composite S is determined by argument types
+-- 广义复合：S 按 S₂ ∘F S₁ 封闭，morphismMor 由 compMorphismMorphism 自动导出
+-- 使用非 mixfix 名称，因为复合 S 由参数类型决定
 comp⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
        {S₁ S₂ : Functor (ShapeCat C FC) (ShapeCat C FC)}
        {F G H : Cosmos C FC}
@@ -215,25 +214,10 @@ _∘⇒ℱ_ {C = C} {FC = FC} {F = F} {G = G} {H = H} g f .out = record
     coh f′ p q = trans (cong (onPos moG) (onActP mmF f′ p q))
                        (onActP mmG f′ p (onPos moF q))
 
--- UnitCosmos: Trivial One-Object Cosmos
--- UnitCosmos：平凡单对象宇宙
 -- The terminal category with one object and one morphism
 -- 只有一个对象和一个态射的终范畴
 UnitCat : ∀ {ℓ} → Category ℓ ℓ ℓ
-UnitCat = record
-  { Obj = ⊤
-  ; _⇒_ = λ _ _ → ⊤
-  ; _≈_ = λ _ _ → ⊤
-  ; id = tt
-  ; _∘_ = λ _ _ → tt
-  ; equiv = record { refl = tt; sym = λ _ → tt; trans = λ _ _ → tt }
-  ; ∘-resp-≈ = λ _ _ → tt
-  ; assoc = tt
-  ; sym-assoc = tt
-  ; identityˡ = tt
-  ; identityʳ = tt
-  ; identity² = tt
-  }
+UnitCat {ℓ} = One
 
 -- The constant functor picking the unit container (⊤, λ _ → ⊤)
 -- 选取单位容器 (⊤, λ _ → ⊤) 的常值函子
@@ -274,63 +258,6 @@ module CosmosFFunctor {o h e s p : Level}
     module US = UnfoldingSetoid
       {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
 
-  -- Equivalence relation on Unfolding elements:
-  -- unfolding equivalence only
-  -- Unfolding 元素上的等价关系：仅基于展开结构的等价
-  record _≈F_ {u v : Level} (X : Setoid u v)
-              (c₁ c₂ : Unfolding FC (Setoid.Carrier X))
-              : Set (o ⊔ s ⊔ p ⊔ v) where
-    field
-      unfolding-eq : US._≈U_ {X = X} c₁ c₂
-
-  -- Equivalence proofs for ≈F
-  -- ≈F 的等价性证明
-  ≈F-refl : {u v : Level} {X : Setoid u v} → Reflexive (_≈F_ X)
-  ≈F-refl {X = X} = record
-    { unfolding-eq = US.≈U-refl {X = X}
-    }
-
-  ≈F-sym : {u v : Level} {X : Setoid u v} → Symmetric (_≈F_ X)
-  ≈F-sym {X = X} (record { unfolding-eq = ue }) = record
-    { unfolding-eq = US.≈U-sym X ue
-    }
-
-  ≈F-trans : {u v : Level} {X : Setoid u v} → Transitive (_≈F_ X)
-  ≈F-trans {X = X} (record { unfolding-eq = ue₁ })
-                  (record { unfolding-eq = ue₂ }) = record
-    { unfolding-eq = US.≈U-trans X ue₁ ue₂
-    }
-
-  -- Unfolding as a Setoid: carrier is Unfolding, equivalence is ≈F
-  -- 将 Unfolding 视为 Setoid：载体为 Unfolding，等价为 ≈F
-  CosmosFSetoid : {u v : Level} → Setoid u v
-                → Setoid (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
-                          (o ⊔ s ⊔ p ⊔ v)
-  CosmosFSetoid X = record
-    { Carrier       = Unfolding FC (Setoid.Carrier X)
-    ; _≈_           = _≈F_ X
-    ; isEquivalence = record
-      { refl  = ≈F-refl {X = X}
-      ; sym   = ≈F-sym {X = X}
-      ; trans = ≈F-trans {X = X}
-      }
-    }
-
-  -- mapCosmosF respects the equivalence ≈F
-  -- mapCosmosF 保持等价关系 ≈F
-  mapCosmosF-resp : {u v : Level} {X Y : Setoid u v} → Func X Y
-                  → Func (CosmosFSetoid X) (CosmosFSetoid Y)
-  mapCosmosF-resp {X = X} {Y = Y} f = record
-    { to   = λ c → mapCosmosF (Func.to f) c
-    ; cong = helper
-    }
-    where
-      helper : {c₁ c₂ : Unfolding FC _} → _≈F_ X c₁ c₂
-             → _≈F_ Y (mapCosmosF (Func.to f) c₁) (mapCosmosF (Func.to f) c₂)
-      helper (record { unfolding-eq = ue }) = record
-        { unfolding-eq = Func.cong (US.mapUnfolding-resp {X = X} {Y = Y} f) ue
-        }
-
   -- The Unfolding functor: Sets u → Setoids
   -- Unfolding 函子：Sets u → Setoids
   toStdFunc : {u : Level} {X Y : Set u} → (X → Y) → Func (setoid X) (setoid Y)
@@ -341,11 +268,10 @@ module CosmosFFunctor {o h e s p : Level}
               (Setoids (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
                        (o ⊔ s ⊔ p ⊔ u))
   cosmosFFunctor u = record
-    { F₀           = λ X → CosmosFSetoid (setoid X)
-    ; F₁           = λ f → mapCosmosF-resp (toStdFunc f)
-    ; identity     = λ {X} → ≈F-refl {X = setoid X}
-    ; homomorphism = λ {X Y Z} {f g} → ≈F-refl {X = setoid Z}
-    ; F-resp-≈ = λ {X Y} {f g} f≈g {c} → record
-        { unfolding-eq = US.mapUnfolding-resp-≈ X Y f g (λ {x} → f≈g x) US.≈U-refl
-        }
+    { F₀           = λ X → US.unfoldingSetoid (setoid X)
+    ; F₁           = λ f → US.mapUnfolding-resp (toStdFunc f)
+    ; identity     = λ {X} → US.≈U-refl {X = setoid X}
+    ; homomorphism = λ {X Y Z} {f g} → US.≈U-refl {X = setoid Z}
+    ; F-resp-≈ = λ {X Y} {f g} f≈g {c} →
+        US.mapUnfolding-resp-≈ X Y f g (λ {x} → f≈g x) US.≈U-refl
     }

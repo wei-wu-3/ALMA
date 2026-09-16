@@ -6,16 +6,19 @@
 -- Proves preservation of identity, composition, and _≈M_
 -- Both faithfulness and fullness are obtained by choosing a
 -- Yoneda-style test object and applying projection (lower) plus congruence
+-- Establishes the strong equivalence and the induced adjoint equivalence
+-- between the category of containers and the full subcategory of polynomial functors
 -- 构造函子 ⟦ C ⟧ 及嵌入 ContCat → SetoidFunctorCat
 -- 证明恒等态射、复合及 _≈M_ 的保持性
--- 忠实性与满性均通过选取 Yoneda 风格测试对象并利用投影（lower）与同余得证
+-- 忠实性与满性均通过选取 Yoneda 式测试对象并利用投影（lower）与同余得证
+-- 建立容器范畴与多项式函子全子范畴之间的强等价及由此诱导的伴随等价
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.ContFunctor where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Equality using (refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Level using (Lift; lift; lower)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
@@ -30,7 +33,10 @@ open import Data.Container.Morphism using (id) renaming (_∘_ to _∘Cont_)
 open import Data.Container.Relation.Binary.Equality.Setoid using (setoid)
 open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
 
+open import Categories.Adjoint.Equivalence using (⊣Equivalence)
 open import Categories.Category.Core using (Category)
+open import Categories.Category.Equivalence using (StrongEquivalence)
+open import Categories.Category.Equivalence.Properties using (C≅D)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Construction.Functors using (Functors)
 open import Categories.Functor.Core using (Functor)
@@ -42,31 +48,16 @@ open import Categories.NaturalTransformation.NaturalIsomorphism
 open import Categories.Morphism using (_≅_; Iso)
 
 open import ALMA.Cosmos.ContCategory using (_≈M_; ContCat)
-
--- Categorical equivalence, stated as fully faithful + split
--- essentially surjective
--- 范畴等价，陈述为满忠实与分裂本质满射
-private
-  variable
-    oc ℓc ec od ℓd ed : Level
-
-record CategoryEquivalence
-    (C : Category oc ℓc ec) (D : Category od ℓd ed)
-    : Set (oc ⊔ ℓc ⊔ ec ⊔ od ⊔ ℓd ⊔ ed) where
-  field
-    F              : Functor C D
-    fully-faithful : FullyFaithful F
-    split-ess-surj : ∀ (Y : Category.Obj D) →
-                      Σ (Category.Obj C) (λ X → _≅_ D (Functor.F₀ F X) Y)
+open import ALMA.Cosmos.Equivalence using (toStrongEquiv)
 
 -- For a fixed container C, builds the polynomial functor ⟦ C ⟧ : Setoids → Setoids
 -- 对固定容器 C，构造多项式函子 ⟦ C ⟧ : Setoids → Setoids
 module _ {s p ℓ : Level} where
 
   -- The level of the source and target setoids
-  -- 源与目标 Setoids 的层级
   -- The source level only needs to host the position types (p) plus
   -- an arbitrary extra level ℓ for greater generality
+  -- 源与目标 Setoids 的层级
   -- 源层级只需容纳位置类型（p）并额外加上任意层级 ℓ 以使结论更具一般性
   srcLevel = p ⊔ ℓ
 
@@ -74,12 +65,11 @@ module _ {s p ℓ : Level} where
   -- 目标层级需容纳形状（s）、位置（p）以及 ℓ
   tgtLevel = s ⊔ p ⊔ ℓ
 
-  -- The functor category [Setoids, Setoids] on the chosen levels.
+  -- The functor category [Setoids, Setoids] on the chosen levels
   -- Source and target Setoids live at different levels; this is the
-  -- standard behavior of Functors, not a special construction.
-  -- 所选层级上的函子范畴 [Setoids, Setoids]。
-  -- 源与目标 Setoids 处于不同层级；这是 Functors 的标准行为，
-  -- 并非特殊构造。
+  -- standard behavior of Functors, not a special construction
+  -- 所选层级上的函子范畴 [Setoids, Setoids]
+  -- 源与目标 Setoids 处于不同层级；这是 Functors 的标准行为，并非特殊构造
   SetoidFunctorCat = Functors (Setoids srcLevel srcLevel) (Setoids tgtLevel tgtLevel)
 
   -- Category structure of SetoidFunctorCat, used for natural transformation equivalence
@@ -216,9 +206,9 @@ module _ {s p ℓ : Level} where
   mapNT-iff-≈M = mk⇔ ContEmbedding-faithful mapNT-resp-≈
 
   -- Fullness of the embedding
-  -- 嵌入的满性
   -- Every natural transformation η : ⟦ C ⟧ ⟹ ⟦ D ⟧ arises, up to
   -- FuncCat._≈_, from a container morphism m : C ⇒ D
+  -- 嵌入的满性
   -- 每个自然变换 η : ⟦ C ⟧ ⟹ ⟦ D ⟧ 都模去 FuncCat._≈_ 后
   -- 来自某个容器态射 m : C ⇒ D
   ContEmbedding-full : Full ContEmbedding
@@ -350,10 +340,14 @@ module _ {s p ℓ : Level} where
     }
 
   -- Containers (syntax) ≃ polynomial functors (semantics)
+  -- From Φ being fully faithful and split essentially surjective,
+  -- obtain a strong equivalence via the generic bridge
   -- 容器（语法）≃ 多项式函子（语义）
-  ContCat≃PolyFunctors : CategoryEquivalence (ContCat s p) PolyFunctors
-  ContCat≃PolyFunctors = record
-    { F              = Φ
-    ; fully-faithful = Φ-fully-faithful
-    ; split-ess-surj = Φ-split-ess-surj
-    }
+  -- 由 Φ 满忠实 + 分裂本质满射，经通用桥接得到强等价
+  ContCat≈PolyFunctors : StrongEquivalence (ContCat s p) PolyFunctors
+  ContCat≈PolyFunctors = toStrongEquiv Φ Φ-fully-faithful Φ-split-ess-surj
+
+  -- StrongEquivalence yields an adjoint equivalence via C≅D
+  -- StrongEquivalence 经 C≅D 得到伴随等价
+  ContCat⊣EquivPolyFunctors : ⊣Equivalence (ContCat s p) PolyFunctors
+  ContCat⊣EquivPolyFunctors = C≅D ContCat≈PolyFunctors

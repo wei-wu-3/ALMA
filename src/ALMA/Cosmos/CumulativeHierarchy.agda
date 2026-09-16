@@ -6,11 +6,11 @@
 -- FCₙ₊₁ = FCₙ ∘F π, together with the coinductive embedding construction
 -- from EmbeddingData, the consistency conditions for uniform families,
 -- and the Lambek consistency package.  Concrete instances are provided in
--- the separate module CumulativeHierarchyInstances.
+-- the separate module CumulativeHierarchyInstances
 -- 定义形状范畴的迭代：Cₙ₊₁ = ShapeCat Cₙ FCₙ，FCₙ₊₁ = FCₙ ∘F π，
 -- 并给出由 EmbeddingData 构造的余归纳嵌入、一致族应满足的一致性条件，
 -- 以及 Lambek 一致性封装。 具体实例在单独的 CumulativeHierarchyInstances
--- 模块中提供。
+-- 模块中提供
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -29,13 +29,12 @@ open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (_∘F_)
 
 open import ALMA.Cosmos.ContCategory using (ContCat; _≈M_)
-open import ALMA.Cosmos.ContCategoryLemmas
-  using (ShapeOf; PosOf; actSOf; actPOf)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos using (Cosmos; out)
-open import ALMA.Cosmos.Lambek using (in-F; in∘out≈id)
 open import ALMA.Cosmos.Terminal using (_≈C_)
+open import ALMA.Cosmos.Lambek using (in-F; in∘out≈id)
 
 -- The projection functor from the shape category back to the base category
 -- 从形状范畴返回到基范畴的投影函子
@@ -75,7 +74,6 @@ step L = record
   { C  = ShapeCat (Layer.C L) (Layer.FC L)
   ; FC = FC∘π (Layer.FC L)
   }
-
 
 -- The unfolding functor of the embedded cosmos: it forgets the outer shape
 -- and keeps the inner one, mapping ((A, s), q) to (A, q)
@@ -126,6 +124,69 @@ record EmbeddingData {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s
     -- 递归数据：每个下一层种子携带其自身的嵌入数据，使该构造成为余归纳的
     next : ∀ {A} (s : ShapeOf FC A) → EmbeddingData (UX.unfold-next s)
 
+-- In a shape category, composing with identity on either side agrees
+-- 形状范畴中，任一侧与恒等复合都一致
+ShapeCat-id-comm
+  : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
+  → (X Y : Category.Obj (ShapeCat C FC))
+  → (g : Category._⇒_ (ShapeCat C FC) X Y)
+  → Category._≈_ C
+      (Category._∘_ C (proj₁ g) (Category.id C))
+      (Category._∘_ C (Category.id C) (proj₁ g))
+ShapeCat-id-comm {C = C} X Y g =
+  C.Equiv.trans
+    (C.identityʳ {f = proj₁ g})
+    (C.Equiv.sym (C.identityˡ {f = proj₁ g}))
+  where
+    module C = Category C
+
+-- Compatibility of pos-to-shape with the functorial action
+-- Relies only on pos-actS-compat, FC's functoriality, and retract-natural
+-- pos-to-shape 与函子作用的相容性
+-- 仅依赖 pos-actS-compat、FC 函子性与 retract-natural
+embed-compat :
+  ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
+    {x : Cosmos C FC} (ed : EmbeddingData x)
+    {A B : Category.Obj C} {s : ShapeOf FC A} {t : ShapeOf FC B}
+  → (f : Category._⇒_ C A B) (eq : actSOf FC f s ≡ t)
+  → (p : PosOf FC (actSOf FC f s))
+  → actSOf FC (EmbeddingData.retract ed t)
+      (Unfolding.pos-to-shape (out x) t (subst (PosOf FC) eq p))
+    ≡ actSOf FC f
+      (actSOf FC (EmbeddingData.retract ed s)
+         (Unfolding.pos-to-shape (out x) s (actPOf FC f s p)))
+embed-compat {C = C} {FC = FC} {x = x} ed {A} {B} {s} {t} f eq p =
+  begin
+    actSOf FC (retract t) (UX.pos-to-shape t (subst (PosOf FC) eq p))
+      ≡⟨ cong (actSOf FC (retract t)) (UX.pos-actS-compat f eq p) ⟩
+    actSOf FC (retract t) (actSOf FC g₁ x₀)
+      ≡⟨ sym (_≈M_.shape-eq
+              (FC.homomorphism {X = X₀} {Y = Y₀} {Z = B}
+                               {f = g₁} {g = retract t}) x₀) ⟩
+    actSOf FC (retract t C.∘ g₁) x₀
+      ≡⟨ sym (_≈M_.shape-eq
+              (FC.F-resp-≈ {A = X₀} {B = B}
+                           {f = f C.∘ retract s}
+                           {g = retract t C.∘ g₁}
+                           (retract-natural f eq)) x₀) ⟩
+    actSOf FC (f C.∘ retract s) x₀
+      ≡⟨ _≈M_.shape-eq
+         (FC.homomorphism {X = X₀} {Y = A} {Z = B}
+                          {f = retract s} {g = f}) x₀ ⟩
+    actSOf FC f (actSOf FC (retract s) x₀)
+  ∎
+  where
+    open EmbeddingData ed
+    open ≡-Reasoning
+    module C  = Category C
+    module FC = Functor FC
+    UX = out x
+    module UX = Unfolding UX
+    x₀ = UX.pos-to-shape s (actPOf FC f s p)
+    g₁ = Functor.₁ UX.unfoldFunctor (f , eq)
+    X₀ = Functor.₀ UX.unfoldFunctor (A , s)
+    Y₀ = Functor.₀ UX.unfoldFunctor (B , t)
+
 -- embed constructs the embedded cosmos from an EmbeddingData
 -- embed 从 EmbeddingData 构造嵌入后的宇宙
 embed : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
@@ -135,7 +196,8 @@ embed {C = C} {FC = FC} x ed .out = record
   { unfoldFunctor   = embed-unfoldFunctor FC
   ; unfold-next     = λ { {A , _} p → embed (UX.unfold-next p) (next p) }
   ; pos-to-shape    = λ { {A , _} p q → actSOf FC (retract p) (UX.pos-to-shape p q) }
-  ; pos-actS-compat = λ { {A , _} {B , _} {s} {t} (f , _) eq p → compat f eq p }
+  ; pos-actS-compat = λ { {A , _} {B , _} {s} {t} (f , _) eq p →
+                        embed-compat ed f eq p }
   }
   where
     open EmbeddingData ed
@@ -143,34 +205,6 @@ embed {C = C} {FC = FC} x ed .out = record
     module FC = Functor FC
     UX = out x
     module UX = Unfolding UX
-
-    -- Compatibility proof for pos-to-shape with the functorial action
-    -- pos-to-shape 与函子作用的相容性证明
-    compat : ∀ {A B} {s : ShapeOf FC A} {t : ShapeOf FC B}
-           → (f : A C.⇒ B) (eq : actSOf FC f s ≡ t)
-           → (p : PosOf FC (actSOf FC f s))
-           → actSOf FC (retract t)
-                    (UX.pos-to-shape t (subst (PosOf FC) eq p))
-             ≡ actSOf FC f
-                    (actSOf FC (retract s)
-                       (UX.pos-to-shape s (actPOf FC f s p)))
-    compat {A} {B} {s} {t} f eq p =
-      let
-        x₀ = UX.pos-to-shape s (actPOf FC f s p)
-        g₁ = Functor.₁ UX.unfoldFunctor (f , eq)
-        X₀ = Functor.₀ UX.unfoldFunctor (A , s)
-        Y₀ = Functor.₀ UX.unfoldFunctor (B , t)
-      in begin
-        actSOf FC (retract t) (UX.pos-to-shape t (subst (PosOf FC) eq p))
-          ≡⟨ cong (actSOf FC (retract t)) (UX.pos-actS-compat f eq p) ⟩
-        actSOf FC (retract t) (actSOf FC g₁ x₀)
-          ≡⟨ sym (_≈M_.shape-eq (FC.homomorphism {X = X₀} {Y = Y₀} {Z = B} {f = g₁} {g = retract t}) x₀) ⟩
-        actSOf FC (retract t C.∘ g₁) x₀
-          ≡⟨ sym (_≈M_.shape-eq (FC.F-resp-≈ {A = X₀} {B = B} {f = f C.∘ retract s} {g = retract t C.∘ g₁} (retract-natural f eq)) x₀) ⟩
-        actSOf FC (f C.∘ retract s) x₀
-          ≡⟨ _≈M_.shape-eq (FC.homomorphism {X = X₀} {Y = A} {Z = B} {f = retract s} {g = f}) x₀ ⟩
-        actSOf FC f (actSOf FC (retract s) x₀)
-      ∎
 
 -- An EmbeddingFamily assigns EmbeddingData to every cosmos
 -- 嵌入族为每个宇宙分配嵌入数据

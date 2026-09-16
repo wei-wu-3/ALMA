@@ -3,14 +3,14 @@
 -- Cosmos 终余代数的 Lambek 引理
 --
 -- out : Cosmos → Unfolding Cosmos is a weak isomorphism:
---   in-F ∘ out is bisimilar to id, and out ∘ in-F is ≈F-equivalent to id
+--   in-F ∘ out is bisimilar to id, and out ∘ in-F is US._≈U_-equivalent to id
 -- The inverse in-F is obtained from the universal property of the terminal
 -- coalgebra. The key identities are:
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
 --   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
 -- out : Cosmos → Unfolding Cosmos 构成弱同构：
---   in-F ∘ out 与 id 互模拟，out ∘ in-F 与 id 在 ≈F 下等价
+--   in-F ∘ out 与 id 互模拟，展开等价 US._≈U_
 -- 逆映射 in-F 由终对象的泛性质构造。关键恒等式为：
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
@@ -34,7 +34,7 @@ open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
-open import ALMA.Cosmos using (Cosmos; out; module CosmosMap; module CosmosFFunctor)
+open import ALMA.Cosmos using (Cosmos; out; module CosmosMap)
 open CosmosMap using (mapCosmosF; map-∘)
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana; ana-to; _≈C_; ≈C-sym; cosmosSetoid)
@@ -47,11 +47,6 @@ module _ {o h e s p : Level}
     -- 由于 Lambek 引理涉及 Unfolding 的载体类型，必须包含所有结构层级。
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
     Lʳ = o ⊔ s ⊔ p
-
-    -- Instantiate Unfolding setoid module for the current parameters
-    -- 为当前参数实例化 Unfolding 的集合模块
-    module CFF = CosmosFFunctor
-      {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     -- Instantiate unfolding setoid module
     -- 实例化展开集合模块
@@ -72,7 +67,7 @@ module _ {o h e s p : Level}
 
     -- out as a Setoid morphism
     -- out 作为 Setoid 态射
-    outF : Func CS (CFF.CosmosFSetoid CS)
+    outF : Func CS (US.unfoldingSetoid CS)
     outF = Coalgebra.α CC
 
     -- FT-Setoid: FT under propositional equality.
@@ -84,10 +79,10 @@ module _ {o h e s p : Level}
       ; isEquivalence = record { refl = refl ; sym = sym ; trans = trans }
       }
 
-    ≡→≈F-FT : ∀ {d₁ d₂ : FFT} → d₁ ≡ d₂ → CFF._≈F_ FT-Setoid d₁ d₂
-    ≡→≈F-FT refl = CFF.≈F-refl {X = FT-Setoid}
+    ≡→≈F-FT : ∀ {d₁ d₂ : FFT} → d₁ ≡ d₂ → US._≈U_ {X = FT-Setoid} d₁ d₂
+    ≡→≈F-FT refl = US.≈U-refl {X = FT-Setoid}
 
-    FT-α : Func FT-Setoid (CFF.CosmosFSetoid FT-Setoid)
+    FT-α : Func FT-Setoid (US.unfoldingSetoid FT-Setoid)
     FT-α = record
       { to   = mapCosmosF out
       ; cong = λ {c₁} {c₂} c₁≡c₂ → ≡→≈F-FT (cong (mapCosmosF out) c₁≡c₂)
@@ -108,18 +103,17 @@ module _ {o h e s p : Level}
 
   -- in-F preserves ≈F (coinductive, same pattern as ana-cong).
   -- in-F 保持 ≈F（余归纳，与 ana-cong 相同模式）。
-  in-F-resp-≈F : ∀ {c₁ c₂} → CFF._≈F_ CS c₁ c₂ → in-F c₁ ≈C in-F c₂
+  in-F-resp-≈F : ∀ {c₁ c₂} → US._≈U_ {X = CS} c₁ c₂ → in-F c₁ ≈C in-F c₂
   in-F-resp-≈F {c₁} {c₂} eq = helper eq
     where
       open _≈C_
-      helper : ∀ {d₁ d₂} → CFF._≈F_ CS d₁ d₂ → in-F d₁ ≈C in-F d₂
+      helper : ∀ {d₁ d₂} → US._≈U_ {X = CS} d₁ d₂ → in-F d₁ ≈C in-F d₂
       helper {d₁} {d₂} eq .unfoldFunctor₀-eq =
-        US._≈U_.unfoldFunctor₀-eq (CFF._≈F_.unfolding-eq eq)
+        US._≈U_.unfoldFunctor₀-eq eq
       helper {d₁} {d₂} eq .pos-to-shape-eq =
-        US._≈U_.pos-to-shape-eq (CFF._≈F_.unfolding-eq eq)
+        US._≈U_.pos-to-shape-eq eq
       helper {d₁} {d₂} eq .unfold-next-eq s =
-        helper (Func.cong outF
-          (US._≈U_.unfold-next-eq (CFF._≈F_.unfolding-eq eq) s))
+        helper (Func.cong outF (US._≈U_.unfold-next-eq eq s))
 
   -- in-F ∘ out as a self-homomorphism of (T, out)
   -- in-F ∘ out 作为 (T, out) 的自同态
@@ -172,21 +166,19 @@ module _ {o h e s p : Level}
   -- F(in-F ∘ out) 与 F T 上的恒等 ≈F 等价
   private
     open Unfolding using (unfold-next)
-    F∘≈Fid : ∀ y → CFF._≈F_ CS (mapCosmosF (in-F ∘ out) y) y
+    F∘≈Fid : ∀ y → US._≈U_ {X = CS} (mapCosmosF (in-F ∘ out) y) y
     F∘≈Fid y = record
-      { unfolding-eq  = record
-          { unfoldFunctor₀-eq = λ _ → refl
-          ; pos-to-shape-eq  = λ _ _ → refl
-          ; unfold-next-eq   = λ {A} s →
-              in∘out≈id (unfold-next y s)
-          }
+      { unfoldFunctor₀-eq = λ _ → refl
+      ; pos-to-shape-eq  = λ _ _ → refl
+      ; unfold-next-eq   = λ {A} s →
+          in∘out≈id (unfold-next y s)
       }
 
   -- out ∘ in-F ≈F id_{F T} (obtained by transferring along the previous equality)
   -- out ∘ in-F 与 F T 上的恒等 ≈F 等价（由前一等式转换得到）
-  out∘in≈Fid : ∀ y → CFF._≈F_ CS (out (in-F y)) y
+  out∘in≈Fid : ∀ y → US._≈U_ {X = CS} (out (in-F y)) y
   out∘in≈Fid y =
-    let open SetoidReasoning (CFF.CosmosFSetoid CS) in begin
+    let open SetoidReasoning (US.unfoldingSetoid CS) in begin
       out (in-F y)                  ≡⟨ out∘in≡F∘ y ⟩
       mapCosmosF (in-F ∘ out) y     ≈⟨ F∘≈Fid y ⟩
       y                             ∎
@@ -199,7 +191,7 @@ module _ {o h e s p : Level}
     field
       inverse      : FT → T
       inverse-left : ∀ x → inverse (out x) ≈C x
-      inverse-right : ∀ y → CFF._≈F_ CS (out (inverse y)) y
+      inverse-right : ∀ y → US._≈U_ {X = CS} (out (inverse y)) y
 
   -- The canonical Lambek isomorphism obtained from the terminal coalgebra
   -- 由终余代数得到的典范 Lambek 同构

@@ -72,9 +72,9 @@ src/
 │   ├── Cosmos.agda
 │   ├── Cosmos/
 │   │   ├── ContCategory.agda
+│   │   ├── Equivalence.agda
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContFunctor.agda
-│   │   ├── ContFunctorStrongEquiv.agda
 │   │   ├── ContCatEquiv.agda
 │   │   ├── ContCatEquivFunctor.agda
 │   │   ├── Unfolding.agda
@@ -84,14 +84,23 @@ src/
 │   │   ├── Terminal.agda
 │   │   ├── CoalgCat.agda
 │   │   ├── Lambek.agda
-│   │   ├── MorphismCorrespondence.agda
-│   │   ├── ListCosmos.agda
 │   │   ├── CosmosCategory.agda
-│   │   ├── ContainerAutomorphism.agda
+│   │   ├── MorphismCorrespondence.agda
 │   │   ├── Closure.agda
+│   │   ├── ContainerAutomorphism.agda
+│   │   ├── ListCosmos.agda
 │   │   ├── CumulativeHierarchy.agda
+│   │   ├── CumulativeHierarchyInner.agda
 │   │   ├── StrictLift.agda
-│   │   └── CumulativeHierarchyInstances.agda
+│   │   ├── StrictLiftShape.agda
+│   │   ├── CumulativeHierarchyInstances.agda
+│   │   ├── CumulativeHierarchyLimit.agda
+│   │   ├── CumulativeHierarchySewing.agda
+│   │   ├── FinCatInnerSewing.agda
+│   │   ├── FinCat2Witness.agda
+│   │   ├── FinCat2TowerLemmas.agda
+│   │   ├── ConditionalNontrivialLimit.agda
+│   │   └── LayerZeroMediator.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda

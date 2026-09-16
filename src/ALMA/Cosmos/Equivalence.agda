@@ -1,69 +1,48 @@
 ------------------------------------------------------------------------
--- Bridge: CategoryEquivalence → StrongEquivalence
--- 桥接：CategoryEquivalence 到 StrongEquivalence
+-- Bridge: a fully faithful and split essentially surjective functor
+-- induces a StrongEquivalence
+-- 桥接：满忠实且分裂本质满射的函子诱导强等价
 --
--- Lifts a CategoryEquivalence (fully faithful + split essentially
--- surjective) to a StrongEquivalence (functor + weak inverse).
--- The inverse functor is obtained directly from
--- EssSurj×Full×Faithful⇒Invertible.
--- The resulting StrongEquivalence yields an adjoint equivalence via
--- C≅D
--- 把 CategoryEquivalence（满忠实 + 分裂本质满射）
--- 提升为 StrongEquivalence（函子 + 弱逆）。逆函子直接取自
--- EssSurj×Full×Faithful⇒Invertible。
--- 所得的 StrongEquivalence 经 C≅D 得到伴随等价
+-- Given F : C → D together with witnesses that F is fully faithful
+-- and split essentially surjective, constructs a StrongEquivalence C D
+-- The inverse functor is obtained from
+-- EssSurj×Full×Faithful⇒Invertible; the two natural isomorphisms
+-- F∘G ≅ id and G∘F ≅ id are constructed via fullness and faithfulness
+-- 给定 F : C → D 以及 F 满忠实与分裂本质满射的见证，构造 StrongEquivalence C D
+-- 逆函子取自 EssSurj×Full×Faithful⇒Invertible；
+-- 两个自然同构 F∘G ≅ id 与 G∘F ≅ id 经满性与忠实性构造
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.ContFunctorStrongEquiv where
+module ALMA.Cosmos.Equivalence where
 
 open import Agda.Primitive using (Level)
-open import Agda.Builtin.Sigma using (Σ)
 open import Data.Product.Base using (proj₁; proj₂)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Equivalence using (StrongEquivalence)
-open import Categories.Category.Equivalence.Properties using (C≅D)
-open import Categories.Adjoint.Equivalence using (⊣Equivalence)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (id; _∘F_)
 open import Categories.Functor.Properties
-  using (FullyFaithful; Full; Faithful; EssSurj×Full×Faithful⇒Invertible)
+  using (FullyFaithful; Full; Faithful; EssentiallySurjective; EssSurj×Full×Faithful⇒Invertible)
 open import Categories.NaturalTransformation.Core using (ntHelper)
-open import Categories.NaturalTransformation.NaturalIsomorphism
-  using (NaturalIsomorphism)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism)
 open import Categories.Morphism using (_≅_; Iso)
 
-open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.ContFunctor
-  using (CategoryEquivalence; ContCat≃PolyFunctors; PolyFunctors)
-
--- Bridge construction, parameterized by the source equivalence
--- 桥接构造，以源范畴等价为参数
+-- Bridge construction, parameterized by the functor, its fully-faithful
+-- witness, and the split essential surjectivity witness
+-- 桥接构造，以函子、满忠实见证与分裂本质满射见证为参数
 module _ {oc ℓc ec od ℓd ed : Level}
          {C : Category oc ℓc ec}
          {D : Category od ℓd ed}
-         (eq : CategoryEquivalence C D) where
+         (F : Functor C D)
+         (ff : FullyFaithful F)
+         (ses : EssentiallySurjective F) where
 
   module C = Category C
   module D = Category D
 
   open D.HomReasoning
-
-  -- Forward functor F : C → D
-  -- 正向函子 F : C → D
-  F : Functor C D
-  F = CategoryEquivalence.F eq
-
-  -- Fully-faithful witness
-  -- 满忠实性见证
-  ff : FullyFaithful F
-  ff = CategoryEquivalence.fully-faithful eq
-
-  -- Split ESO: a choice function assigning each Y an X with F X ≅ Y
-  -- 分裂本质满射：为每个 Y 指派 X 及同构 F X ≅ Y 的选择函数
-  ses : (Y : Category.Obj D) → Σ (Category.Obj C) (λ X → _≅_ D (Functor.F₀ F X) Y)
-  ses = CategoryEquivalence.split-ess-surj eq
 
   -- Any D-morphism F X → F Y has a C-preimage
   -- 任意 D-态射 F X → F Y 都有 C-原像
@@ -78,9 +57,9 @@ module _ {oc ℓc ec od ℓd ed : Level}
   module Fm = Functor F
 
   -- Inverse functor G : D → C, from EssSurj×Full×Faithful⇒Invertible
-  -- 逆函子 G : D → C，取自 EssSurj×Full×Faithful⇒Invertible
   -- The library defines F₀ Y = proj₁ (ses Y) and
   -- F₁ f = proj₁ (full (bwd Z ∘ f ∘ fwd Y))
+  -- 逆函子 G : D → C，取自 EssSurj×Full×Faithful⇒Invertible
   -- 库定义 F₀ Y = proj₁ (ses Y)，F₁ f = proj₁ (full (bwd Z ∘ f ∘ fwd Y))
   G : Functor D C
   G = EssSurj×Full×Faithful⇒Invertible F ses full faithful
@@ -93,12 +72,12 @@ module _ {oc ℓc ec od ℓd ed : Level}
   isoAt Y = proj₂ (ses Y)
 
   -- Forward direction F (G Y) → Y
-  -- 正向 F (G Y) → Y
+  -- 正向态射 F (G Y) → Y
   fwd : (Y : Category.Obj D) → Fm.F₀ (Gm.F₀ Y) D.⇒ Y
   fwd Y = _≅_.from (isoAt Y)
 
   -- Backward direction Y → F (G Y)
-  -- 反向 Y → F (G Y)
+  -- 反向态射 Y → F (G Y)
   bwd : (Y : Category.Obj D) → Y D.⇒ Fm.F₀ (Gm.F₀ Y)
   bwd Y = _≅_.to (isoAt Y)
 
@@ -109,7 +88,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
   isoAt-bwd-fwd Y = Iso.isoˡ (_≅_.iso (isoAt Y))
 
   -- F₁ (G₁ f) ≈ bwd Z ∘ (f ∘ fwd Y), extracted via the fullness witness
-  -- F₁ (G₁ f) ≈ bwd Z ∘ (f ∘ fwd Y)，经满性见证提取
+  -- F₁ (G₁ f) ≈ bwd Z ∘ (f ∘ fwd Y)，由满性见证给出
   F₁G₁-char : ∀ {Y Z} (f : Y D.⇒ Z) → Fm.F₁ (Gm.F₁ f) D.≈ bwd Z D.∘ (f D.∘ fwd Y)
   F₁G₁-char {Y} {Z} f = proj₂ (full (bwd Z D.∘ (f D.∘ fwd Y)))
 
@@ -275,14 +254,3 @@ module _ {oc ℓc ec od ℓd ed : Level}
       ; G∘F≈id = G∘F≅id
       }
     }
-
--- Specialization to ContCat and PolyFunctors
--- 特化到 ContCat 与 PolyFunctors
-module _ {s p ℓ : Level} where
-  ContCat≈PolyFunctors : StrongEquivalence (ContCat s p) (PolyFunctors {s} {p} {ℓ})
-  ContCat≈PolyFunctors = toStrongEquiv (ContCat≃PolyFunctors {s} {p} {ℓ})
-
-  -- StrongEquivalence yields an adjoint equivalence via C≅D
-  -- StrongEquivalence 经 C≅D 得到伴随等价
-  ContCat⊣EquivPolyFunctors : ⊣Equivalence (ContCat s p) (PolyFunctors {s} {p} {ℓ})
-  ContCat⊣EquivPolyFunctors = C≅D ContCat≈PolyFunctors

@@ -1,9 +1,8 @@
 ------------------------------------------------------------------------
--- Proves substitution–commutation for position maps, and sequential
--- (vertical) commutativity of shape components under composition of
--- natural transformations valued in ContCat
+-- Proves substitution–commutation for position maps, and naturality
+-- of shape components for ContCat-valued natural transformations
 -- 证明位置映射与替换的交换性，以及取值于 ContCat 的自然变换
--- 在纵复合下形状分量的顺序交换性
+-- 其形状分量的自然性
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -11,14 +10,13 @@ module ALMA.Cosmos.ContCatEquivLemmas where
 
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
-open import Relation.Binary.PropositionalEquality.Core using (cong; subst)
-open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality.Core using (subst)
 open import Data.Product.Base using (proj₂)
 open import Data.Container.Core using (shape)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
-open import Categories.NaturalTransformation.Core using (NaturalTransformation; _∘ᵥ_)
+open import Categories.NaturalTransformation.Core using (NaturalTransformation)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
@@ -55,77 +53,18 @@ onPos-subst-comm :
             (MorphismObject.onPos MO p)
 onPos-subst-comm MO refl p = refl
 
--- Sequential (vertical) commutativity of shape components under composition
--- for two composable natural transformations α : G ⟹ H and β : F ⟹ G:
--- the shape component of α ∘ᵥ β satisfies the naturality square with
--- respect to any morphism f : A → B in the source category
--- 两个可复合自然变换 α : G ⟹ H 与 β : F ⟹ G 的形状映射的
--- 顺序（纵向）交换性：α ∘ᵥ β 的形状分量关于源范畴中
--- 任意态射 f : A → B 满足自然性方块
-glue-shape-eq :
-  ∀ {o h e s p}
-    {C : Category o h e}
-    {F G H : Functor C (ContCat s p)}
-    {α : NaturalTransformation G H} {β : NaturalTransformation F G}
-    {A B : Category.Obj C} (f : Category._⇒_ C A B)
-    (s : ShapeOf F A)
-  → shape (NaturalTransformation.η (α ∘ᵥ β) B)
-          (shape (Functor.F₁ F f) s)
-    ≡ shape (Functor.F₁ H f)
-            (shape (NaturalTransformation.η (α ∘ᵥ β) A) s)
-glue-shape-eq {F = F} {G} {H} {α = α} {β = β} {A = A} {B = B} f s =
-  let open ≡-Reasoning in
-  begin
-    shape (NTα.η B) (shape (NTβ.η B) (shape (F.F₁ f) s))
-      ≡⟨ cong (shape (NTα.η B))
-              (shape-eq-from-≈M (NTβ.commute f) s) ⟩
-    shape (NTα.η B) (shape (G.F₁ f) (shape (NTβ.η A) s))
-      ≡⟨ shape-eq-from-≈M (NTα.commute f)
-                          (shape (NTβ.η A) s) ⟩
-    shape (H.F₁ f) (shape (NTα.η A) (shape (NTβ.η A) s))
-    ∎
-  where
-    module F = Functor F
-    module G = Functor G
-    module H = Functor H
-    module NTα = NaturalTransformation α
-    module NTβ = NaturalTransformation β
-
--- Sequential (vertical) commutativity for three composable natural
--- transformations α : H ⟹ I, β : G ⟹ H, γ : F ⟹ G:
--- the shape component of α ∘ᵥ β ∘ᵥ γ satisfies the naturality square
--- The proof factors β ∘ᵥ γ via glue-shape-eq, then applies naturality of α
--- 三个可复合自然变换 α : H ⟹ I、β : G ⟹ H、γ : F ⟹ G 的
--- 顺序（纵向）交换性：α ∘ᵥ β ∘ᵥ γ 的形状分量满足自然性方块
--- 证明先经 glue-shape-eq 分解 β ∘ᵥ γ，再施加 α 的自然性
-comp-nat-shape-eq :
-  ∀ {o h e s p}
-    {C : Category o h e}
-    {F G H I : Functor C (ContCat s p)}
-    {α : NaturalTransformation H I}
-    {β : NaturalTransformation G H}
-    {γ : NaturalTransformation F G}
-    {A B : Category.Obj C} (f : Category._⇒_ C A B)
-    (s : ShapeOf F A)
-  → shape (NaturalTransformation.η (α ∘ᵥ β ∘ᵥ γ) B)
-          (shape (Functor.F₁ F f) s)
-    ≡ shape (Functor.F₁ I f)
-            (shape (NaturalTransformation.η (α ∘ᵥ β ∘ᵥ γ) A) s)
-comp-nat-shape-eq {F = F} {G} {H} {I} {α = α} {β = β} {γ = γ} {A = A} {B = B} f s =
-  let open ≡-Reasoning in
-  begin
-    shape (NTα.η B) (shape (NTβγ.η B) (shape (F.F₁ f) s))
-      ≡⟨ cong (shape (NTα.η B))
-              (glue-shape-eq {α = β} {β = γ} f s) ⟩
-    shape (NTα.η B) (shape (H.F₁ f) (shape (NTβγ.η A) s))
-      ≡⟨ shape-eq-from-≈M (NTα.commute f)
-                          (shape (NTβγ.η A) s) ⟩
-    shape (I.F₁ f) (shape (NTα.η A) (shape (NTβγ.η A) s))
-    ∎
-  where
-    module F = Functor F
-    module H = Functor H
-    module I = Functor I
-    module NTα = NaturalTransformation α
-    βγ = β ∘ᵥ γ
-    module NTβγ = NaturalTransformation βγ
+-- Naturality of the shape component: for any ContCat-valued natural
+-- transformation η : F ⟹ G, the shape map of η commutes with the
+-- shape action of F and G. Extracted from η's commute law via
+-- shape-eq-from-≈M (setoid equivalence → propositional equality)
+-- 形状分量的自然性：对任意取值于 ContCat 的自然变换 η : F ⟹ G，
+-- η 的形状映射与 F、G 的形状作用交换。由 η 的 commute 定律经
+-- shape-eq-from-≈M（setoid 等价 → 命题相等）提取得到
+nat-shape-eq : ∀ {o h e s p}
+  {C : Category o h e}
+  {F G : Functor C (ContCat s p)}
+  {η : NaturalTransformation F G}
+  {A B : Category.Obj C} (f : Category._⇒_ C A B) (s : ShapeOf F A)
+  → shape (NaturalTransformation.η η B) (shape (Functor.F₁ F f) s)
+    ≡ shape (Functor.F₁ G f) (shape (NaturalTransformation.η η A) s)
+nat-shape-eq {η = η} f s = shape-eq-from-≈M (NaturalTransformation.commute η f) s

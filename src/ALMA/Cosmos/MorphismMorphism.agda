@@ -16,10 +16,8 @@ module ALMA.Cosmos.MorphismMorphism where
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
-open import Relation.Binary.PropositionalEquality.Core
-  using (sym; subst; trans; cong)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality.Core using (sym; subst; trans; cong)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 open import Relation.Binary.Structures using (IsEquivalence)
 open import Data.Product.Base using (proj₁; proj₂)

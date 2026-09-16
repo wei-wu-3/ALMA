@@ -3,12 +3,12 @@
 -- F-余代数范畴与终对象封装
 --
 -- Constructs CoalgCat: objects are CosmosF-coalgebras, morphisms are
--- coalgebra homomorphisms, equivalence is pointwise propositional equality.
+-- coalgebra homomorphisms, equivalence is pointwise propositional equality
 -- Packages cosmosCoalg as terminal up to bisimulation _≈C_, without funext
--- or proof irrelevance (strengthening to _≡_ would require both).
--- 构造 CoalgCat：对象为 CosmosF-余代数，态射为余代数同态，等价为逐点命题相等。
+-- or proof irrelevance (strengthening to _≡_ would require both)
+-- 构造 CoalgCat：对象为 CosmosF-余代数，态射为余代数同态，等价为逐点命题相等
 -- 将 cosmosCoalg 封装为互模拟 _≈C_ 意义下的终对象（无需函数外延性与证明无关性；
--- 强化到 _≡_ 需要二者）。
+-- 强化到 _≡_ 需要二者）
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -24,8 +24,11 @@ open import Function.Bundles using (Func)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
+open import Categories.Functor.Coalgebra using (F-Coalgebra)
+import Categories.Category.Construction.F-Coalgebras as FCoalg
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
+open import ALMA.Cosmos.Unfolding using (module UnfoldingEndoFunctor)
 open import ALMA.Cosmos using (module CosmosMap)
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana; _≈C_)
@@ -46,8 +49,8 @@ module _ {o h e s p : Level}
               → Set (L ⊔ r₁ ⊔ r₂)
     CoalgHom′ {r₁} {r₂} = CoalgHom {o} {h} {e} {s} {p} {C} {FC} {r₁} {r₂}
 
-  -- Same as above: explicit C/FC for CosmosMap.
-  -- 同上：为 CosmosMap 显式指定 C/FC。
+  -- Same as above: explicit C/FC for CosmosMap
+  -- 同上：为 CosmosMap 显式指定 C/FC
   open CosmosMap {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
     using (mapCosmosF; map-id; map-∘)
 
@@ -60,9 +63,9 @@ module _ {o h e s p : Level}
     }
 
   -- Composition: map-∘ reduces mapCosmosF (g∘f) to mapCosmosF g ∘ mapCosmosF f,
-  -- then f.commute and g.commute chain to Z.α.
+  -- then f.commute and g.commute chain to Z.α
   -- 复合：map-∘ 将 mapCosmosF (g∘f) 归约为 mapCosmosF g ∘ mapCosmosF f，
-  -- 再经 f.commute 与 g.commute 链式得到 Z.α。
+  -- 再经 f.commute 与 g.commute 链式得到 Z.α
   _∘Coalg_ : ∀ {r₁ r₂ r₃}
                {X : Coalgebra′ r₁} {Y : Coalgebra′ r₂} {Z : Coalgebra′ r₃}
            → CoalgHom′ Y Z → CoalgHom′ X Y → CoalgHom′ X Z
@@ -89,11 +92,11 @@ module _ {o h e s p : Level}
   _≈Coalg_ f g = ∀ x → Func.to (Hom.f f) x ≡ Func.to (Hom.f g) x
 
   -- Category instance
+  -- Laws are inlined: top-level helpers cause metavariable drift via CoalgHom′
+  -- ∘-resp-≈: outer f≈, then inner g≈; proofs end in (x)
   -- 范畴实例
-  -- Laws are inlined: top-level helpers cause metavariable drift via CoalgHom′.
-  -- ∘-resp-≈: outer f≈, then inner g≈; proofs end in (x).
-  -- 范畴律内联编写：顶层辅助函数会导致 CoalgHom′ 别名上的元变量漂移。
-  -- ∘-resp-≈：先外层 f≈，再内层 g≈；证明以 (x) 结尾。
+  -- 范畴律内联编写：顶层辅助函数会导致 CoalgHom′ 别名上的元变量漂移
+  -- ∘-resp-≈：先外层 f≈，再内层 g≈；证明以 (x) 结尾
   CoalgCat : Category (lsuc L) L L
   CoalgCat = record
     { Obj       = Coalgebra′ L
@@ -118,9 +121,9 @@ module _ {o h e s p : Level}
     }
 
   -- Terminal object up to bisimulation
+  -- Uniqueness only up to _≈C_; upgrading to _≡_ needs funext + proof irrelevance
   -- 互模拟意义下的终对象
-  -- Uniqueness only up to _≈C_; upgrading to _≡_ needs funext + proof irrelevance.
-  -- 唯一性仅到互模拟 _≈C_；强化到 _≡_ 需要函数外延性与证明无关性。
+  -- 唯一性仅到互模拟 _≈C_；强化到 _≡_ 需要函数外延性与证明无关性
   record IsTerminalUpToBisim : Set (lsuc L) where
     field
       !        : (X : Coalgebra′ Lʳ) → CoalgHom′ {r₁ = Lʳ} {r₂ = Lʳ} X cosmosCoalg
@@ -128,10 +131,43 @@ module _ {o h e s p : Level}
                    (f : CoalgHom′ {r₁ = Lʳ} {r₂ = Lʳ} X cosmosCoalg)
                → ∀ x → Func.to (Hom.f f) x ≈C Func.to (Hom.f (! X)) x
 
-  -- cosmosCoalg is terminal up to _≈C_: ! = ana-hom, uniqueness = unique-ana.
-  -- cosmosCoalg 在 _≈C_ 意义下为终对象：! = ana-hom，唯一性 = unique-ana。
+  -- cosmosCoalg is terminal up to _≈C_: ! = ana-hom, uniqueness = unique-ana
+  -- cosmosCoalg 在 _≈C_ 意义下为终对象：! = ana-hom，唯一性 = unique-ana
   cosmosIsTerminal : IsTerminalUpToBisim
   cosmosIsTerminal = record
     { !        = ana-hom
     ; !-unique = λ {X} f x → unique-ana X f x
+    }
+
+  -- Standard-library packaging
+  -- 标准库封装
+  open UnfoldingEndoFunctor {C = C} {FC = FC}
+
+  -- Standard-library F-coalgebra category for the unfolding endofunctor
+  -- 展开自函子的标准库 F-余代数范畴
+  StdCoalgCat : Category _ _ _
+  StdCoalgCat = FCoalg.F-Coalgebras UnfoldingEndoFunctor
+
+  -- Bridge: ALMA Coalgebra → standard F-Coalgebra
+  -- 桥接：ALMA Coalgebra → 标准 F-Coalgebra
+  toStdCoalg : Coalgebra′ Lʳ → F-Coalgebra UnfoldingEndoFunctor
+  toStdCoalg X = record
+    { A = Coal.Carrier X
+    ; α = record
+      { to   = Func.to (Coal.α X)
+      ; cong = λ {x} {y} x≈y →
+          Func.cong (Coal.α X) x≈y
+      }
+    }
+
+  -- Bridge: standard F-Coalgebra → ALMA Coalgebra
+  -- 桥接：标准 F-Coalgebra → ALMA Coalgebra
+  fromStdCoalg : F-Coalgebra UnfoldingEndoFunctor → Coalgebra′ Lʳ
+  fromStdCoalg X = record
+    { Carrier = F-Coalgebra.A X
+    ; α = record
+      { to   = Func.to (F-Coalgebra.α X)
+      ; cong = λ {x} {y} x≈y →
+          Func.cong (F-Coalgebra.α X) x≈y
+      }
     }

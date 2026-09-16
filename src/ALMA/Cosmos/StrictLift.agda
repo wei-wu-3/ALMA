@@ -31,10 +31,10 @@ open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos using (Cosmos; out; UnitCat; UnitContainerFunctor)
-open import ALMA.Cosmos.CumulativeHierarchy
-  using (FC∘π; EmbeddingData; UniformEmbeddingFamily)
 open import ALMA.Cosmos.Terminal using (_≈C_)
 open import ALMA.Cosmos.Lambek using (in-F; in∘out≈id)
+open import ALMA.Cosmos.CumulativeHierarchy
+  using (FC∘π; EmbeddingData; UniformEmbeddingFamily)
 
 -- Level-raising preliminaries
 -- 层级提升的预备构造
@@ -232,54 +232,13 @@ strictEmbed-unfoldFunctor L = record
   ; F-resp-≈     = λ ff≈gg → ff≈gg
   }
 
-strictEmbed
-  : ∀ {o h e s p}
-  → (L : StrictLayer o h e s p)
-  → (x : Cosmos (StrictLayer.C L) (StrictLayer.FC L))
-  → EmbeddingData x
-  → Cosmos (StrictLayer.C (strictStep-suc L))
-           (StrictLayer.FC (strictStep-suc L))
-strictEmbed L x ed .out = record
-  { unfoldFunctor   = strictEmbed-unfoldFunctor L
-  ; unfold-next     = λ { {A} u →
-      -- Recurse on the inner shape: lower the lifted shape u,
-      -- unfold the source, and embed the result
-      -- 对内层形状递归：对提升形状 u 降层，展开源宇宙，再嵌入结果
-      strictEmbed L
-        (UX.unfold-next {A = proj₁ A} (lower u))
-        (EmbeddingData.next ed {A = proj₁ A} (lower u)) }
-  ; pos-to-shape    = λ {A} s p →
-      -- Position-to-shape is the retract action on the unlifted data,
-      -- then re-lifted
-      -- 位置到形状的映射：先对未提升数据做 retract 作用，再重新提升
-      lift (actSOf FC_L (EmbeddingData.retract ed (lower s))
-                       (UX.pos-to-shape (lower s) (lower p)))
-  ; pos-actS-compat = λ {A} {B} {s} {t} g p p₁ →
-      cong lift (begin
-        actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t))
-          (UX.pos-to-shape {A = proj₁ B} (lower t)
-             (lower (subst (PosOf FC′ {A = B}) p p₁)))
-        ≡⟨ cong (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t)))
-                (cong (UX.pos-to-shape {A = proj₁ B} (lower t))
-                      (bridge {A = A} {B = B} {s = s} {t = t} g p p₁)) ⟩
-        actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t))
-          (UX.pos-to-shape {A = proj₁ B} (lower t)
-             (subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)))
-        ≡⟨ compat {A = proj₁ A} {B = proj₁ B}
-                  {s = lower s} {t = lower t}
-                  (proj₁ g) (cong lower p) (lower p₁) ⟩
-        actSOf FC_L (proj₁ g)
-          (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ A} (lower s))
-             (UX.pos-to-shape {A = proj₁ A} (lower s)
-                (actPOf FC_L (proj₁ g) (lower s) (lower p₁))))
-        ≡⟨ refl ⟩
-        actSOf FC_L (proj₁ g)
-          (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ A} (lower s))
-             (UX.pos-to-shape {A = proj₁ A} (lower s)
-                (lower (actPOf FC′ g s p₁))))
-      ∎)
-  }
-  where
+-- Subst along a lift-equality commutes with lower, specialised to the
+-- container functor of a strict layer
+-- 沿 lift 等式的 subst 与 lower 交换，特化到严格层的容器函子
+module _ {o h e s p : Level} (L : StrictLayer o h e s p)
+         (x : Cosmos (StrictLayer.C L) (StrictLayer.FC L))
+         (ed : EmbeddingData x) where
+  private
     C_L  = StrictLayer.C L
     FC_L = StrictLayer.FC L
     C′   = StrictLayer.C (strictStep-suc L)
@@ -290,63 +249,110 @@ strictEmbed L x ed .out = record
     UX = out x
     module UX = Unfolding UX
 
-    -- Lower of subst along a lifted equality agrees with subst along
-    -- the lowered equality (for the inner container)
-    -- 沿提升等式的 subst 的降层结果与沿已降层等式的 subst 一致（对内部容器）
-    bridge : ∀ {A B : Category.Obj C′}
-               {s : ShapeOf FC′ A} {t : ShapeOf FC′ B}
-             (g : A C′Cat.⇒ B) (p : actSOf FC′ g s ≡ t)
-             (p₁ : PosOf FC′ {A = B} (actSOf FC′ g s))
-           → lower (subst (PosOf FC′ {A = B}) p p₁)
-             ≡ subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)
-    bridge {A} {B} {s} {t} g p p₁ =
-      begin
-        lower (subst (PosOf FC′ {A = B}) p p₁)
-          ≡⟨ cong lower (cong (λ e → subst (PosOf FC′ {A = B}) e p₁)
-                              (sym (lift-lower-cong p))) ⟩
-        lower (subst (PosOf FC′ {A = B}) (cong lift (cong lower p)) p₁)
-          ≡⟨ lower-subst-lift {P = PosOf FC_L {A = proj₁ B}}
-                              (cong lower p) p₁ ⟩
-        subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)
-      ∎
+  strictEmbed-bridge
+    : ∀ {A B : Category.Obj C′}
+        {s : ShapeOf FC′ A} {t : ShapeOf FC′ B}
+        (g : A C′Cat.⇒ B) (p : actSOf FC′ g s ≡ t)
+        (p₁ : PosOf FC′ {A = B} (actSOf FC′ g s))
+      → lower (subst (PosOf FC′ {A = B}) p p₁)
+        ≡ subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)
+  strictEmbed-bridge {A} {B} {s} {t} g p p₁ =
+    begin
+      lower (subst (PosOf FC′ {A = B}) p p₁)
+        ≡⟨ cong lower (cong (λ e → subst (PosOf FC′ {A = B}) e p₁)
+                            (sym (lift-lower-cong p))) ⟩
+      lower (subst (PosOf FC′ {A = B}) (cong lift (cong lower p)) p₁)
+        ≡⟨ lower-subst-lift {P = PosOf FC_L {A = proj₁ B}}
+                            (cong lower p) p₁ ⟩
+      subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)
+    ∎
 
-    -- Compatibility of retract with the container functor's action,
-    -- transported through the source cosmos's pos-actS-compat
-    -- retract 与容器函子作用的相容性，经源宇宙的 pos-actS-compat 传输
-    compat : ∀ {A B : Category.Obj C_L}
-               {s : ShapeOf FC_L A} {t : ShapeOf FC_L B}
-            → (f : A FCat.⇒ B)
-            → (q : actSOf FC_L f s ≡ t)
-            → (p : PosOf FC_L (actSOf FC_L f s))
-            → actSOf FC_L (EmbeddingData.retract ed t)
-                (UX.pos-to-shape t (subst (PosOf FC_L) q p))
-            ≡ actSOf FC_L f
-                (actSOf FC_L (EmbeddingData.retract ed s)
-                   (UX.pos-to-shape s (actPOf FC_L f s p)))
-    compat {A} {B} {s} {t} f q p = begin
-        actSOf FC_L (EmbeddingData.retract ed t)
+  strictEmbed-compat
+    : ∀ {A B : Category.Obj C_L}
+        {s : ShapeOf FC_L A} {t : ShapeOf FC_L B}
+      → (f : A FCat.⇒ B)
+      → (q : actSOf FC_L f s ≡ t)
+      → (p : PosOf FC_L (actSOf FC_L f s))
+      → actSOf FC_L (EmbeddingData.retract ed t)
           (UX.pos-to-shape t (subst (PosOf FC_L) q p))
+        ≡ actSOf FC_L f
+            (actSOf FC_L (EmbeddingData.retract ed s)
+               (UX.pos-to-shape s (actPOf FC_L f s p)))
+  strictEmbed-compat {A} {B} {s} {t} f q p =
+    begin
+      actSOf FC_L (EmbeddingData.retract ed t)
+        (UX.pos-to-shape t (subst (PosOf FC_L) q p))
         ≡⟨ cong (actSOf FC_L (EmbeddingData.retract ed t))
                 (UX.pos-actS-compat f q p) ⟩
-        actSOf FC_L (EmbeddingData.retract ed t) (actSOf FC_L g₁ x₀)
+      actSOf FC_L (EmbeddingData.retract ed t) (actSOf FC_L g₁ x₀)
         ≡⟨ sym (_≈M_.shape-eq
                 (Functor.homomorphism FC_L {f = g₁}
                  {g = EmbeddingData.retract ed t}) x₀) ⟩
-        actSOf FC_L (EmbeddingData.retract ed t FCat.∘ g₁) x₀
+      actSOf FC_L (EmbeddingData.retract ed t FCat.∘ g₁) x₀
         ≡⟨ sym (_≈M_.shape-eq
                 (Functor.F-resp-≈ FC_L
                  {f = f FCat.∘ EmbeddingData.retract ed s}
                  {g = EmbeddingData.retract ed t FCat.∘ g₁}
                  (EmbeddingData.retract-natural ed f q)) x₀) ⟩
-        actSOf FC_L (f FCat.∘ EmbeddingData.retract ed s) x₀
+      actSOf FC_L (f FCat.∘ EmbeddingData.retract ed s) x₀
         ≡⟨ _≈M_.shape-eq
              (Functor.homomorphism FC_L {f = EmbeddingData.retract ed s}
                 {g = f}) x₀ ⟩
-        actSOf FC_L f (actSOf FC_L (EmbeddingData.retract ed s) x₀)
-      ∎
-      where
-        x₀ = UX.pos-to-shape s (actPOf FC_L f s p)
-        g₁ = Functor.₁ UX.unfoldFunctor (f , q)
+      actSOf FC_L f (actSOf FC_L (EmbeddingData.retract ed s) x₀)
+    ∎
+    where
+      x₀ = UX.pos-to-shape s (actPOf FC_L f s p)
+      g₁ = Functor.₁ UX.unfoldFunctor (f , q)
+
+strictEmbed
+  : ∀ {o h e s p}
+  → (L : StrictLayer o h e s p)
+  → (x : Cosmos (StrictLayer.C L) (StrictLayer.FC L))
+  → EmbeddingData x
+  → Cosmos (StrictLayer.C (strictStep-suc L))
+           (StrictLayer.FC (strictStep-suc L))
+strictEmbed L x ed .out = record
+  { unfoldFunctor   = strictEmbed-unfoldFunctor L
+  ; unfold-next     = λ { {A} u →
+      strictEmbed L
+        (UX.unfold-next {A = proj₁ A} (lower u))
+        (EmbeddingData.next ed {A = proj₁ A} (lower u)) }
+  ; pos-to-shape    = λ {A} s p →
+      lift (actSOf FC_L (EmbeddingData.retract ed (lower s))
+                       (UX.pos-to-shape (lower s) (lower p)))
+  ; pos-actS-compat = λ {A} {B} {s} {t} g p p₁ →
+      cong lift (begin
+        actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t))
+          (UX.pos-to-shape {A = proj₁ B} (lower t)
+             (lower (subst (PosOf FC′ {A = B}) p p₁)))
+          ≡⟨ cong (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t)))
+                  (cong (UX.pos-to-shape {A = proj₁ B} (lower t))
+                        (strictEmbed-bridge L x ed {A = A} {B = B}
+                           {s = s} {t = t} g p p₁)) ⟩
+        actSOf FC_L (EmbeddingData.retract ed {A = proj₁ B} (lower t))
+          (UX.pos-to-shape {A = proj₁ B} (lower t)
+             (subst (PosOf FC_L {A = proj₁ B}) (cong lower p) (lower p₁)))
+          ≡⟨ strictEmbed-compat L x ed {A = proj₁ A} {B = proj₁ B}
+                  {s = lower s} {t = lower t}
+                  (proj₁ g) (cong lower p) (lower p₁) ⟩
+        actSOf FC_L (proj₁ g)
+          (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ A} (lower s))
+             (UX.pos-to-shape {A = proj₁ A} (lower s)
+                (actPOf FC_L (proj₁ g) (lower s) (lower p₁))))
+          ≡⟨ refl ⟩
+        actSOf FC_L (proj₁ g)
+          (actSOf FC_L (EmbeddingData.retract ed {A = proj₁ A} (lower s))
+             (UX.pos-to-shape {A = proj₁ A} (lower s)
+                (lower (actPOf FC′ g s p₁))))
+      ∎)
+  }
+  where
+    FC_L = StrictLayer.FC L
+    C′   = StrictLayer.C (strictStep-suc L)
+    FC′  = StrictLayer.FC (strictStep-suc L)
+    open ≡-Reasoning
+    UX = out x
+    module UX = Unfolding UX
 
 -- Example: strictly-growing Unit hierarchy
 -- 示例：严格增长的单位层级
@@ -361,25 +367,48 @@ module StrictUnitHierarchyExample {ℓ : Level} where
   L₂ : StrictLayer (lsuc ℓ) (lsuc ℓ) ℓ (lsuc (lsuc ℓ)) (lsuc (lsuc ℓ))
   L₂ = strictStep-suc L₁
 
--- StrictFunctorialEmbeddingFamily: packages a UniformEmbeddingFamily
--- with the property that strictEmbed preserves _≈C_
--- StrictFunctorialEmbeddingFamily：将 UniformEmbeddingFamily
--- 连同 strictEmbed 保持 _≈C_ 的性质封装
-record StrictFunctorialEmbeddingFamily {o h e s p}
-  (L : StrictLayer o h e s p) : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
+-- An embedding rule: a first-class notion of how to embed a cosmos into
+-- the next strict layer. This captures the "direction" of the unfold
+-- functor as data, so that the framework in CumulativeHierarchyLimit
+-- becomes direction-agnostic
+-- 嵌入规则：把"如何把宇宙嵌入下一严格层"提升为一等公民
+-- 这把展开函子的"方向"捕获为数据，使 CumulativeHierarchyLimit
+-- 中的框架成为方向无关的
+record EmbeddingRule : Setω where
   field
-    uniform : UniformEmbeddingFamily {C = StrictLayer.C L} {FC = StrictLayer.FC L}
+    Embed : ∀ {o h e s p} (L : StrictLayer o h e s p)
+          → (x : Cosmos (StrictLayer.C L) (StrictLayer.FC L))
+          → EmbeddingData x
+          → Cosmos (StrictLayer.C (strictStep-suc L))
+                   (StrictLayer.FC (strictStep-suc L))
+
+-- A family of embedding data along a given rule R. When R = outer-rule,
+-- this specialises to the outer-preserving family used by
+-- CumulativeHierarchy; when R = inner-rule (defined in FinCatInnerSewing),
+-- it gives the inner-preserving family
+-- 给定规则 R 下的嵌入数据族。当 R = outer-rule 时，它特化为
+-- CumulativeHierarchy 所用的保外层族；当 R = inner-rule
+-- （定义于 FinCatInnerSewing）时，它给出保内层族
+record EmbedFamily (R : EmbeddingRule) {o h e s p}
+                   (L : StrictLayer o h e s p)
+  : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
+  field
+    uniform : UniformEmbeddingFamily
+                {C  = StrictLayer.C L}
+                {FC = StrictLayer.FC L}
   open UniformEmbeddingFamily uniform public
   field
-    -- strictEmbed preserves bisimulation: bisimilar cosmos objects in layer L
-    -- map to bisimilar cosmos objects in the strictly-raised next layer
-    -- strictEmbed 保持互模拟：层 L 中互模拟的宇宙
-    -- 映射为严格提升后下一层中互模拟的宇宙
-    resp-≈C : ∀ {x y} → _≈C_ {C = StrictLayer.C L} {FC = StrictLayer.FC L} x y
-            → _≈C_ {C = StrictLayer.C (strictStep-suc L)}
-                    {FC = StrictLayer.FC (strictStep-suc L)}
-                    (strictEmbed L x (getData x))
-                    (strictEmbed L y (getData y))
+    resp-≈C : ∀ {x y}
+            → _≈C_ {C  = StrictLayer.C L} {FC = StrictLayer.FC L} x y
+            → _≈C_ {C  = StrictLayer.C (strictStep-suc L)}
+                   {FC = StrictLayer.FC (strictStep-suc L)}
+                   (EmbeddingRule.Embed R L x (getData x))
+                   (EmbeddingRule.Embed R L y (getData y))
+
+-- The outer-preserving rule (the default direction of CumulativeHierarchy)
+-- 保外层规则（CumulativeHierarchy 的默认方向）
+outer-rule : EmbeddingRule
+outer-rule .EmbeddingRule.Embed = strictEmbed
 
 -- StrictLambekConsistency: Lambek-consistency for the strict embedding
 -- StrictLambekConsistency：严格嵌入的 Lambek 一致性

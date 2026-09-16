@@ -25,10 +25,11 @@ open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Construction.Elements using (Elements)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (_∘F_)
+open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.NaturalTransformation.Core using (NaturalTransformation)
 
 open import ALMA.Cosmos.ContCategory
-  using (_≈M_; ≈M-sym; ≈M-trans; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈M-Reasoning)
+  using (_≈M_; ≈M-sym; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈M-Reasoning)
 open import ALMA.Cosmos.ContFunctor using (ContEmbedding; ⟦_⟧)
 
 -- ContCatEquiv: container isomorphism transport along isomorphisms
@@ -79,30 +80,14 @@ module _ {o h e s p : Level}
     private
       module TF = Functor transportFunctor
 
-    transpCont-refl : ∀ {A} → TF.F₁ (C≅.refl {A}) ≈M id (F₀ A)
-    transpCont-refl = TF.identity
-
-    transpCont-sym : ∀ {A B} (eq : A ≅ B) →
-      TF.F₁ (C≅.sym eq) ∘ TF.F₁ eq ≈M id (F₀ A)
-    transpCont-sym eq = ≈M-trans
-      (≈M-sym (TF.homomorphism {f = eq} {g = C≅.sym eq}))
-      (≈M-trans (F-resp-≈ (_≅_.isoˡ eq)) TF.identity)
-
-    transpCont-trans : ∀ {A₁ A₂ A₃} (eq1 : A₁ ≅ A₂) (eq2 : A₂ ≅ A₃) →
-      TF.F₁ (C≅.trans eq1 eq2) ≈M (TF.F₁ eq2 ∘ TF.F₁ eq1)
-    transpCont-trans eq1 eq2 = TF.homomorphism {f = eq1} {g = eq2}
-
     -- Transport produces a container isomorphism (ContIso)
     -- 传输产生容器同构 (ContIso)
     transpIso : ∀ {A₁ A₂} → A₁ ≅ A₂ → ContIso (F₀ A₁) (F₀ A₂)
-    transpIso eq = record
-      { from = TF.F₁ eq
-      ; to   = TF.F₁ (C≅.sym eq)
-      ; iso  = record
-        { isoˡ = transpCont-sym eq
-        ; isoʳ = transpCont-sym (C≅.sym eq)
-        }
-      }
+    transpIso eq = [ containerFunctor ]-resp-≅ eq
+
+    transpCont-sym : ∀ {A B} (eq : A ≅ B) →
+      TF.F₁ (C≅.sym eq) ∘ TF.F₁ eq ≈M id (F₀ A)
+    transpCont-sym eq = ContIso.isoˡ (transpIso eq)
 
     -- Transport of morphisms in C along isomorphisms
     -- 沿同构传输 C 中的态射
@@ -165,7 +150,7 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     -- Import transport structure from ContCatEquiv
     -- 从 ContCatEquiv 导入传输结构
     open ContCatEquiv CCE
-      using (transportFunctor; transpIso; transpCont-sym; transpCont-refl; transpCont-trans; CoreC)
+      using (transportFunctor; transpIso; transpCont-sym; CoreC)
     open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso using (from)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)

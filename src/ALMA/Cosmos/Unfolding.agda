@@ -4,8 +4,9 @@
 --
 -- Defines the unfolding functor for a cosmos layer, mapping shaped objects to
 -- the base category with seeds for the next universe
--- 为宇宙层定义展开函子，将带形状的对象映射到基范畴，
--- 并为下一层宇宙提供种子
+-- Also provides the setoid of unfoldings and the induced endofunctor on Setoids
+-- 为宇宙层定义展开函子，将带形状的对象映射到基范畴，并为下一层宇宙提供种子
+-- 同时给出展开的 Setoid 结构及其诱导的 Setoids 自函子
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -23,6 +24,7 @@ open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func)
 
 open import Categories.Category.Core using (Category)
+open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
@@ -241,3 +243,74 @@ module UnfoldingSetoid {o h e s p : Level}
         }
       module SBS = Setoid (unfoldingSetoid SB)
     in SBS.trans (R.cong u₁≈u₂) fg-eq
+
+-- UnfoldingEndoFunctor — Unfolding as an endofunctor on Setoids
+-- 展开函子作为 Setoids 上的自函子
+module UnfoldingEndoFunctor {o h e s p : Level} {C : Category o h e}
+                            {FC : Functor C (ContCat s p)} where
+  open UnfoldingSetoid
+  private
+    L  = o ⊔ h ⊔ e ⊔ s ⊔ p
+    Lʳ = o ⊔ s ⊔ p
+    S = Setoids L Lʳ
+    module S = Category S
+
+  -- Object mapping: an unfolding of FC over X becomes an unfolding over Y
+  -- 对象映射：X 上的 FC 展开变为 Y 上的展开
+  F₀ : S.Obj → S.Obj
+  F₀ X = unfoldingSetoid {F = FC} X
+
+  private
+    -- Congruence of mapUnfolding with respect to _≈U_
+    -- mapUnfolding 关于 _≈U_ 的同余性
+    mapUnfolding-cong : ∀ {X Y : S.Obj} (f : S._⇒_ X Y)
+      → {u₁ u₂ : Unfolding FC (Setoid.Carrier X)}
+      → Setoid._≈_ (F₀ X) u₁ u₂
+      → Setoid._≈_ (F₀ Y) (mapUnfolding (Func.to f) u₁) (mapUnfolding (Func.to f) u₂)
+    mapUnfolding-cong f = Func.cong (mapUnfolding-resp {F = FC} f)
+
+  -- Morphism mapping: lift a Setoid morphism to an unfolding morphism
+  -- 态射映射：将 Setoid 态射提升为展开态射
+  F₁ : ∀ {X Y : S.Obj} → S._⇒_ X Y → S._⇒_ (F₀ X) (F₀ Y)
+  F₁ f = record
+    { to   = mapUnfolding (Func.to f)
+    ; cong = mapUnfolding-cong f
+    }
+
+  private
+    -- Identity law for the endofunctor
+    -- 自函子的恒等律
+    identity-law : ∀ {X : S.Obj} → S._≈_ (F₁ (S.id {X})) (S.id {F₀ X})
+    identity-law {X} {u} = ≈U-refl {X = X} {u}
+
+    -- Composition law for the endofunctor
+    -- 自函子的复合律
+    homomorphism-law : ∀ {X Y Z : S.Obj}
+      {f : S._⇒_ X Y} {g : S._⇒_ Y Z}
+      → S._≈_ (F₁ (g S.∘ f)) (F₁ g S.∘ F₁ f)
+    homomorphism-law {X} {Y} {Z} {f} {g} {u} = ≈U-refl {X = Z}
+
+    -- Equivalence preservation for the endofunctor
+    -- 自函子的等价保持
+    F-resp-≈-law : ∀ {X Y : S.Obj}
+      {f g : S._⇒_ X Y}
+      → S._≈_ f g → S._≈_ (F₁ f) (F₁ g)
+    F-resp-≈-law {X} {Y} {f} {g} f≈g {u} = record
+      { unfoldFunctor₀-eq = λ _ → refl
+      ; pos-to-shape-eq  = λ _ _ → refl
+      ; unfold-next-eq   = λ {A} s →
+          f≈g {x = Unfolding.unfold-next u {A = A} s}
+      }
+
+  -- The endofunctor on Setoids induced by unfolding
+  -- 由展开诱导的 Setoids 上的自函子
+  UnfoldingEndoFunctor : Functor S S
+  UnfoldingEndoFunctor = record
+    { F₀           = F₀
+    ; F₁           = F₁
+    ; identity     = identity-law
+    ; homomorphism = λ {X} {Y} {Z} {f} {g} {u} →
+        homomorphism-law {X} {Y} {Z} {f} {g} {u}
+    ; F-resp-≈     = λ {X} {Y} {f} {g} f≈g {u} →
+        F-resp-≈-law {X} {Y} {f} {g} f≈g {u}
+    }

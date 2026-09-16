@@ -28,11 +28,9 @@ open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf)
-open import ALMA.Cosmos.Unfolding using (Unfolding)
+open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
 open import ALMA.Cosmos
-  using (Cosmos; out
-        ; UnitCosmos; UnitCat; UnitContainerFunctor
-        ; module CosmosFFunctor; module CosmosMap)
+  using (Cosmos; out; UnitCosmos; UnitCat; UnitContainerFunctor; module CosmosMap)
 open CosmosMap
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; cosmosCoalg; _≈C_; ≈C-refl; ≈C-trans; cosmosSetoid)
@@ -48,7 +46,8 @@ module _ {o h e s p : Level}
     FT = Unfolding FC T
     CS : Setoid L Lʳ
     CS = cosmosSetoid {C = C} {FC = FC}
-    module CFF = CosmosFFunctor {C = C} {FC = FC}
+    module US = UnfoldingSetoid
+      {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
     module Coal = Coalgebra
 
     -- Instantiate bisimulation relation and lemmas for current C/FC
@@ -66,14 +65,14 @@ module _ {o h e s p : Level}
   -- Unfolding Setoid; the forward direction of the Lambek isomorphism
   -- out 作为 Setoid 态射，从 Cosmos（携带互模拟等价）到 Unfolding Setoid；
   -- 即 Lambek 同构的正向
-  outFunc : Func CS (CFF.CosmosFSetoid CS)
+  outFunc : Func CS (US.unfoldingSetoid CS)
   outFunc = Coal.α cosmosCoalg
 
   -- in-F as a Setoid morphism, the backward direction of the Lambek
   -- isomorphism; congruence is supplied by in-F-resp-≈F
   -- in-F 作为 Setoid 态射，即 Lambek 同构的逆向；
   -- 其同态性由 in-F-resp-≈F 提供
-  inFFunc : Func (CFF.CosmosFSetoid CS) CS
+  inFFunc : Func (US.unfoldingSetoid CS) CS
   inFFunc = record { to = in-F ; cong = in-F-resp-≈F }
 
   -- Unit (left inverse) and counit (right inverse) of Lambek isomorphism
@@ -81,7 +80,7 @@ module _ {o h e s p : Level}
   unit : ∀ x → in-F (out x) ≈C′ x
   unit = in∘out≈id
 
-  counit : ∀ y → CFF._≈F_ CS (out (in-F y)) y
+  counit : ∀ y → US._≈U_ {X = CS} (out (in-F y)) y
   counit = out∘in≈Fid
 
   private
@@ -107,7 +106,7 @@ module _ {o h e s p : Level}
     { to   = λ x → in-F (mapCosmosF (Func.to F) (out x))
     ; cong = λ {x} {y} x≈y →
         in-F-resp-≈F
-          (Func.cong (CFF.mapCosmosF-resp F) (Func.cong outFunc x≈y))
+          (Func.cong (US.mapUnfolding-resp F) (Func.cong outFunc x≈y))
     }
 
   -- Map closure preserves identity (up to bisimulation)
@@ -138,8 +137,8 @@ module _ {o h e s p : Level}
         ≡⟨ cong in-F (map-∘ (Func.to G) (Func.to F) (out x)) ⟩
       in-F (mapCosmosF (Func.to G) (mapCosmosF (Func.to F) (out x)))
         ≈⟨ in-F-resp-≈F
-            (Func.cong (CFF.mapCosmosF-resp G)
-              (CFF.≈F-sym (out∘in≈Fid (mapCosmosF (Func.to F) (out x))))) ⟩
+            (Func.cong (US.mapUnfolding-resp G)
+              (US.≈U-sym CS (out∘in≈Fid (mapCosmosF (Func.to F) (out x))))) ⟩
       in-F (mapCosmosF (Func.to G) (out (in-F (mapCosmosF (Func.to F) (out x)))))
         ≡⟨ refl ⟩
       Func.to (mapℱ G) (Func.to (mapℱ F) x)
@@ -148,12 +147,12 @@ module _ {o h e s p : Level}
   -- Compatibility of mapℱ with out (counit relation)
   -- mapℱ 与 out 的相容性（余单位关系）
   out-mapℱ : ∀ (F : Func CS CS) x
-           → CFF._≈F_ CS (out (Func.to (mapℱ F) x)) (mapCosmosF (Func.to F) (out x))
+           → US._≈U_ {X = CS} (out (Func.to (mapℱ F) x)) (mapCosmosF (Func.to F) (out x))
   out-mapℱ F x = counit (mapCosmosF (Func.to F) (out x))
 
   -- Triangle identities for the adjoint equivalence out ⊣ in-F
   -- 伴随等价 out ⊣ in-F 的三角恒等式
-  triangle-left : ∀ (x : T) → CFF._≈F_ CS (out (in-F (out x))) (out x)
+  triangle-left : ∀ (x : T) → US._≈U_ {X = CS} (out (in-F (out x))) (out x)
   triangle-left x = counit (out x)
 
   triangle-right : ∀ (y : FT) → in-F (out (in-F y)) ≈C′ in-F y

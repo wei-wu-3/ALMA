@@ -3,9 +3,9 @@
 module Everything where
 
 import ALMA.Cosmos.ContCategory
+import ALMA.Cosmos.Equivalence
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
-import ALMA.Cosmos.ContFunctorStrongEquiv
 import ALMA.Cosmos.ContCatEquiv
 import ALMA.Cosmos.ContCatEquivFunctor
 import ALMA.Cosmos.Unfolding
@@ -16,14 +16,23 @@ import ALMA.Cosmos
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
-import ALMA.Cosmos.MorphismCorrespondence
-import ALMA.Cosmos.ListCosmos
 import ALMA.Cosmos.CosmosCategory
-import ALMA.Cosmos.ContainerAutomorphism
+import ALMA.Cosmos.MorphismCorrespondence
 import ALMA.Cosmos.Closure
+import ALMA.Cosmos.ContainerAutomorphism
+import ALMA.Cosmos.ListCosmos
 import ALMA.Cosmos.CumulativeHierarchy
+import ALMA.Cosmos.CumulativeHierarchyInner
 import ALMA.Cosmos.StrictLift
+import ALMA.Cosmos.StrictLiftShape
 import ALMA.Cosmos.CumulativeHierarchyInstances
+import ALMA.Cosmos.CumulativeHierarchyLimit
+import ALMA.Cosmos.CumulativeHierarchySewing
+import ALMA.Cosmos.FinCatInnerSewing
+import ALMA.Cosmos.FinCat2Witness
+import ALMA.Cosmos.FinCat2TowerLemmas
+import ALMA.Cosmos.ConditionalNontrivialLimit
+import ALMA.Cosmos.LayerZeroMediator
 
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor

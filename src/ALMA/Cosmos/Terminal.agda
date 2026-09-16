@@ -5,10 +5,10 @@
 -- Defines general F-coalgebras with Setoid carriers and Func structure maps,
 -- the anamorphism (unfold) into Cosmos, a bisimulation relation _≈C_ on Cosmos,
 -- and establishes the universal property: Cosmos is the terminal coalgebra of
--- the polynomial functor Unfolding (up to bisimulation).
+-- the polynomial functor Unfolding (up to bisimulation)
 -- 定义具有 Setoid 载体与 Func 结构映射的一般 F-余代数、到 Cosmos 的 anamorphism（展开）、
 -- Cosmos 上的互模拟关系 _≈C_，并证明泛性质：Cosmos 是多项式函子 Unfolding 的
--- （互模拟意义下的）终余代数。
+-- （互模拟意义下的）终余代数
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -17,8 +17,7 @@ module ALMA.Cosmos.Terminal where
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Product.Base using (∃; _,_; _×_)
-open import Relation.Binary.PropositionalEquality.Core
-  using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
 open import Relation.Binary.PropositionalEquality.Properties
   using (module ≡-Reasoning; subst-subst; subst-sym-subst)
 open ≡-Reasoning
@@ -30,10 +29,8 @@ open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
-open import ALMA.Cosmos.Unfolding
-  using (Unfolding; mapUnfolding; module UnfoldingSetoid)
-open import ALMA.Cosmos
-  using (Cosmos; out; module CosmosMap; module CosmosFFunctor)
+open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; module UnfoldingSetoid)
+open import ALMA.Cosmos using (Cosmos; out; module CosmosMap)
 open CosmosMap using (mapCosmosF)
 
 -- Parameterised module: fixes a base category C and a container-valued
@@ -47,11 +44,6 @@ module _ {o h e s p : Level}
     -- Overall level of objects in this module
     -- 本模块中对象的总层级
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
-
-    -- Instantiate the Unfolding setoid module for the current container functor
-    -- 为当前容器函子实例化 Unfolding 的集合模块
-    module CFF = CosmosFFunctor
-      {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     -- Instantiate the unfolding setoid module
     -- 实例化展开集合模块
@@ -67,7 +59,7 @@ module _ {o h e s p : Level}
       Carrier : Setoid L r
       -- Structure map α : Carrier → Unfolding Carrier, preserving setoid equivalence
       -- 结构映射 α : Carrier → Unfolding Carrier，保持 setoid 等价
-      α       : Func Carrier (CFF.CosmosFSetoid Carrier)
+      α       : Func Carrier (US.unfoldingSetoid Carrier)
 
   -- A homomorphism between coalgebras: a map commuting with the structure maps
   -- 余代数之间的同态：与结构映射交换的映射
@@ -175,7 +167,7 @@ module _ {o h e s p : Level}
     { Carrier = cosmosSetoid
     ; α       = record
         { to   = out
-        ; cong = λ {F} {G} eq → record { unfolding-eq = ≈C→≈U eq }
+        ; cong = λ {F} {G} eq → ≈C→≈U eq
         }
     }
     where
@@ -207,14 +199,12 @@ module _ {o h e s p : Level}
           → ∀ {x y} → Setoid._≈_ (Coalgebra.Carrier X) x y
           → ana-to X x ≈C ana-to X y
   ana-cong X {x} {y} x≈y .unfoldFunctor₀-eq =
-    US._≈U_.unfoldFunctor₀-eq
-      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
+    US._≈U_.unfoldFunctor₀-eq (Func.cong (Coalgebra.α X) x≈y)
   ana-cong X {x} {y} x≈y .pos-to-shape-eq =
-    US._≈U_.pos-to-shape-eq
-      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y))
+    US._≈U_.pos-to-shape-eq (Func.cong (Coalgebra.α X) x≈y)
   ana-cong X {x} {y} x≈y .unfold-next-eq {A} s =
     ana-cong X (US._≈U_.unfold-next-eq
-      (CFF._≈F_.unfolding-eq (Func.cong (Coalgebra.α X) x≈y)) s)
+      (Func.cong (Coalgebra.α X) x≈y) s)
 
   -- The anamorphism as a Setoid morphism
   -- anamorphism 作为 Setoid 态射
@@ -311,10 +301,9 @@ module _ {o h e s p : Level}
     )
 
   -- Freedom of F₁: two unfoldings that are equivalent under _≈U_ (which
-  -- ignores Functor.₁) give bisimilar Cosmos elements.
-  -- F₁ 自由度：两个在 _≈U_ 下等价的展开（忽略 Functor.₁）给出互模拟的
-  -- Cosmos 元素。
+  -- ignores Functor.₁) give bisimilar Cosmos elements
   -- Convert any Unfolding into a Cosmos (copattern matching on out)
+  -- F₁ 自由度：两个在 _≈U_ 下等价的展开（忽略 Functor.₁）给出互模拟的 Cosmos 元素
   -- 将任意 Unfolding 通过 out 的 copattern 匹配转换为 Cosmos
   cosmos-from-unfolding : Unfolding FC (Cosmos C FC) → Cosmos C FC
   cosmos-from-unfolding u .out = u
@@ -332,9 +321,9 @@ module _ {o h e s p : Level}
 
   -- Corollary: if the unfoldings agree on object maps, pos-to-shape, and
   -- have propositionally equal next seeds, then the resulting Cosmos elements
-  -- are bisimilar.
+  -- are bisimilar
   -- 推论：若两个展开在对象映射、pos-to-shape 上一致，且下一层种子命题相等，
-  -- 则构造出的 Cosmos 元素互模拟。
+  -- 则构造出的 Cosmos 元素互模拟
   ≈C-from-unfolding-eq :
       (u₁ u₂ : Unfolding FC (Cosmos C FC))
     → (eq₀ : ∀ {A} (s : ShapeOf FC A)

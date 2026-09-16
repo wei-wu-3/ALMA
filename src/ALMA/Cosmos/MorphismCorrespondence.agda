@@ -16,8 +16,7 @@ module ALMA.Cosmos.MorphismCorrespondence where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core
-  using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
 open import Relation.Nullary using (¬_)
 open import Data.Product.Base using (_,_; ∃)
 open import Function.Bundles using (Func)
@@ -29,8 +28,7 @@ open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos
-  using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; module CosmosMap)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; module CosmosMap)
 open CosmosMap using (mapCosmosF)
 open import ALMA.Cosmos.Terminal using (Coalgebra; CoalgHom; cosmosCoalg; _≈C_)
 open import ALMA.Cosmos.CoalgCat using (_≈Coalg_)

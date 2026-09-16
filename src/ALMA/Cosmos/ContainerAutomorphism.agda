@@ -36,17 +36,11 @@ open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (id)
 
 open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
-open import ALMA.Cosmos.ContCategoryLemmas
-  using (ShapeOf; PosOf; actSOf; actPOf)
-open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
+open import ALMA.Cosmos.ContCategoryLemmas using (actSOf; actPOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
-open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos.MorphismMorphism
-  using (MorphismMorphism; actP-from-S)
-open import ALMA.Cosmos
-  using (Cosmos; out; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; id⇒ℱ; _∘⇒ℱ_)
-open import ALMA.Cosmos.CosmosCategory
-  using (CosmosCategory; _≈ℱ_; ≈ℱ-refl; ≈ℱ-sym; ≈ℱ-trans; ∘-resp-≈)
+open import ALMA.Cosmos.MorphismMorphism using (actP-from-S)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; id⇒ℱ; _∘⇒ℱ_)
+open import ALMA.Cosmos.CosmosCategory using (_≈ℱ_)
 
 -- Parameterised by a container C
 -- 以容器 C 为参数
