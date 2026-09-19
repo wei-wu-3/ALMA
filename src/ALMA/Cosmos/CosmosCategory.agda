@@ -23,8 +23,9 @@ open import Categories.Functor.Core using (Functor)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos using ( Cosmos; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; id⇒ℱ
-  ; _∘⇒ℱ_; module _⇒ℱ[_]_ ; module ⇒ℱLayer[_] )
+open import ALMA.Cosmos
+  using (Cosmos; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; id⇒ℱ; _∘⇒ℱ_
+        ; module _⇒ℱ[_]_ ; module ⇒ℱLayer[_])
 open _⇒ℱ[_]_
 open ⇒ℱLayer[_]
 

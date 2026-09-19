@@ -145,22 +145,6 @@ limit-terminal :
       {FC = StrictLayer.FC (L∞ .layer∞)}
 limit-terminal i T L∞ = cosmosIsTerminal
 
--- Projection interfaces
--- 投影接口
-limitProj :
-    (i : LayerIdx) (T : Tower i) (L∞ : LimitLayer i T) (n : ℕ)
-  → Functor (StrictLayer.C (Tower.layer T n))
-            (StrictLayer.C (L∞ .layer∞))
-limitProj i T L∞ n = L∞ .projC n
-
--- The projection from the initial layer to the limit layer
--- 从初始层到极限层的投影
-initialProj :
-    (i : LayerIdx) (T : Tower i) (L∞ : LimitLayer i T)
-  → Functor (StrictLayer.C (Tower.layer T zero))
-            (StrictLayer.C (L∞ .layer∞))
-initialProj i T L∞ = L∞ .projC zero
-
 -- Compatibility of the tower's step with projC: the projection from the
 -- (suc n)-th layer agrees, up to natural isomorphism, with projecting from
 -- the n-th layer after the step functor π

@@ -46,15 +46,15 @@ open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl)
 open import ALMA.Cosmos.CoalgCat using (IsTerminalUpToBisim)
 open import ALMA.Cosmos.CumulativeHierarchy
   using (π; Collapsible; collapsible→ShapeCat-collapsible; EmbeddingData
-  ; EmbeddingFamily; UniformEmbeddingFamily; FC∘π; FunctorialEmbeddingFamily)
+        ; EmbeddingFamily; UniformEmbeddingFamily; FC∘π; FunctorialEmbeddingFamily)
 open import ALMA.Cosmos.StrictLift
   using (StrictLayer; strictEmbed; strictStep-suc; EmbedFamily; outer-rule)
 open import ALMA.Cosmos.CumulativeHierarchyInstances
   using (module BuildUniformFrom; module FinCatHierarchy)
 open FinCatHierarchy using (FinCat; FinFC; embedFin; Fin-FunctorialEmbeddingFamily)
 open import ALMA.Cosmos.CumulativeHierarchyLimit
-  using (LayerIdx; unitIdx; Tower; EnrichedTower; unitTower; LimitLayer; unitLimit
-  ; LiftedLimitStructure; iterEmbed; liftAt-iterEmbed; lifted-limit-terminal)
+  using (unitIdx; Tower; EnrichedTower; unitTower; LimitLayer; unitLimit
+        ; LiftedLimitStructure; iterEmbed; liftAt-iterEmbed; lifted-limit-terminal)
 
 -- The unit tower stitches successfully not because it uses a different
 -- direction, but because UnitCat's shape type is ⊤ (a singleton), which
@@ -350,7 +350,6 @@ module DirectionDichotomy
     FC'  = StrictLayer.FC (strictStep-suc L)
     module C_L' = Category (ShapeCat C_L FC_L)
     module C_L  = Category C_L
-    open Unfolding
 
   -- Endomorphisms act trivially on shapes
   -- 自态射在形状上作用平凡

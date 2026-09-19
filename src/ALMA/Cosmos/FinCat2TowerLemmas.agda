@@ -2,65 +2,61 @@
 -- Structural lemmas about the FinCat 2 tower
 -- FinCat 2 塔的结构引理
 --
--- Results that depend on the concrete twoTower but not on any limit
--- construction:
--- every layer's shape set is inhabited
--- every layer's shape set is a singleton
--- layer objects are in bijection with Fin 2
--- Also includes an experimental LimitLayer construction (colimitLimit);
--- see the note on its F₁ field
--- 只依赖具体 twoTower、不依赖极限构造的结果：
--- 每层形状集可居留
--- 每层形状集为单点
--- 层对象与 Fin 2 双射
--- 另含一个实验性的 LimitLayer 构造（colimitLimit）
+-- Collects results depending only on twoTower, independent of any limit
+-- construction: shape-set inhabitation and singleton property at every
+-- layer, bijection between layer objects and Fin 2, canonical morphism
+-- between any two layer objects (hom), collapsibility of every layer
+-- (twoTower-collapsible), and canonical retraction of a Cosmos into its
+-- base layer (twoTower-retract)
+-- 汇集只依赖 twoTower、不依赖任何极限构造的结果：每层形状集的可居留性
+-- 与单点性、层对象与 Fin 2 的双射、任意两个层对象之间的规范态射（hom）、
+-- 每层的可坍缩性（twoTower-collapsible）、从 Cosmos 到其基层的规范
+-- 收缩（twoTower-retract）
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.FinCat2TowerLemmas where
 
-open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Level using (lift)
-open import Relation.Binary.PropositionalEquality.Core using (cong; refl)
+open import Level using (Lift; lift; lower)
+open import Relation.Binary.PropositionalEquality.Core using (sym; cong; trans)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (Fin)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Product.Base using (_,_)
+open import Data.Unit.Polymorphic.Base using (tt)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Function.Base using (id)
 
 open import Categories.Category.Core using (Category)
+open import Categories.Functor.Core using (Functor)
 
-open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf)
+open import ALMA.Cosmos.Unfolding using (Unfolding)
+open import ALMA.Cosmos using (Cosmos; out)
 open import ALMA.Cosmos.StrictLift using (StrictLayer)
-open import ALMA.Cosmos.CumulativeHierarchyInstances using (module FinCatHierarchy)
-open FinCatHierarchy using (FinCat)
-open import ALMA.Cosmos.CumulativeHierarchyLimit using (LayerIdx; Tower; LimitLayer)
-open import ALMA.Cosmos.FinCat2Witness using (TrivialFC; TwoObjLayer; twoIdx; twoTower)
+open import ALMA.Cosmos.CumulativeHierarchy
+  using (Collapsible; collapsible→ShapeCat-collapsible)
+open import ALMA.Cosmos.CumulativeHierarchyLimit using (Tower)
+open import ALMA.Cosmos.FinCat2Witness using (twoTower)
 
+open Function.Bundles.Equivalence using (to; from)
 open StrictLayer
 open Tower
-open LimitLayer
 
--- Local alias for the ⇔ projections
--- ⇔ 投影的局部别名
-to-⇔ : ∀ {a b} {A : Set a} {B : Set b} → A ⇔ B → A → B
-to-⇔ = Function.Bundles.Equivalence.to
-
-from-⇔ : ∀ {a b} {A : Set a} {B : Set b} → A ⇔ B → B → A
-from-⇔ = Function.Bundles.Equivalence.from
-
--- Every layer's shape set is inhabited
--- 每层形状集可居留
+-- Shape set inhabitation at every layer
+-- Layer 0: lift tt; layer suc n: lift of the layer-n inhabitant
+-- 每层形状集的可居留性
+-- 第 0 层：lift tt；第 suc n 层：第 n 层居民的 lift
 shape-inhabited-at
   : ∀ n (A : Category.Obj (C (layer twoTower n)))
   → ShapeOf (FC (layer twoTower n)) A
 shape-inhabited-at zero    A         = lift tt
 shape-inhabited-at (suc n) (A , s)   = lift (shape-inhabited-at n A)
 
--- Every layer's shape set is a singleton
--- 每层形状集为单点
+-- Shape set singleton property at every layer
+-- Layer 0: refl on lift tt; layer suc n: cong lift of the layer-n proof
+-- 每层形状集的单点性
+-- 第 0 层：lift tt 上的 refl；第 suc n 层：第 n 层证明的 cong lift
 shape-singleton-at
   : ∀ n (A : Category.Obj (C (layer twoTower n)))
   → (s t : ShapeOf (FC (layer twoTower n)) A) → s ≡ t
@@ -68,54 +64,110 @@ shape-singleton-at zero    A         (lift tt) (lift tt) = refl
 shape-singleton-at (suc n) (A , _)   (lift u)  (lift v)  =
   cong lift (shape-singleton-at n A u v)
 
--- Object projection from any layer to Fin 2 (via repeated proj₁)
--- 从任意层到 Fin 2 的对象投影（反复取 proj₁）
+-- Object projection C_n → Fin 2 by iterated proj₁
+-- proj-obj n is a retraction of embed-obj n
+-- 对象投影 C_n → Fin 2，反复取 proj₁
+-- proj-obj n 是 embed-obj n 的收缩
 proj-obj : ∀ n → Category.Obj (C (layer twoTower n)) → Fin 2
 proj-obj zero    A       = A
 proj-obj (suc n) (A , _) = proj-obj n A
 
--- Object embedding from Fin 2 into any layer (mutual with embed-shape)
--- 从 Fin 2 到任意层的对象嵌入（与 embed-shape 互递归）
+-- Object embedding Fin 2 → C_n, mutually recursive with embed-shape,
+-- which supplies the required shape component
+-- 对象嵌入 Fin 2 → C_n，与 embed-shape 互递归，
+-- 后者提供所需的形状分量
 mutual
   embed-obj : ∀ n → Fin 2 → Category.Obj (C (layer twoTower n))
   embed-obj zero    A = A
   embed-obj (suc n) A = (embed-obj n A , embed-shape n (embed-obj n A))
 
+  -- Shape component of an embedded object
+  -- 嵌入对象的形状分量
   embed-shape : ∀ n (A : Category.Obj (C (layer twoTower n)))
               → ShapeOf (FC (layer twoTower n)) A
   embed-shape zero    _       = lift tt
   embed-shape (suc n) (A , _) = lift (embed-shape n A)
 
--- Layer objects are in bijection with Fin 2
--- 层对象与 Fin 2 双射
+-- Bijection between layer objects and Fin 2
+-- Layer 0: identity; layer suc n: inherited, shape component from
+-- shape-inhabited-at
+-- 层对象与 Fin 2 的双射
+-- 第 0 层：恒等；第 suc n 层：继承自第 n 层，
+-- 形状分量由 shape-inhabited-at 提供
 layer-obj-bijection
   : ∀ n → Category.Obj (C (layer twoTower n)) ⇔ Fin 2
 layer-obj-bijection zero    = mk⇔ id id
 layer-obj-bijection (suc n) =
-  mk⇔ (λ { (A , _) → to-⇔ (layer-obj-bijection n) A })
-       (λ A → from-⇔ (layer-obj-bijection n) A
-              , shape-inhabited-at n (from-⇔ (layer-obj-bijection n) A))
+  mk⇔ (λ { (A , _) → to (layer-obj-bijection n) A })
+       (λ A → from (layer-obj-bijection n) A
+              , shape-inhabited-at n (from (layer-obj-bijection n) A))
 
--- Experimental LimitLayer construction
--- 实验性 LimitLayer 构造
---
--- The F₁ field below is set to the constant tt. This compiles only
--- because the target category's morphism set is
--- treated as a singleton after projection; it is not a faithful functor in
--- the usual sense. Kept as a proof-of-inhabitation of LimitLayer
--- 下面的 F₁ 字段取常值 tt。它能通过类型检查只是因为
--- 投影后目标范畴的态射集被视为单点；它不是通常意义上的忠实函子
--- 保留它仅作为 LimitLayer 可居留性的证明
+-- Canonical morphism between any two layer objects
+-- Every layer is collapsible, so the morphism is unique up to _≈_
+-- Layer 0: tt (FinCat 2 = Indiscrete (Fin 2))
+-- Layer suc n: pair (hom n A B , eq), eq from shape-singleton-at
+-- 任意两个层对象之间的规范态射
+-- 每层可坍缩，故态射在 _≈_ 意义下唯一
+-- 第 0 层：tt（FinCat 2 = Indiscrete (Fin 2)）
+-- 第 suc n 层：(hom n A B , eq) 对，eq 由 shape-singleton-at 提供
+hom : (n : ℕ) (X Y : Category.Obj (StrictLayer.C (Tower.layer twoTower n)))
+    → Category._⇒_ (StrictLayer.C (Tower.layer twoTower n)) X Y
+hom zero    X Y = tt
+hom (suc n) (A , s) (B , t) = (hom n A B , eq)
+  where
+    FC_n = StrictLayer.FC (Tower.layer twoTower n)
+    eq   = shape-singleton-at n B (actSOf FC_n (hom n A B) s) t
 
-colimitLimit : LimitLayer twoIdx twoTower
-colimitLimit = record
-  { o∞ = lzero ; h∞ = lzero ; e∞ = lzero ; s∞ = lzero ; p∞ = lzero
-  ; layer∞ = TwoObjLayer
-  ; projC = λ n → record
-      { F₀           = to-⇔ (layer-obj-bijection n)
-      ; F₁           = λ _ → tt
-      ; identity     = refl
-      ; homomorphism = refl
-      ; F-resp-≈     = λ _ → refl
-      }
-  }
+-- Collapsibility of every layer: any two parallel morphisms are
+-- _≈_-equivalent
+-- Layer 0: refl; layer suc n: inherited via
+-- collapsible→ShapeCat-collapsible
+-- 每层的可坍缩性：任意两个平行态射 _≈_ 等价
+-- 第 0 层：refl；第 suc n 层：经 collapsible→ShapeCat-collapsible 继承
+twoTower-collapsible : (n : ℕ)
+  → Collapsible (StrictLayer.C (Tower.layer twoTower n))
+twoTower-collapsible zero    = λ _ _ → refl
+twoTower-collapsible (suc n) =
+  collapsible→ShapeCat-collapsible
+    {C  = StrictLayer.C (Tower.layer twoTower n)}
+    {FC = StrictLayer.FC (Tower.layer twoTower n)}
+    (twoTower-collapsible n)
+
+-- Canonical retraction of a Cosmos into its base layer
+-- For x at layer n and shape s at object A, the retraction is the
+-- unique morphism x.F₀ (A , s) → A, obtained via hom
+-- Used as the retract argument of mkEmbeddingData in FinCat2DefaultUnif
+-- 从 Cosmos 到其基层的规范收缩
+-- 对第 n 层的 x 与对象 A 上的形状 s，收缩是唯一态射
+-- x.F₀ (A , s) → A，由 hom 给出
+-- 在 FinCat2DefaultUnif 中用作 mkEmbeddingData 的 retract 参数
+twoTower-retract : (n : ℕ)
+  (x : Cosmos (StrictLayer.C (Tower.layer twoTower n))
+              (StrictLayer.FC (Tower.layer twoTower n)))
+  {A : Category.Obj (StrictLayer.C (Tower.layer twoTower n))}
+  (s : ShapeOf (StrictLayer.FC (Tower.layer twoTower n)) A)
+  → Category._⇒_ (StrictLayer.C (Tower.layer twoTower n))
+      (Functor.₀ (Unfolding.unfoldFunctor (out x)) (A , s)) A
+twoTower-retract n x {A} s =
+  hom n (Functor.₀ (Unfolding.unfoldFunctor (out x)) (A , s)) A
+
+-- x.pos-to-shape collapses to the second component of x.F₀
+-- x.pos-to-shape 塌缩为 x.F₀ 的第二分量
+x-pos-eq : ∀ n
+  (x : Cosmos (StrictLayer.C (Tower.layer twoTower (suc n)))
+              (StrictLayer.FC (Tower.layer twoTower (suc n))))
+  (A : Category.Obj (StrictLayer.C (Tower.layer twoTower n)))
+  (s : ShapeOf (StrictLayer.FC (Tower.layer twoTower n)) A)
+  (s' : ShapeOf (StrictLayer.FC (Tower.layer twoTower (suc n))) (A , s))
+  (p : PosOf (StrictLayer.FC (Tower.layer twoTower (suc n))) {A = (A , s)} s')
+  → Unfolding.pos-to-shape (out x) {A = (A , s)} s' p
+  ≡ lift (proj₂ (Unfolding.unfoldFunctor (out x) .Functor.F₀ ((A , s) , s')))
+x-pos-eq n x A s s' p =
+  trans (sym (lower-lift-eq (Unfolding.pos-to-shape (out x) {A = (A , s)} s' p)))
+        (cong lift (shape-singleton-at n
+          (proj₁ (Unfolding.unfoldFunctor (out x) .Functor.F₀ ((A , s) , s')))
+          (lower (Unfolding.pos-to-shape (out x) {A = (A , s)} s' p))
+          (proj₂ (Unfolding.unfoldFunctor (out x) .Functor.F₀ ((A , s) , s')))))
+  where
+    lower-lift-eq : ∀ {a b} {A : Set a} (u : Lift b A) → lift (lower u) ≡ u
+    lower-lift-eq (lift _) = refl

@@ -29,14 +29,11 @@ open import Categories.Functor.Core using (Functor)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos using (Cosmos; out)
 open import ALMA.Cosmos.Terminal using (_≈C_)
+open _≈C_
 open import ALMA.Cosmos.StrictLift using (StrictLayer)
 open import ALMA.Cosmos.CumulativeHierarchyInstances using (module FinCatHierarchy)
 open FinCatHierarchy using (FinCat)
 open import ALMA.Cosmos.CumulativeHierarchyLimit using (LayerIdx; Tower)
-
-open StrictLayer
-open Tower
-open _≈C_
 
 -- Trivial container over FinCat 2: singleton shapes and positions
 -- FinCat 2 上的平凡容器：形状与位置均为单点集

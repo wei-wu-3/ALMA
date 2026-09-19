@@ -18,28 +18,25 @@
 
 module ALMA.Cosmos.ContainerAutomorphism where
 
-open import Agda.Primitive using (Level; lsuc; _⊔_)
+open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
 open import Algebra.Bundles using (Group)
-open import Algebra.Structures using (IsGroup; IsMonoid; IsSemigroup; IsMagma)
-open import Relation.Binary.PropositionalEquality.Core
-  using (cong; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (module ≡-Reasoning)
-open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open import Relation.Binary.Structures using (IsEquivalence)
-open import Data.Container.Core using (Container; Shape; Position; _⇒_)
+open import Data.Container.Core using (Container; Shape; Position)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
+open import Categories.Functor.Construction.Constant using (const)
 open import Categories.Functor using (id)
 
-open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
+open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (actSOf; actPOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismMorphism using (actP-from-S)
-open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; id⇒ℱ; _∘⇒ℱ_)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ_; UnitCat; id⇒ℱ; _∘⇒ℱ_)
 open import ALMA.Cosmos.CosmosCategory using (_≈ℱ_)
 
 -- Parameterised by a container C
@@ -57,24 +54,10 @@ module _ {s p : Level} (C : Container s p) where
     C₀ = UnitCat {ℓ}
 
   private
-    -- Identity container morphism
-    -- 容器恒等态射
-    idC : C ⇒ C
-    idC = record
-      { shape    = λ s → s
-      ; position = λ p → p
-      }
-
     -- Constant functor picking out the container C
     -- 选取容器 C 的常值函子
     constFC : Functor C₀ (ContCat s p)
-    constFC = record
-      { F₀           = λ _ → C
-      ; F₁           = λ _ → idC
-      ; identity     = ≈M-refl
-      ; homomorphism = ≈M-refl
-      ; F-resp-≈     = λ _ → ≈M-refl
-      }
+    constFC = const C
 
   -- Position automorphisms
   -- 位置自同构
@@ -249,15 +232,6 @@ module _ {s p : Level} (C : Container s p) where
 
   invPosAut-right-inverse : ∀ φ → φ ∘PosAut invPosAut φ ≈PA idPosAut
   invPosAut-right-inverse φ s p = τ-τ⁻¹ φ s p
-
-  -- Setoid of position automorphisms with pointwise equality
-  -- 位置自同构的 Setoid，以逐点相等为等价关系
-  posAutSetoid : Setoid (s ⊔ p) (s ⊔ p)
-  posAutSetoid = record
-    { Carrier       = PosAut
-    ; _≈_           = _≈PA_
-    ; isEquivalence = ≈PA-isEquivalence
-    }
 
   -- Standard library Group bundle
   -- 标准库 Group（群）打包

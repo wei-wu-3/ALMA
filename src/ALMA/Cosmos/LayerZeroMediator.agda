@@ -20,34 +20,33 @@ module ALMA.Cosmos.LayerZeroMediator where
 
 open import Agda.Primitive using (lzero; Setω)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Level using (Lift; lift; lower)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; subst)
+open import Level using (lift; lower)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym)
 open import Relation.Nullary using (¬_)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Unit.Polymorphic.Base using (tt)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
-open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf)
+open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos using (Cosmos; out)
 open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl)
 open import ALMA.Cosmos.CumulativeHierarchy using (EmbeddingData)
-open import ALMA.Cosmos.StrictLift using (StrictLayer; strictStep-suc; EmbeddingRule)
+open import ALMA.Cosmos.StrictLift using (StrictLayer; strictStep-suc)
 open import ALMA.Cosmos.CumulativeHierarchyInstances using (module FinCatHierarchy)
 open FinCatHierarchy using (FinCat)
 open import ALMA.Cosmos.CumulativeHierarchyLimit using (Tower; LimitLayer)
 open import ALMA.Cosmos.FinCat2Witness
   using ( TrivialFC; TwoObjLayer; twoIdx; twoTower; cosmos-id; cosmos-const0
-  ; cosmos-id≉cosmos-const0; zero≠suc-fzero )
+        ; cosmos-id≉cosmos-const0; zero≠suc-fzero )
 open import ALMA.Cosmos.FinCat2TowerLemmas using (proj-obj; embed-obj; embed-shape)
 
 open StrictLayer
-open EmbeddingRule
 open EmbeddingData
 open Unfolding
 open Tower
@@ -60,15 +59,6 @@ pos-inhabited-trivial
   : ∀ {A : Category.Obj (FinCat 2)}
   → (s : ShapeOf TrivialFC A) → PosOf TrivialFC {A = A} s
 pos-inhabited-trivial _ = lift tt
-
-pos-inhabited-natural-trivial
-  : ∀ {A B : Category.Obj (FinCat 2)}
-      (g : Category._⇒_ (FinCat 2) A B)
-      {s₀ : ShapeOf TrivialFC A} {s₁ : ShapeOf TrivialFC B}
-      (q : actSOf TrivialFC {A = A} {B = B} g s₀ ≡ s₁)
-  → subst (λ (x : ShapeOf TrivialFC B) → Lift lzero (⊤ {lzero})) q (lift tt)
-    ≡ lift tt
-pos-inhabited-natural-trivial _ refl = refl
 
 -- Dependent unfoldFunctor (concrete on L = TwoObjLayer)
 -- F₀((A,s),u) = (x.F₀(A,s), x.pos-to-shape s (lift tt)); F₀ depends on x

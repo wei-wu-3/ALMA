@@ -22,7 +22,6 @@ open import Agda.Builtin.Sigma using (_,_)
 open import Data.Product.Base using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open ≡-Reasoning
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)

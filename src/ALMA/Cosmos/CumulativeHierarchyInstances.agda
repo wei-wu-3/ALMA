@@ -23,7 +23,7 @@ open import Relation.Binary.PropositionalEquality.Properties using (module ≡-R
 open ≡-Reasoning
 open import Data.Nat using (ℕ)
 open import Data.Fin.Base using (Fin)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Unit.Polymorphic.Base using (tt)
 open import Data.Product.Base using (proj₁)
 open import Function.Base using (_∘_)
 
@@ -39,8 +39,9 @@ open import ALMA.Cosmos using (Cosmos; out; UnitCat; UnitContainerFunctor; UnitC
 open import ALMA.Cosmos.Terminal using (_≈C_)
 open import ALMA.Cosmos.Lambek using (in-F; in∘out≈id)
 open import ALMA.Cosmos.CumulativeHierarchy
-open import ALMA.Cosmos.StrictLift using (StrictLayer; strictStep-suc; strictEmbed
-  ; StrictLambekConsistency; EmbeddingRule; EmbedFamily; outer-rule)
+open import ALMA.Cosmos.StrictLift
+  using (StrictLayer; strictStep-suc; strictEmbed; StrictLambekConsistency
+        ; EmbedFamily; outer-rule)
 
 -- Shared uniform family builder
 -- 公共一致族构造子
@@ -197,9 +198,6 @@ module FinCatHierarchy where
     ; F-resp-≈ = λ _ → ≈M-refl
     }
 
-  FinCat-collapsible : (n : ℕ) → Collapsible (FinCat n)
-  FinCat-collapsible n _ _ = refl
-
   Fin-EmbeddingData : (n : ℕ) (x : Cosmos (FinCat n) (FinFC n)) → EmbeddingData x
   Fin-EmbeddingData n = mkEmbeddingData (λ _ _ → tt) (λ _ _ → refl)
 
@@ -285,22 +283,6 @@ module FinCatHierarchy where
 
   Fin-LambekConsistency : (n : ℕ) → LambekConsistency (Fin-UniformEmbeddingFamily n)
   Fin-LambekConsistency n = mkLambekConsistency (Fin-UniformEmbeddingFamily n)
-
-  module Fin2Hierarchy where
-    Layer₀ : Layer lzero lzero lzero lzero lzero
-    Layer₀ = record { C = FinCat 2 ; FC = FinFC 2 }
-
-    Layer₁ : Layer lzero lzero lzero lzero lzero
-    Layer₁ = step Layer₀
-
-    U₀ = Cosmos (C Layer₀) (FC Layer₀)
-    U₁ = Cosmos (C Layer₁) (FC Layer₁)
-
-    embed₀₁ : U₀ → U₁
-    embed₀₁ = embedFin 2
-
-    collapse₁ : Collapsible (C Layer₁)
-    collapse₁ _ _ = refl
 
 -- Strict Unit Hierarchy: strictly-growing counterpart of UnitHierarchy
 -- 严格单位层级：UnitHierarchy 的严格增长对应物
@@ -442,12 +424,8 @@ module StrictUnitHierarchy {ℓ : Level} where
     se₁₂-resp-≈C {x} {y} x≈y ._≈C_.unfold-next-eq s =
       se₁₂-resp-≈C (x≈y ._≈C_.unfold-next-eq (lower s))
 
-  -- se₀₂ = se₁₂ ∘ se₀₁ preserves _≈C_ (obtained by composing the two
-  -- preservation properties)
-  -- se₀₂ = se₁₂ ∘ se₀₁ 保持 _≈C_（由 se₀₁、se₁₂ 的保持性复合而成）
-  se₀₂-resp-≈C : ∀ {x y : SU₀} → x ≈C y → se₀₂ x ≈C se₀₂ y
-  se₀₂-resp-≈C x≈y = se₁₂-resp-≈C (se₀₁-resp-≈C x≈y)
-
+  -- Embedding family SL₀ → SL₁: uniform₀ together with se₀₁'s preservation
+  -- SL₀ → SL₁ 的嵌入族：一致族 uniform₀ 加上 se₀₁ 的 _≈C_-保持性
   strictFunctorial₀ : EmbedFamily outer-rule SL₀
   strictFunctorial₀ = record { uniform = uniform₀ ; resp-≈C = se₀₁-resp-≈C }
 

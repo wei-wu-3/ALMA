@@ -171,19 +171,25 @@ module _ {s p} {B C : Container s p} where
 module _ {s p} where
   -- Associativity of composition
   -- 复合的结合律
-  ∘M-assoc : ∀ {A B C D : Container s p} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
-             → (h ∘ g) ∘ f ≈M h ∘ (g ∘ f)
-  ∘M-assoc = record { shape-eq = λ _ → refl ; position-eq = λ _ _ → refl }
+  ∘M-assoc :
+    ∀ {A B C D : Container s p} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
+    → (h ∘ g) ∘ f ≈M h ∘ (g ∘ f)
+  ∘M-assoc {A = A} {D = D} {f = f} {g = g} {h = h} =
+    ≈M-refl {X = A} {Y = D} {f = (h ∘ g) ∘ f}
 
   -- Left identity law
   -- 左单位律
-  ∘M-identityˡ : ∀ {A B : Container s p} {f : A ⇒ B} → id B ∘ f ≈M f
-  ∘M-identityˡ = record { shape-eq = λ _ → refl ; position-eq = λ _ _ → refl }
+  ∘M-identityˡ :
+    ∀ {A B : Container s p} {f : A ⇒ B} → id B ∘ f ≈M f
+  ∘M-identityˡ {A = A} {B = B} {f = f} =
+    ≈M-refl {X = A} {Y = B} {f = id B ∘ f}
 
   -- Right identity law
   -- 右单位律
-  ∘M-identityʳ : ∀ {A B : Container s p} {f : A ⇒ B} → f ∘ id A ≈M f
-  ∘M-identityʳ = record { shape-eq = λ _ → refl ; position-eq = λ _ _ → refl }
+  ∘M-identityʳ :
+    ∀ {A B : Container s p} {f : A ⇒ B} → f ∘ id A ≈M f
+  ∘M-identityʳ {A = A} {B = B} {f = f} =
+    ≈M-refl {X = A} {Y = B} {f = f ∘ id A}
 
 -- Assemble the components into an instance of the category of containers
 -- 将上述组件组装为容器范畴的一个实例

@@ -154,10 +154,49 @@ module _ {oc ℓc ec od ℓd ed : Level}
   GF-bwd-comm : ∀ X → Fm.F₁ (GF-bwd X) D.≈ bwd (Fm.F₀ X)
   GF-bwd-comm X = proj₂ (full (bwd (Fm.F₀ X)))
 
+  -- Helper: if F₁ f ≈ D.id then f ≈ C.id, by faithfulness
+  -- 辅助：若 F₁ f ≈ D.id，则由忠实性得 f ≈ C.id
+  faithful-id : ∀ {X} {f : X C.⇒ X} → Fm.F₁ f D.≈ D.id → f C.≈ C.id
+  faithful-id {f = f} eq = faithful (begin
+    Fm.F₁ f
+      ≈⟨ eq ⟩
+    D.id
+      ≈˘⟨ Fm.identity ⟩
+    Fm.F₁ C.id
+      ∎)
+
+  -- Helper: absorb the round-trip fwd Y ∘ bwd Y on the left
+  -- 辅助：在左侧吸收往返 fwd Y ∘ bwd Y
+  fwd-bwd-absorb : ∀ {W Z} (g : W D.⇒ Z)
+                 → fwd Z D.∘ (bwd Z D.∘ g) D.≈ g
+  fwd-bwd-absorb {Z = Z} g = begin
+    fwd Z D.∘ (bwd Z D.∘ g)
+      ≈˘⟨ D.assoc ⟩
+    (fwd Z D.∘ bwd Z) D.∘ g
+      ≈⟨ D.∘-resp-≈ˡ (isoAt-fwd-bwd Z) ⟩
+    D.id D.∘ g
+      ≈⟨ D.identityˡ ⟩
+    g
+      ∎
+
+  -- Helper: absorb the round-trip fwd X ∘ bwd X on the right
+  -- 辅助：在右侧吸收往返 fwd X ∘ bwd X
+  bwd-right-absorb : ∀ {X Y} (g : Fm.F₀ X D.⇒ Fm.F₀ Y)
+                   → (g D.∘ fwd (Fm.F₀ X)) D.∘ bwd (Fm.F₀ X) D.≈ g
+  bwd-right-absorb {X} g = begin
+    (g D.∘ fwd (Fm.F₀ X)) D.∘ bwd (Fm.F₀ X)
+      ≈⟨ D.assoc ⟩
+    g D.∘ (fwd (Fm.F₀ X) D.∘ bwd (Fm.F₀ X))
+      ≈⟨ D.∘-resp-≈ʳ (isoAt-fwd-bwd (Fm.F₀ X)) ⟩
+    g D.∘ D.id
+      ≈⟨ D.identityʳ ⟩
+    g
+      ∎
+
   -- Left inverse: GF-fwd ∘ GF-bwd ≈ id
   -- 左逆：GF-fwd ∘ GF-bwd ≈ id
   GF-isoˡ : ∀ X → GF-fwd X C.∘ GF-bwd X C.≈ C.id
-  GF-isoˡ X = faithful (begin
+  GF-isoˡ X = faithful-id (begin
     Fm.F₁ (GF-fwd X C.∘ GF-bwd X)
       ≈⟨ Fm.homomorphism ⟩
     Fm.F₁ (GF-fwd X) D.∘ Fm.F₁ (GF-bwd X)
@@ -165,14 +204,12 @@ module _ {oc ℓc ec od ℓd ed : Level}
     fwd (Fm.F₀ X) D.∘ bwd (Fm.F₀ X)
       ≈⟨ isoAt-fwd-bwd (Fm.F₀ X) ⟩
     D.id
-      ≈˘⟨ Fm.identity ⟩
-    Fm.F₁ C.id
       ∎)
 
   -- Right inverse: GF-bwd ∘ GF-fwd ≈ id
   -- 右逆：GF-bwd ∘ GF-fwd ≈ id
   GF-isoʳ : ∀ X → GF-bwd X C.∘ GF-fwd X C.≈ C.id
-  GF-isoʳ X = faithful (begin
+  GF-isoʳ X = faithful-id (begin
     Fm.F₁ (GF-bwd X C.∘ GF-fwd X)
       ≈⟨ Fm.homomorphism ⟩
     Fm.F₁ (GF-bwd X) D.∘ Fm.F₁ (GF-fwd X)
@@ -180,8 +217,6 @@ module _ {oc ℓc ec od ℓd ed : Level}
     bwd (Fm.F₀ X) D.∘ fwd (Fm.F₀ X)
       ≈⟨ isoAt-bwd-fwd (Fm.F₀ X) ⟩
     D.id
-      ≈˘⟨ Fm.identity ⟩
-    Fm.F₁ C.id
       ∎)
 
   -- Naturality: GF-fwd Y ∘ G₁ (F₁ f) ≈ f ∘ GF-fwd X
@@ -194,11 +229,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
     Fm.F₁ (GF-fwd Y) D.∘ Fm.F₁ (Gm.F₁ (Fm.F₁ f))
       ≈⟨ D.∘-resp-≈ (GF-fwd-comm Y) (F₁G₁-char (Fm.F₁ f)) ⟩
     fwd (Fm.F₀ Y) D.∘ (bwd (Fm.F₀ Y) D.∘ (Fm.F₁ f D.∘ fwd (Fm.F₀ X)))
-      ≈˘⟨ D.assoc ⟩
-    (fwd (Fm.F₀ Y) D.∘ bwd (Fm.F₀ Y)) D.∘ (Fm.F₁ f D.∘ fwd (Fm.F₀ X))
-      ≈⟨ D.∘-resp-≈ˡ (isoAt-fwd-bwd (Fm.F₀ Y)) ⟩
-    D.id D.∘ (Fm.F₁ f D.∘ fwd (Fm.F₀ X))
-      ≈⟨ D.identityˡ ⟩
+      ≈⟨ fwd-bwd-absorb (Fm.F₁ f D.∘ fwd (Fm.F₀ X)) ⟩
     Fm.F₁ f D.∘ fwd (Fm.F₀ X)
       ≈˘⟨ D.∘-resp-≈ʳ (GF-fwd-comm X) ⟩
     Fm.F₁ f D.∘ Fm.F₁ (GF-fwd X)
@@ -218,13 +249,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
     (bwd (Fm.F₀ Y) D.∘ (Fm.F₁ f D.∘ fwd (Fm.F₀ X))) D.∘ bwd (Fm.F₀ X)
       ≈⟨ D.assoc ⟩
     bwd (Fm.F₀ Y) D.∘ ((Fm.F₁ f D.∘ fwd (Fm.F₀ X)) D.∘ bwd (Fm.F₀ X))
-      ≈⟨ D.∘-resp-≈ʳ {g = bwd (Fm.F₀ Y)}
-             (D.assoc {f = bwd (Fm.F₀ X)} {g = fwd (Fm.F₀ X)} {h = Fm.F₁ f}) ⟩
-    bwd (Fm.F₀ Y) D.∘ (Fm.F₁ f D.∘ (fwd (Fm.F₀ X) D.∘ bwd (Fm.F₀ X)))
-      ≈⟨ D.∘-resp-≈ʳ {g = bwd (Fm.F₀ Y)}
-             (D.∘-resp-≈ʳ {g = Fm.F₁ f} (isoAt-fwd-bwd (Fm.F₀ X))) ⟩
-    bwd (Fm.F₀ Y) D.∘ (Fm.F₁ f D.∘ D.id)
-      ≈⟨ D.∘-resp-≈ʳ D.identityʳ ⟩
+      ≈⟨ D.∘-resp-≈ʳ (bwd-right-absorb (Fm.F₁ f)) ⟩
     bwd (Fm.F₀ Y) D.∘ Fm.F₁ f
       ≈⟨ D.∘-resp-≈ˡ {g = Fm.F₁ f} (D.Equiv.sym (GF-bwd-comm Y)) ⟩
     Fm.F₁ (GF-bwd Y) D.∘ Fm.F₁ f

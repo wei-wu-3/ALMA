@@ -149,10 +149,7 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
 
     -- Import transport structure from ContCatEquiv
     -- 从 ContCatEquiv 导入传输结构
-    open ContCatEquiv CCE
-      using (transportFunctor; transpIso; transpCont-sym; CoreC)
-    open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
-    open ContIso using (from)
+    open ContCatEquiv CCE using (transportFunctor; transpCont-sym; CoreC)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
 
     -- Explicitly instantiate the polynomial functor interpretation
@@ -200,8 +197,6 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
 -- ShapeCat: the category of shapes (Grothendieck construction)
 -- 形状范畴（Grothendieck 构造）
 module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
-  open Functor F
-
   -- Functor forgetting positions, retaining only shapes
   -- 遗忘位置、仅保留形状的函子
   ShapeForget : Functor (ContCat s p) (Sets s)

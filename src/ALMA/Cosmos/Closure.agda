@@ -19,9 +19,10 @@ open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
 open import Relation.Binary.Bundles using (Setoid)
 import Relation.Binary.Reasoning.Setoid as SetoidReasoning
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Unit.Polymorphic.Base using (⊤)
 open import Function.Bundles using (Func)
 open import Function.Base using (_∘_)
+open import Function.Construct.Composition using (function)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
@@ -50,16 +51,10 @@ module _ {o h e s p : Level}
       {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
     module Coal = Coalgebra
 
-    -- Instantiate bisimulation relation and lemmas for current C/FC
-    -- 实例化当前 C/FC 下的互模拟关系及相关引理
+    -- Instantiate the bisimulation relation for the current C/FC
+    -- 实例化当前 C/FC 下的互模拟关系
     _≈C′_ : T → T → Set Lʳ
     _≈C′_ = _≈C_ {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
-
-    ≈C′-refl : ∀ {x} → x ≈C′ x
-    ≈C′-refl = ≈C-refl {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
-
-    ≈C′-trans : ∀ {x y z} → x ≈C′ y → y ≈C′ z → x ≈C′ z
-    ≈C′-trans = ≈C-trans {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
   -- out as a Setoid morphism from Cosmos (carrying bisimulation) to the
   -- Unfolding Setoid; the forward direction of the Lambek isomorphism
@@ -90,15 +85,6 @@ module _ {o h e s p : Level}
     idCS : Func CS CS
     idCS = record { to = λ x → x ; cong = λ x≈y → x≈y }
 
-    -- Composition of two Setoid endomorphisms on Cosmos, used to state the
-    -- composition law for the map-closure construction
-    -- Cosmos 上两个 Setoid 自态射的复合，用于陈述映射闭包的复合律
-    compFunc : Func CS CS → Func CS CS → Func CS CS
-    compFunc F G = record
-      { to   = λ z → Func.to G (Func.to F z)
-      ; cong = λ z≈w → Func.cong G (Func.cong F z≈w)
-      }
-
   -- Map closure: lifts a Setoid endomap on Cosmos to a universe transformation
   -- 映射闭包：将宇宙上的 Setoid 自映射提升为宇宙自身的映射
   mapℱ : Func CS CS → Func CS CS
@@ -127,11 +113,12 @@ module _ {o h e s p : Level}
   -- Map closure preserves composition (up to bisimulation)
   -- 映射闭包保持复合（互模拟意义下）
   mapℱ-comp : ∀ (F G : Func CS CS) x
-            → Func.to (mapℱ (compFunc F G)) x ≈C′ Func.to (mapℱ G) (Func.to (mapℱ F) x)
+            → Func.to (mapℱ (function F G)) x
+              ≈C′ Func.to (mapℱ G) (Func.to (mapℱ F) x)
   mapℱ-comp F G x =
     let open SetoidReasoning CS
     in begin
-      Func.to (mapℱ (compFunc F G)) x
+      Func.to (mapℱ (function F G)) x
         ≡⟨ refl ⟩
       in-F (mapCosmosF (Func.to G ∘ Func.to F) (out x))
         ≡⟨ cong in-F (map-∘ (Func.to G) (Func.to F) (out x)) ⟩

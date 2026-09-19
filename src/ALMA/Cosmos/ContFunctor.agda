@@ -4,13 +4,16 @@
 --
 -- Builds functor ⟦ C ⟧ and the embedding ContCat → SetoidFunctorCat
 -- Proves preservation of identity, composition, and _≈M_
--- Both faithfulness and fullness are obtained by choosing a
--- Yoneda-style test object and applying projection (lower) plus congruence
+-- Faithfulness is obtained by choosing a Yoneda-style test object
+-- and applying projection (lower) plus congruence;
+-- fullness constructs a preimage from the test object and verifies
+-- equality with the given natural transformation via naturality.
 -- Establishes the strong equivalence and the induced adjoint equivalence
 -- between the category of containers and the full subcategory of polynomial functors
 -- 构造函子 ⟦ C ⟧ 及嵌入 ContCat → SetoidFunctorCat
 -- 证明恒等态射、复合及 _≈M_ 的保持性
--- 忠实性与满性均通过选取 Yoneda 式测试对象并利用投影（lower）与同余得证
+-- 忠实性通过选取 Yoneda 式测试对象并利用投影（lower）与同余得证；
+-- 满性通过测试对象构造原像，并利用自然性验证其与给定自然变换相等。
 -- 建立容器范畴与多项式函子全子范畴之间的强等价及由此诱导的伴随等价
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
@@ -31,7 +34,7 @@ open import Data.Product.Base using (proj₁; proj₂)
 open import Data.Container.Core using (Container; Shape; Position; map; _⇒_)
 open import Data.Container.Morphism using (id) renaming (_∘_ to _∘Cont_)
 open import Data.Container.Relation.Binary.Equality.Setoid using (setoid)
-open import Data.Container.Relation.Binary.Pointwise as PW using (_,_)
+open import Data.Container.Relation.Binary.Pointwise as PW using (_,_; Pointwise)
 
 open import Categories.Adjoint.Equivalence using (⊣Equivalence)
 open import Categories.Category.Core using (Category)
@@ -61,8 +64,9 @@ module _ {s p ℓ : Level} where
   -- 源层级只需容纳位置类型（p）并额外加上任意层级 ℓ 以使结论更具一般性
   srcLevel = p ⊔ ℓ
 
-  -- The target level needs to host shapes (s), positions (p), and ℓ
-  -- 目标层级需容纳形状（s）、位置（p）以及 ℓ
+  -- The target level needs to host the shape level s and the source
+  -- Setoid carrier level srcLevel = p ⊔ ℓ
+  -- 目标层级需容纳形状层级 s 与源 Setoid 载体层级 srcLevel = p ⊔ ℓ
   tgtLevel = s ⊔ p ⊔ ℓ
 
   -- The functor category [Setoids, Setoids] on the chosen levels
@@ -81,15 +85,37 @@ module _ {s p ℓ : Level} where
   -- 从标准库继承的全子范畴构造，实例化到 SetoidFunctorCat
   open import Categories.Category.SubCategory SetoidFunctorCat using (FullSubCategory)
 
-  -- Parameterised record: packages C and level parameters as module context
-  -- 参数化的 record：将 C 与层级参数封装为模块上下文
+  module Src = Category (Setoids srcLevel srcLevel) renaming
+    ( id to idS ; _∘_ to _∘S_ ; _⇒_ to _⇒S_ ; _≈_ to _≈S_ )
+  module Tgt = Category (Setoids tgtLevel tgtLevel) renaming
+    ( id to idT ; _∘_ to _∘T_ ; _⇒_ to _⇒T_ ; _≈_ to _≈T_ )
+
+  private
+    -- Pointwise congruence on a container extension:
+    -- shape is definitionally equal, positions are related pointwise
+    -- 容器扩张上的逐点同余：形状定义上相等，位置逐点相关
+    ptw-cong :
+      {a : Level} {X : Setoid a a} {C : Container s p}
+      (s : Shape C)
+      {h k : Position C s → Setoid.Carrier X}
+      (eq : ∀ p → Setoid._≈_ X (h p) (k p))
+      → Setoid._≈_ (setoid X C) (s , h) (s , k)
+    ptw-cong s eq = refl PW., eq
+
+    -- Pointwise reflexive equality on a container extension
+    -- 容器扩张上的逐点自反相等
+    ptw-refl :
+      {a : Level} {X : Setoid a a} {C : Container s p}
+      (s : Shape C)
+      (h : Position C s → Setoid.Carrier X)
+      → Setoid._≈_ (setoid X C) (s , h) (s , h)
+    ptw-refl {X = X} s h = ptw-cong {X = X} s (λ p → Setoid.refl X {x = h p})
+
+  -- Parameterised record: packages the container C; level parameters
+  -- are provided by the enclosing module
+  -- 以容器 C 为参数的 record；层级参数由外层模块提供
   record ContFunctor (C : Container s p) : Set where
     private
-      module Src = Category (Setoids srcLevel srcLevel) renaming
-        ( id to idS ; _∘_ to _∘S_ ; _⇒_ to _⇒S_ ; _≈_ to _≈S_ )
-      module Tgt = Category (Setoids tgtLevel tgtLevel) renaming
-        ( id to idT ; _∘_ to _∘T_ ; _⇒_ to _⇒T_ ; _≈_ to _≈T_ )
-
       -- Object mapping: interpret C as a setoid-valued functor
       -- 对象映射：将 C 解释为取值于 Setoids 的函子
       ⟦_⟧ₛ : Setoid srcLevel srcLevel → Setoid tgtLevel tgtLevel
@@ -107,21 +133,21 @@ module _ {s p ℓ : Level} where
       -- 恒等态射的保持：mapₛ (id) ≈ id
       map-id≗ : {A : Setoid srcLevel srcLevel}
               → mapₛ (Src.idS {A}) Tgt.≈T Tgt.idT {A = ⟦_⟧ₛ A}
-      map-id≗ {A} {x = (s , h)} = refl PW., λ p → Setoid.refl A {x = h p}
+      map-id≗ {A} {x = (s , h)} = ptw-refl {X = A} s h
 
       -- Preservation of composition: mapₛ (g ∘ f) ≈ mapₛ g ∘ mapₛ f
       -- 复合的保持：mapₛ (g ∘ f) ≈ mapₛ g ∘ mapₛ f
       map-∘≗ : {A B D : Setoid srcLevel srcLevel} {f : A Src.⇒S B} {g : B Src.⇒S D}
              → mapₛ (g Src.∘S f) Tgt.≈T (mapₛ g Tgt.∘T mapₛ f)
       map-∘≗ {A} {B} {D} {f = f} {g = g} {x = (s , h)} =
-        refl PW., λ p → Setoid.refl D {x = Func.to g (Func.to f (h p))}
+        ptw-refl {X = D} s (λ p → Func.to g (Func.to f (h p)))
 
       -- Preservation of equivalence: f ≈ g → mapₛ f ≈ mapₛ g
       -- 等价的保持：f ≈ g → mapₛ f ≈ mapₛ g
       map-resp-≗ : {A B : Setoid srcLevel srcLevel} {f g : A Src.⇒S B}
                  → f Src.≈S g → mapₛ f Tgt.≈T mapₛ g
       map-resp-≗ {A} {B} {f} {g} f≈g {x = (s , h)} =
-        refl PW., λ p → f≈g {x = h p}
+        ptw-cong {X = B} s (λ p → f≈g {x = h p})
 
     -- Assemble the polynomial functor ⟦ C ⟧ : Setoids → Setoids
     -- 组装多项式函子 ⟦ C ⟧ : Setoids → Setoids
@@ -147,35 +173,38 @@ module _ {s p ℓ : Level} where
   mapNT {C} {D} m = ntHelper record
     { η = λ X → record
       { to   = λ { (s , k) → let open _⇒_ m in (shape s , k ∘ position) }
-      ; cong = λ { (refl PW., eq) → let open _⇒_ m in refl PW., λ p → eq (position p) }
+      ; cong = λ { {x = (s , k)} (refl , eq) →
+          let open _⇒_ m in
+          ptw-cong {X = X} (shape s) (λ p → eq (position p)) }
       }
     -- Naturality: η_Y ∘ ⟦ C ⟧ f ≈ ⟦ D ⟧ f ∘ η_X
     -- 自然性：η_Y ∘ ⟦ C ⟧ f ≈ ⟦ D ⟧ f ∘ η_X
     ; commute = λ {X Y} f {x} →
-        let open _⇒_ m
-            (s , k) = x
-        in refl PW., λ p → Setoid.refl Y {x = Func.to f (k (position p))}
+        let (s , k) = x
+        in ptw-refl {X = Y} {C = D} (_⇒_.shape m s)
+             (λ p → Func.to f (k (_⇒_.position m p)))
     }
 
   -- Identity preservation: mapNT (id C) ≈ id
   -- 恒等态射的保持：mapNT (id C) ≈ id
   mapNT-id : {C : Container s p} → mapNT (id C) FuncCat.≈ idNT
-  mapNT-id {C} {X} {x = (s , k)} = refl PW., λ p → Setoid.refl X {x = k p}
+  mapNT-id {C} {X} {x = (s , k)} = ptw-refl {X = X} s k
 
   -- Composition preservation: mapNT (m ∘ n) ≈ mapNT m ∘ᵥ mapNT n
   -- 复合的保持：mapNT (m ∘ n) ≈ mapNT m ∘ᵥ mapNT n
   mapNT-∘ : {C D E : Container s p} {m : D ⇒ E} {n : C ⇒ D}
           → mapNT (m ∘Cont n) FuncCat.≈ (mapNT m ∘ᵥ mapNT n)
   mapNT-∘ {C} {D} {E} {m} {n} {X} {x = (s , k)} =
-    refl PW., λ p → Setoid.refl X
+    ptw-refl {X = X}
+      (_⇒_.shape m (_⇒_.shape n s))
+      (λ p → k (_⇒_.position n (_⇒_.position m p)))
 
   -- Equivalence preservation: m ≈M n → mapNT m ≈ mapNT n
   -- 等价的保持：m ≈M n → mapNT m ≈ mapNT n
   mapNT-resp-≈ : {C D : Container s p} {m n : C ⇒ D}
                → m ≈M n → mapNT m FuncCat.≈ mapNT n
   mapNT-resp-≈ {C} {D} {m} {n} eq {X} {x = (s , k)} =
-    eqM.shape-eq s PW., λ q → Setoid.reflexive X (cong k (eqM.position-eq s q))
-    where module eqM = _≈M_ eq
+    _≈M_.shape-eq eq s , λ q → Setoid.reflexive X (cong k (_≈M_.position-eq eq s q))
 
   -- The embedding functor ContCat → [Setoids, Setoids]
   -- 嵌入函子 ContCat → [Setoids, Setoids]
@@ -192,8 +221,8 @@ module _ {s p ℓ : Level} where
   -- 嵌入函子的忠实性：mapNT m ≈ mapNT n → m ≈M n
   ContEmbedding-faithful : Faithful ContEmbedding
   ContEmbedding-faithful {C} {D} {m} {n} nt-eq = record
-    { shape-eq = λ s → PW.Pointwise.shape (get-eq s)
-    ; position-eq   = λ s q → cong lower (PW.Pointwise.position (get-eq s) q)
+    { shape-eq = λ s → Pointwise.shape (get-eq s)
+    ; position-eq   = λ s q → cong lower (Pointwise.position (get-eq s) q)
     }
     where
       get-eq : (s : Shape C) → _
@@ -214,8 +243,6 @@ module _ {s p ℓ : Level} where
   ContEmbedding-full : Full ContEmbedding
   ContEmbedding-full {C} {D} η = m , mapNT≈η
     where
-      module Src = Category (Setoids srcLevel srcLevel) renaming
-        (_⇒_ to _⇒S_)
       module NT = NaturalTransformation η
 
       testObj : Shape C → Setoid srcLevel srcLevel
@@ -256,7 +283,7 @@ module _ {s p ℓ : Level} where
       mapNT≈η {X} {x} = Setoid.sym (Functor.F₀ ⟦ D ⟧ X) (η≈mapNT {X} {x})
 
   -- Fully faithful: Full × Faithful
-  -- 满忠实：Full × Faithful
+  -- 全忠实：Full × Faithful
   ContEmbedding-fully-faithful : FullyFaithful ContEmbedding
   ContEmbedding-fully-faithful = ContEmbedding-full , ContEmbedding-faithful
 
@@ -274,12 +301,8 @@ module _ {s p ℓ : Level} where
   PolyObj : Set (lsuc (s ⊔ p ⊔ ℓ))
   PolyObj = Σ (Category.Obj SetoidFunctorCat) PolyPred
 
-  -- Keep the original constructor pattern
-  -- 保留原有的构造器模式
   pattern poly F C iso = F , C , iso
 
-  -- Keep the original projection style (formerly record fields)
-  -- 保留原有的投影风格（原为 record 字段）
   polyF : PolyObj → Functor (Setoids srcLevel srcLevel) (Setoids tgtLevel tgtLevel)
   polyF (poly F _ _) = F
 
@@ -304,28 +327,33 @@ module _ {s p ℓ : Level} where
   Φ = record
     { F₀ = λ C → poly (⟦ C ⟧) C (≃.refl)
     ; F₁ = λ {C} {D} m → mapNT {C = C} {D = D} m
-    ; identity     = λ {C} {X} {x} → mapNT-id {C = C} {X} {x}
-    ; homomorphism = λ {A} {B} {C} {f} {g} {X} {x}
-                   → mapNT-∘ {C = A} {D = B} {E = C} {m = g} {n = f} {X} {x}
-    ; F-resp-≈     = λ {A} {B} {f} {g}
-                   → mapNT-resp-≈ {C = A} {D = B} {m = f} {n = g}
+    ; identity = λ {C} {X} {x} →
+        Functor.identity ContEmbedding {A = C} {X} {x}
+    ; homomorphism = λ {A} {B} {C} {f} {g} {X} {x} →
+        Functor.homomorphism ContEmbedding
+          {X = A} {Y = B} {Z = C} {f = f} {g = g} {X} {x}
+    ; F-resp-≈ = λ {A} {B} {f} {g} eq {X} {x} →
+        Functor.F-resp-≈ ContEmbedding
+          {A = A} {B = B} {f = f} {g = g} eq {X} {x}
     }
 
-  -- Φ is fully faithful, inherited from ContEmbedding
-  -- Φ 满忠实，继承自 ContEmbedding
+  -- Φ is full, inherited from ContEmbedding
+  -- Φ 是满函子，继承自 ContEmbedding
   Φ-full : Full Φ
   Φ-full {C} {D} η = ContEmbedding-full {C} {D} η
-
+  -- Φ is faithful, inherited from ContEmbedding
+  -- Φ 是忠实函子，继承自 ContEmbedding
   Φ-faithful : Faithful Φ
   Φ-faithful {C} {D} {m} {n} = ContEmbedding-faithful {C} {D} {m} {n}
-
+  -- Φ is fully faithful: Full × Faithful
+  -- Φ 全忠实：Full × Faithful
   Φ-fully-faithful : FullyFaithful Φ
   Φ-fully-faithful = Φ-full , Φ-faithful
 
   -- Φ is split essentially surjective: (F , C , iso) ↦ C.
   -- from/to are swapped relative to ⇐/⇒ of iso, hence isoˡ/isoʳ are swapped
   -- Φ 分裂本质满射：(F , C , iso) ↦ C。
-  -- from/to 相对 iso 的 ⇐/⇒ 翻向，故 isoˡ/isoʳ 互换
+  -- from/to 相对 iso 的 ⇐/⇒ 对调，故 isoˡ/isoʳ 互换
   Φ-split-ess-surj :
     (Y : Category.Obj PolyFunctors) →
     Σ (Category.Obj (ContCat s p))
@@ -343,7 +371,7 @@ module _ {s p ℓ : Level} where
   -- From Φ being fully faithful and split essentially surjective,
   -- obtain a strong equivalence via the generic bridge
   -- 容器（语法）≃ 多项式函子（语义）
-  -- 由 Φ 满忠实 + 分裂本质满射，经通用桥接得到强等价
+  -- 由 Φ 全忠实 + 分裂本质满射，经通用桥接得到强等价
   ContCat≈PolyFunctors : StrongEquivalence (ContCat s p) PolyFunctors
   ContCat≈PolyFunctors = toStrongEquiv Φ Φ-fully-faithful Φ-split-ess-surj
 

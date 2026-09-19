@@ -34,9 +34,9 @@ The inherent ambiguity and non-computability of natural language render it an un
 
 ### Tool Migration and Ontological Commitment / 工具迁移与本体论承诺
 
-The formalization has undergone three tool migrations, each driven by a fundamental conflict in ontological commitment. In the QS5+BF phase, the Barcan Formula forces all possible worlds to share a single domain of quantification. The subsequent turn to Lean 4 revealed, beyond expressivity bottlenecks, that its mathematical library's deep entrenchment in the law of excluded middle and classical set theory constitutes a direct conflict at the level of ontological commitment. Agda was ultimately selected: its constructive foundation presupposes no classical axioms whatsoever, and its dependent types and coinductive records align precisely with the ontological commitments of this work. This migratory trajectory itself reveals that formalization languages are not neutral notational vehicles; their logical foundations, type structures, and axiomatic environments collectively constitute an implicit set of ontological commitments. To choose a tool is to choose an ontology.
+The formalization has undergone three migrations across tools, each rooted in a fundamental conflict of ontological commitments. In the QS5+BF phase, the Barcan Formula forces all possible worlds to share a single domain of quantification. The subsequent turn to Lean 4 revealed, beyond mere expressiveness bottlenecks, that its mathematical library's deep entrenchment in the Law of Excluded Middle and classical set theory constitutes a direct conflict at the level of ontological commitment. Agda was ultimately selected: a purely constructive dependent type theory that presupposes no classical or extensional axioms whatsoever—including the Law of Excluded Middle, the Axiom of Choice, function extensionality, propositional extensionality, and univalence—and is among the mainstream proof assistants with the fewest ontological presuppositions; its dependent types and coinductive records align precisely with the ontological commitments of this work. This trajectory of migrations itself reveals that formalization languages are not neutral notational vehicles; their logical foundations, type structures, and axiomatic environments collectively constitute an implicit set of ontological commitments. To choose a tool is to choose an ontology.
 
-形式化历经三次工具迁移，其背后是本体论承诺的根本性冲突。QS5+BF 阶段，Barcan 公式强制所有可能世界共享同一论域。转向 Lean 4 后，除表达力瓶颈外，更发现与其数学库对排中律与经典集合论的深度嵌入，直接构成本体论承诺层面的冲突。最终选定 Agda：其构造性基底不预设任何经典公理，依赖类型与余归纳记录恰与该项工作的本体论承诺完全相合。这一迁移历程本身揭示：形式化语言并非中性的记号载体；其逻辑基底、类型结构与公理环境，共同构成一套隐性的本体论承诺。工具选择，即本体论选择。
+形式化历经三次工具迁移，其背后是本体论承诺的根本性冲突。QS5+BF 阶段，Barcan 公式强制所有可能世界共享同一论域。转向 Lean 4 后，除表达力瓶颈外，更发现与其数学库对排中律与经典集合论的深度嵌入，直接构成本体论承诺层面的冲突。最终选定 Agda：纯构造性依赖类型论，不预设排中律、选择公理、函数外延性、命题外延性、单值性等任何经典或外延性公理，是主流证明助手中本体论预设最少的系统之一；其依赖类型与余归纳记录恰与该项工作的本体论承诺完全相合。这一迁移历程本身揭示：形式化语言并非中性的记号载体；其逻辑基底、类型结构与公理环境，共同构成一套隐性的本体论承诺。工具选择，即本体论选择。
 
 ## Key Contribution / 核心贡献
 
@@ -100,7 +100,13 @@ src/
 │   │   ├── FinCat2Witness.agda
 │   │   ├── FinCat2TowerLemmas.agda
 │   │   ├── ConditionalNontrivialLimit.agda
-│   │   └── LayerZeroMediator.agda
+│   │   ├── LayerZeroMediator.agda
+│   │   ├── FinCat2Colimit.agda
+│   │   ├── FinCat2EmbeddingMismatch.agda
+│   │   ├── DependentEmbedding.agda
+│   │   ├── FinCat2ColimitWithDep.agda
+│   │   ├── FinCat2Surjectivity.agda
+│   │   └── FinCat2DefaultUnif.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda

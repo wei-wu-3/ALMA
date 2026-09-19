@@ -33,6 +33,12 @@ import ALMA.Cosmos.FinCat2Witness
 import ALMA.Cosmos.FinCat2TowerLemmas
 import ALMA.Cosmos.ConditionalNontrivialLimit
 import ALMA.Cosmos.LayerZeroMediator
+import ALMA.Cosmos.FinCat2Colimit
+import ALMA.Cosmos.FinCat2EmbeddingMismatch
+import ALMA.Cosmos.DependentEmbedding
+import ALMA.Cosmos.FinCat2ColimitWithDep
+import ALMA.Cosmos.FinCat2Surjectivity
+import ALMA.Cosmos.FinCat2DefaultUnif
 
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
