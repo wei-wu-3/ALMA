@@ -1,26 +1,29 @@
 ------------------------------------------------------------------------
--- FinCatInnerSewing — inner-preserving strict embedding and its iteration
--- FinCat 内层缝合 —— 保内层严格嵌入及其迭代
+-- Inner-preserving strict embedding over an arbitrary strict layer
+-- 任意严格层上的保内层严格嵌入
 --
--- Defines the inner-preserving strict embedding, proves EmbeddingData
--- propagates along it, registers it as inner-rule, and iterates it on
--- the FinCat 2 tower
--- 定义保内层严格嵌入，证明 EmbeddingData 沿其传播，将其注册为
--- inner-rule，并在 FinCat 2 塔上迭代
+-- Provides the inner-preserving unfold functor F₀ ((A, s), u) = A, the
+-- inner-preserving strict embedding strictEmbed-inner, the unconditional
+-- propagation of EmbeddingData along it, and the inner rule. The
+-- constructions are generic over any StrictLayer and independent of any
+-- concrete tower; the FinCatN tower instance is instantiated in
+-- FinCatNInnerObstruction
+-- 提供保内层展开函子 F₀ ((A, s), u) = A、保内层严格嵌入
+-- strictEmbed-inner、EmbeddingData 沿其无条件传播，以及内层规则。
+-- 所有构造对任意 StrictLayer 泛型，且独立于具体塔；
+-- 具体塔；FinCatN 塔实例在 FinCatNInnerObstruction 中实例化
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
-module ALMA.Cosmos.FinCatInnerSewing where
+module ALMA.Cosmos.FinCatNInnerSewing where
 
-open import Agda.Primitive using (Level; lzero)
-open import Agda.Builtin.Equality using (_≡_; refl)
-open import Agda.Builtin.Sigma using (Σ)
+open import Agda.Primitive using (Level)
+open import Agda.Builtin.Equality using (_≡_)
 open import Level using (lift; lower)
 open import Relation.Binary.PropositionalEquality.Core using (cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.Unit.Polymorphic.Base using (tt)
-open import Data.Product.Base using (proj₁; proj₂; _,_)
+open ≡-Reasoning
+open import Data.Product.Base using (proj₁)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
@@ -29,13 +32,10 @@ open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos using (Cosmos; out)
-open import ALMA.Cosmos.CumulativeHierarchy
-  using (EmbeddingData; mkEmbeddingData; ShapeCat-id-comm)
+open import ALMA.Cosmos.CumulativeHierarchy using (EmbeddingData; ShapeCat-id-comm)
 open import ALMA.Cosmos.StrictLift
-  using (StrictLayer; strictStep-suc; EmbeddingRule; strictEmbed-bridge; strictEmbed-compat)
-open import ALMA.Cosmos.CumulativeHierarchyInstances using (module FinCatHierarchy)
-open FinCatHierarchy using (FinCat; FinFC)
-open import ALMA.Cosmos.CumulativeHierarchyLimit using (LayerIdx; idxAt)
+  using (StrictLayer; strictStep-suc; EmbeddingRule
+        ; strictEmbed-bridge; strictEmbed-compat)
 
 -- Local helpers for the inner-direction compatibility proofs
 -- 内层方向相容性证明的局部辅助
@@ -46,7 +46,6 @@ private
     (ed : EmbeddingData x) where
 
     open EmbeddingData ed
-    open ≡-Reasoning
 
     C_L  = StrictLayer.C L
     FC_L = StrictLayer.FC L
@@ -160,79 +159,3 @@ module _ {o h e s p : Level} (L : StrictLayer o h e s p) where
 -- 保内层规则
 inner-rule : EmbeddingRule
 inner-rule .EmbeddingRule.Embed = strictEmbed-inner
-
--- Iterated inner embedding on the FinCat 2 tower
--- FinCat 2 塔上的迭代内层嵌入
-module FinCatInnerSewing where
-
-  -- Layer index and layers
-  -- 层索引与层
-  finIdx : LayerIdx
-  finIdx = record { o = lzero ; h = lzero ; e = lzero ; s = lzero ; p = lzero }
-
-  finLayer₀ : StrictLayer lzero lzero lzero lzero lzero
-  finLayer₀ = record { C = FinCat 2 ; FC = FinFC 2 }
-
-  finLayer : (n : ℕ)
-           → StrictLayer (LayerIdx.o (idxAt finIdx n))
-                         (LayerIdx.h (idxAt finIdx n))
-                         (LayerIdx.e (idxAt finIdx n))
-                         (LayerIdx.s (idxAt finIdx n))
-                         (LayerIdx.p (idxAt finIdx n))
-  finLayer zero    = finLayer₀
-  finLayer (suc n) = strictStep-suc (finLayer n)
-
-  -- Iteration of strictEmbed-inner: each step returns the resulting
-  -- cosmos together with its EmbeddingData, which propagates
-  -- unconditionally along the inner direction
-  -- strictEmbed-inner 的迭代：每步返回所得宇宙及其 EmbeddingData，
-  -- 后者沿内层方向无条件传播
-  iterEmbed-inner
-    : (n : ℕ)
-    → (x : Cosmos (StrictLayer.C finLayer₀) (StrictLayer.FC finLayer₀))
-    → (ed : EmbeddingData x)
-    → Σ (Cosmos (StrictLayer.C (finLayer n)) (StrictLayer.FC (finLayer n)))
-        (λ y → EmbeddingData y)
-  iterEmbed-inner zero    x ed = x , ed
-  iterEmbed-inner (suc n) x ed =
-    let y , ed-y = iterEmbed-inner n x ed
-    in strictEmbed-inner (finLayer n) y ed-y
-       , strictEmbed-inner-self-embedding (finLayer n) y ed-y
-
-  -- Definitional unfolding at suc
-  -- 在 suc 处的定义性展开
-  iterEmbed-inner-suc
-    : (n : ℕ)
-      (x : Cosmos (StrictLayer.C finLayer₀) (StrictLayer.FC finLayer₀))
-      (ed : EmbeddingData x)
-    → iterEmbed-inner (suc n) x ed
-      ≡ ( strictEmbed-inner (finLayer n)
-            (proj₁ (iterEmbed-inner n x ed))
-            (proj₂ (iterEmbed-inner n x ed))
-        , strictEmbed-inner-self-embedding (finLayer n)
-            (proj₁ (iterEmbed-inner n x ed))
-            (proj₂ (iterEmbed-inner n x ed)) )
-  iterEmbed-inner-suc n x ed = refl
-
-  -- Projections of the iteration
-  -- 迭代的两个投影
-  iterEmbed-inner-cosmos
-    : (n : ℕ)
-    → (x : Cosmos (StrictLayer.C finLayer₀) (StrictLayer.FC finLayer₀))
-    → (ed : EmbeddingData x)
-    → Cosmos (StrictLayer.C (finLayer n)) (StrictLayer.FC (finLayer n))
-  iterEmbed-inner-cosmos n x ed = proj₁ (iterEmbed-inner n x ed)
-
-  iterEmbed-inner-data
-    : (n : ℕ)
-    → (x : Cosmos (StrictLayer.C finLayer₀) (StrictLayer.FC finLayer₀))
-    → (ed : EmbeddingData x)
-    → EmbeddingData (iterEmbed-inner-cosmos n x ed)
-  iterEmbed-inner-data n x ed = proj₂ (iterEmbed-inner n x ed)
-
-  -- Layer-0 EmbeddingData, available since FinCat 2 has _⇒_ = ⊤
-  -- 第 0 层的 EmbeddingData，因 FinCat 2 的 _⇒_ = ⊤ 而可用
-  fin-EmbeddingData₀
-    : (x : Cosmos (FinCat 2) (FinFC 2))
-    → EmbeddingData x
-  fin-EmbeddingData₀ = mkEmbeddingData (λ _ _ → tt) (λ _ _ → refl)

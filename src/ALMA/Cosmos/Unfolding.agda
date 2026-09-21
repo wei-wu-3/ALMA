@@ -31,7 +31,7 @@ open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 
--- Unfolding for a cosmos layer:
+-- Unfolding for a Cosmos layer:
 -- given a functor F : C → ContCat and a seed set X, an Unfolding records
 -- a functor from the shape category back to C, a next-seed assignment,
 -- and a position-to-shape map compatible with the functorial action

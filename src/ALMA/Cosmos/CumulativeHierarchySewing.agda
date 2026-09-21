@@ -2,17 +2,14 @@
 -- CumulativeHierarchySewing — stitching, obstruction, and direction dichotomy
 -- 累积层级缝合 —— 缝合、障碍与方向二分
 --
--- UnitSewing: the unit hierarchy as an EnrichedTower along outer-rule,
--- yielding the stitching theorem and terminality of the unit limit.
--- FinCatSewing: the outer-rule obstruction at layer 1
--- DirectionDichotomy: for a shape-constant strict layer, outer-rule
--- propagates EmbeddingData iff every shape type is a singleton —
--- a boundary inner-rule does not have
--- UnitSewing：单位层级作为沿 outer-rule 的 EnrichedTower，给出缝合定理
--- 与单位极限的终余代数性
+-- UnitSewing: unit tower stitches; unit limit is terminal
+-- FinCatSewing: outer-rule obstruction at layer 1
+-- DirectionDichotomy: for a rigid strict layer, outer-rule propagates
+-- EmbeddingData iff every shape type is a singleton
+-- UnitSewing：单位塔缝合；单位极限终余代数
 -- FinCatSewing：outer-rule 在第 1 层的障碍
--- DirectionDichotomy：对形状作用平凡的严格层，outer-rule 传播
--- EmbeddingData 当且仅当每个形状类型单元素——内层方向无此边界
+-- DirectionDichotomy：对刚性严格层，outer-rule 传播 EmbeddingData
+-- 当且仅当每个形状类型单元素
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -20,14 +17,12 @@ module ALMA.Cosmos.CumulativeHierarchySewing where
 
 open import Agda.Primitive using (Level; lzero; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Builtin.Sigma using (_,_)
 open import Level using (lift; lower)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≢_; sym; cong; trans; subst)
 open import Relation.Nullary using (¬_)
-open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)
 open import Data.Unit.Polymorphic.Base using (tt)
 open import Data.Product.Base using (proj₁; proj₂; ∃)
@@ -46,12 +41,12 @@ open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl)
 open import ALMA.Cosmos.CoalgCat using (IsTerminalUpToBisim)
 open import ALMA.Cosmos.CumulativeHierarchy
   using (π; Collapsible; collapsible→ShapeCat-collapsible; EmbeddingData
-        ; EmbeddingFamily; UniformEmbeddingFamily; FC∘π; FunctorialEmbeddingFamily)
+        ; EmbeddingFamily; UniformEmbeddingFamily; FC∘π)
 open import ALMA.Cosmos.StrictLift
   using (StrictLayer; strictEmbed; strictStep-suc; EmbedFamily; outer-rule)
 open import ALMA.Cosmos.CumulativeHierarchyInstances
   using (module BuildUniformFrom; module FinCatHierarchy)
-open FinCatHierarchy using (FinCat; FinFC; embedFin; Fin-FunctorialEmbeddingFamily)
+open FinCatHierarchy using (FinCat; FinFC; embedFin)
 open import ALMA.Cosmos.CumulativeHierarchyLimit
   using (unitIdx; Tower; EnrichedTower; unitTower; LimitLayer; unitLimit
         ; LiftedLimitStructure; iterEmbed; liftAt-iterEmbed; lifted-limit-terminal)
@@ -233,31 +228,6 @@ module FinCatSewing where
   embed-step : Cosmos₀ → Cosmos₁
   embed-step = embedFin 2
 
-  embed-step-resp
-    : ∀ {x y : Cosmos₀}
-    → x ≈C y
-    → embed-step x ≈C embed-step y
-  embed-step-resp =
-    FunctorialEmbeddingFamily.embed′-resp-≈C
-      (Fin-FunctorialEmbeddingFamily 2)
-
-  -- The unit limit and its terminality
-  -- 单位极限及其终余代数性
-  unit-limit : Cosmos (UnitCat {lzero}) (UnitContainerFunctor {lzero})
-  unit-limit = UnitCosmos {lzero}
-
-  -- Composition with the unit lift
-  -- 与单位提升复合
-  lift-to-unit
-    : Cosmos₀ → Cosmos (UnitCat {lzero}) (UnitContainerFunctor {lzero})
-  lift-to-unit _ = unit-limit
-
-  lift-to-unit-resp
-    : ∀ {x y : Cosmos₀}
-    → x ≈C y
-    → lift-to-unit x ≈C lift-to-unit y
-  lift-to-unit-resp _ = ≈C-refl
-
   -- Obstruction theorem: multi-step stitching fails at layer 1
   -- 障碍定理：多步缝合在第 1 层失败
 
@@ -334,14 +304,8 @@ module FinCatSewing where
   obstructed-if-shape-not-preserved x (A , s₀ , s₁ , s'≢s₀) =
     obstruction-from-shape-change x A s₀ s₁ s'≢s₀
 
--- DirectionDichotomy — the boundary between outer and inner directions
--- For a strict layer L whose container functor acts trivially on shapes
--- by endomorphisms, outer-rule propagates EmbeddingData unconditionally
--- iff every shape type at L is a singleton. The inner direction has no
--- such boundary
--- 方向二分 —— 外层方向与内层方向的边界
--- 对自态射在形状上作用平凡的严格层 L，outer-rule 无条件传播
--- EmbeddingData 当且仅当 L 的每个形状类型是单元素。内层方向无此边界
+-- DirectionDichotomy — outer-rule propagation boundary
+-- 方向二分 —— outer-rule 传播边界
 module DirectionDichotomy
   {o h e s p : Level} (L : StrictLayer o h e s p) where
   private
@@ -351,22 +315,16 @@ module DirectionDichotomy
     module C_L' = Category (ShapeCat C_L FC_L)
     module C_L  = Category C_L
 
-  -- Endomorphisms act trivially on shapes
-  -- 自态射在形状上作用平凡
-  ShapeConstant : Set (o ⊔ h ⊔ s)
-  ShapeConstant =
-    ∀ {A : Category.Obj C_L}
-    → (f : Category._⇒_ C_L A A) (s : ShapeOf FC_L A)
-    → actSOf FC_L f s ≡ s
-
-  -- Some shape type has two distinct elements
-  -- 存在某个形状类型含两个相异元素
-  NonSingleton : Set (o ⊔ s)
-  NonSingleton =
-    Σ (Category.Obj C_L) (λ A
-    → Σ (ShapeOf FC_L A) (λ s
-    → Σ (ShapeOf FC_L A) (λ t
-    → ¬ (s ≡ t))))
+  -- Rigidity: an endomorphism carries s to t only when s ≡ t.
+  -- Equivalent to shape-constancy, but stated without referring to the
+  -- action of a specific endomorphism
+  -- 刚性：自态射把 s 送到 t 仅当 s ≡ t。
+  -- 等价于形状作用平凡，但表述不依赖于某个特定自态射的作用
+  Rigid : Set (o ⊔ h ⊔ s)
+  Rigid =
+    ∀ {A : Category.Obj C_L} (s t : ShapeOf FC_L A)
+    → (∃ λ (f : Category._⇒_ C_L A A) → actSOf FC_L f s ≡ t)
+    → s ≡ t
 
   -- Identity acts trivially on shapes, by the functor identity law
   -- 恒等态射在形状上作用平凡，由函子恒等律给出
@@ -401,8 +359,8 @@ module DirectionDichotomy
         (C_L.Equiv.sym (C_L.identityˡ {f = f}))
     trivial-ed .EmbeddingData.next s = trivial-ed
 
-  -- Backward direction: singletons make outer propagate unconditionally
-  -- 反方向：形状单元素使外层无条件传播
+  -- Sufficiency: singletons make outer propagate unconditionally
+  -- 充分性：形状单元素使外层无条件传播
   outer-propagates-of-singleton
     : (singleton : ∀ (A : Category.Obj C_L)
                  → (σ τ : ShapeOf FC_L A) → σ ≡ τ)
@@ -424,70 +382,28 @@ module DirectionDichotomy
         (Unfolding.unfold-next (out x) {A = proj₁ A} (lower s-lift))
         (EmbeddingData.next ed {A = proj₁ A} (lower s-lift))
 
-  -- Forward direction: a non-singleton shape blocks outer propagation
-  -- 正方向：非单元素形状阻断外层传播
-  outer-obstructed-of-nonsingleton
-    : (shape-constant : ShapeConstant)
-    → (non-singleton : NonSingleton)
-    → ¬ (EmbeddingData (strictEmbed L trivial-cosmos trivial-ed))
-  outer-obstructed-of-nonsingleton
-    shape-constant (A₀ , s₀ , t₀ , s₀≢t₀) edy =
-    s₀≢t₀ (trans (sym (shape-constant f s₀)) eq)
-    where
-      A' : Category.Obj (ShapeCat C_L FC_L)
-      A' = A₀ , t₀
-
-      s-lift : ShapeOf FC' A'
-      s-lift = lift s₀
-
-      r : C_L'._⇒_
-            (Functor.₀
-              (Unfolding.unfoldFunctor
-                (out (strictEmbed L trivial-cosmos trivial-ed)))
-              (A' , s-lift))
-            A'
-      r = EmbeddingData.retract edy {A = A'} s-lift
-
-      f : Category._⇒_ C_L A₀ A₀
-      f = proj₁ r
-
-      eq : actSOf FC_L f s₀ ≡ t₀
-      eq = proj₂ r
-
-  -- Dichotomy: outer propagates iff shapes are singletons
-  -- 二分定理：外层传播当且仅当形状单元素
+  -- Dichotomy (under rigidity): outer propagates iff shapes are singletons
+  -- 二分定理（在刚性假设下）：外层传播当且仅当形状单元素
   outer-propagates-iff-singleton
-    : (shape-constant : ShapeConstant)
-    → (dec-eq : ∀ (A : Category.Obj C_L)
-              → (σ τ : ShapeOf FC_L A)
-              → (σ ≡ τ) ⊎ (σ ≢ τ))
-    → ((x : Cosmos C_L FC_L) (ed : EmbeddingData x)
-       → EmbeddingData (strictEmbed L x ed))
-      ⇔ (∀ (A : Category.Obj C_L)
-         → (σ τ : ShapeOf FC_L A) → σ ≡ τ)
-  outer-propagates-iff-singleton shape-constant dec-eq =
-    mk⇔ forward backward
-    where
-      -- If propagation holds, any two shapes at any object coincide
-      -- 若传播成立，任意对象上的任意两形状相等
-      forward
-        : ((x : Cosmos C_L FC_L) (ed : EmbeddingData x)
-           → EmbeddingData (strictEmbed L x ed))
-        → ∀ (A : Category.Obj C_L)
-          → (σ τ : ShapeOf FC_L A) → σ ≡ τ
-      forward h A σ τ with dec-eq A σ τ
-      ... | inj₁ eq   = eq
-      ... | inj₂ ¬eq  =
-        ⊥-elim
-          (outer-obstructed-of-nonsingleton
-             shape-constant (A , σ , τ , ¬eq)
-             (h trivial-cosmos trivial-ed))
-
-      -- If all shapes are singletons, outer propagates unconditionally
-      -- 若所有形状单元素，外层无条件传播
-      backward
-        : (∀ (A : Category.Obj C_L)
+      : (rigid : Rigid)
+      → ((x : Cosmos C_L FC_L) (ed : EmbeddingData x)
+         → EmbeddingData (strictEmbed L x ed))
+        ⇔ (∀ (A : Category.Obj C_L)
            → (σ τ : ShapeOf FC_L A) → σ ≡ τ)
-        → (x : Cosmos C_L FC_L) (ed : EmbeddingData x)
-        → EmbeddingData (strictEmbed L x ed)
-      backward singleton = outer-propagates-of-singleton singleton
+  outer-propagates-iff-singleton rigid = mk⇔ to from
+    where
+      to : ((x : Cosmos C_L FC_L) (ed : EmbeddingData x)
+            → EmbeddingData (strictEmbed L x ed))
+           → ∀ (A : Category.Obj C_L)
+             → (σ τ : ShapeOf FC_L A) → σ ≡ τ
+      to p A σ τ =
+        let edy = p trivial-cosmos trivial-ed
+            A'  = A , τ
+            r   = EmbeddingData.retract edy {A = A'} (lift σ)
+        in rigid σ τ (proj₁ r , proj₂ r)
+
+      from : (∀ (A : Category.Obj C_L)
+              → (σ τ : ShapeOf FC_L A) → σ ≡ τ)
+           → (x : Cosmos C_L FC_L) (ed : EmbeddingData x)
+           → EmbeddingData (strictEmbed L x ed)
+      from = outer-propagates-of-singleton

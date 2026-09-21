@@ -1,21 +1,23 @@
 ------------------------------------------------------------------------
--- Conditional non-triviality of a limit over the two-object tower
--- 两对象塔上极限的条件性非平凡性
+-- Conditional non-triviality of a limit over the FinCat n tower
+-- FinCat n 塔上极限的条件性非平凡性
 --
 -- Defines the ideal universal property a limit over an enriched tower
 -- would have to satisfy (Cocone, UniversalLimit), non-triviality as
 -- separation by liftAt (NontrivialLimit), and shows that no non-trivial
--- limit can exist when the target space is trivial (all cosmoi bisimilar);
--- UnitCat is such a trivial target
--- Under the additional hypothesis that liftAt at layer 0 is injective
--- (ColimitCoherence), a non-triviality witness over the two-object tower
--- is constructed unconditionally from a coherent UniversalLimit
+-- limit can exist when the target space is trivial (all cosmoi
+-- bisimilar); UnitCat is such a trivial target
+-- ColimitCoherence and NontrivialLimitWitness are stated generically
+-- over any EnrichedTower outer-rule i. The construction of a
+-- non-triviality witness is parameterised over FinCatN m and lives in
+-- the nested module FinCatNVariants
 -- 定义丰富塔上极限应满足的理想泛性质（Cocone、UniversalLimit），
 -- 以 liftAt 的区分性定义非平凡性（NontrivialLimit），并证明：
 -- 若目标空间平凡（所有宇宙互模拟），则不存在非平凡极限；
 -- UnitCat 就是这样的平凡目标
--- 在“层 0 的 liftAt 为单射”（ColimitCoherence）这一附加假设下，
--- 由相容的 UniversalLimit 无条件构造出两对象塔上的非平凡见证
+-- ColimitCoherence 与 NontrivialLimitWitness 对任意
+-- EnrichedTower outer-rule i 泛型陈述。非平凡见证的构造以
+-- FinCatN m 为参数，位于嵌套模块 FinCatNVariants 中
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -37,8 +39,7 @@ open import ALMA.Cosmos.StrictLift
   using (StrictLayer; EmbeddingRule; EmbedFamily; outer-rule)
 open import ALMA.Cosmos.CumulativeHierarchyLimit
   using (LayerIdx; Tower; EnrichedTower; LimitLayer)
-open import ALMA.Cosmos.FinCat2Witness
-  using (twoIdx; twoTower; cosmos-id; cosmos-const0; cosmos-id≉cosmos-const0)
+open import ALMA.Cosmos.FinCatNWitness
 
 open StrictLayer
 open EmbeddingRule
@@ -185,7 +186,7 @@ unitcat-all-cosmos-bisim {ℓ} x y = bisim x y
 
 -- Coherence hypothesis: liftAt at layer 0 is injective
 -- 相容性假设：层 0 的 liftAt 是单射
-record ColimitCoherence (ET : EnrichedTower outer-rule twoIdx) : Setω where
+record ColimitCoherence {i : LayerIdx} (ET : EnrichedTower outer-rule i) : Setω where
   field
     UL : UniversalLimit ET
     lift0-inj
@@ -199,24 +200,29 @@ record ColimitCoherence (ET : EnrichedTower outer-rule twoIdx) : Setω where
 
 -- A witness that a UniversalLimit over ET is non-trivial
 -- ET 上 UniversalLimit 非平凡的见证
-record NontrivialLimitWitness (ET : EnrichedTower outer-rule twoIdx) : Setω where
+record NontrivialLimitWitness {i : LayerIdx} (ET : EnrichedTower outer-rule i) : Setω where
   field
     UL : UniversalLimit ET
     nl : NontrivialLimit UL
 
--- Conditional construction: given a coherent UniversalLimit over the
--- two-object tower, a non-triviality witness exists
--- 条件性构造：给定两对象塔上相容的 UniversalLimit，非平凡见证存在
-nontrivial-witness
-  : (ef : ∀ n → EmbedFamily outer-rule (Tower.layer twoTower n))
-  → ColimitCoherence (record { tower = twoTower ; fams = ef })
-  → NontrivialLimitWitness (record { tower = twoTower ; fams = ef })
-nontrivial-witness ef cc = record
-  { UL = ColimitCoherence.UL cc
-  ; nl = record
-      { n    = 0
-      ; x    = cosmos-id
-      ; y    = cosmos-const0
-      ; x≉y  = λ eq → cosmos-id≉cosmos-const0 (ColimitCoherence.lift0-inj cc eq)
-      }
-  }
+-- FinCatN m variants: the non-triviality witness over the FinCatN m tower
+-- FinCatN m 变体：FinCatN m 塔上的非平凡见证
+module FinCatNVariants (m : ℕ) where
+  open FinCatN m
+
+  -- Conditional construction: given a coherent UniversalLimit over the
+  -- FinCatN m tower, a non-triviality witness exists
+  -- 条件性构造：给定 FinCatN m 塔上相容的 UniversalLimit，非平凡见证存在
+  nontrivial-witness
+    : (ef : ∀ k → EmbedFamily outer-rule (Tower.layer nTower k))
+    → ColimitCoherence (record { tower = nTower ; fams = ef })
+    → NontrivialLimitWitness (record { tower = nTower ; fams = ef })
+  nontrivial-witness ef cc = record
+    { UL = ColimitCoherence.UL cc
+    ; nl = record
+        { n    = 0
+        ; x    = cosmos-idN
+        ; y    = cosmos-const0N
+        ; x≉y  = λ eq → cosmos-idN≉cosmos-const0N (ColimitCoherence.lift0-inj cc eq)
+        }
+    }
