@@ -11,7 +11,7 @@
 -- 提供保内层展开函子 F₀ ((A, s), u) = A、保内层严格嵌入
 -- strictEmbed-inner、EmbeddingData 沿其无条件传播，以及内层规则。
 -- 所有构造对任意 StrictLayer 泛型，且独立于具体塔；
--- 具体塔；FinCatN 塔实例在 FinCatNInnerObstruction 中实例化
+-- FinCatN 塔实例在 FinCatNInnerObstruction 中实例化
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 

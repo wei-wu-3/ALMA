@@ -110,8 +110,14 @@ src/
 │   │   ├── FinCatNFunctorial.agda
 │   │   ├── FinCatNProjectiveObstruction.agda
 │   │   ├── FinCatNOuterObstruction.agda
-│   │   ├── FinCatNOuterObstruction.agda
-│   │   └── FinCatNPermutedEmbedding.agda
+│   │   ├── FinCatNInnerObstruction.agda
+│   │   ├── FinCatNPermutedEmbedding.agda
+│   │   ├── FinCatNNonCommutative.agda
+│   │   ├── FinCatInfinity.agda
+│   │   ├── FinCatInfinityProjection.agda
+│   │   ├── FinCatInfinityTowerCompat.agda
+│   │   ├── FinCatInfinityColimit.agda
+│   │   └── FinCatInfinityColimitUniversal.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda

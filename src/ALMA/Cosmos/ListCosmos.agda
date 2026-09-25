@@ -31,10 +31,10 @@ open import Categories.Functor using (id)
 open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
-open import ALMA.Cosmos.Unfolding using (Unfolding)
+open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
 open import ALMA.Cosmos.MorphismMorphism using (actP-from-S)
-open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat; module CosmosMap)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; UnitCat)
 open import ALMA.Cosmos.MorphismCorrespondence using (StructuredFunc; NontrivialCosmos; not-full)
 
 module _ where
@@ -76,10 +76,6 @@ module _ where
       ; homomorphism = tt
       ; F-resp-≈     = λ _ → tt
       }
-
-  -- mapCosmosF specialised to C₀ / ListFC, opened after their definitions
-  -- 将 mapCosmosF 特化到 C₀ / ListFC，在其定义之后打开
-  open CosmosMap {C = C₀} {FC = ListFC} using (mapCosmosF)
 
   -- ListCosmos: the unfold functor is the terminal map, positions map to toℕ
   -- The unfolding structure is self‑referential: unfold-next always returns ListCosmos
@@ -194,7 +190,7 @@ module _ where
   -- Pointwise failure at ListCosmos: pos-to-shape differs
   -- 在 ListCosmos 处点态失败：pos-to-shape 不同
   otherSF-not-commute-ListCosmos :
-      ¬ (mapCosmosF (λ _ → OtherCosmos) (out ListCosmos) ≡ out OtherCosmos)
+      ¬ (mapUnfolding (λ _ → OtherCosmos) (out ListCosmos) ≡ out OtherCosmos)
   otherSF-not-commute-ListCosmos eq
     with cong (λ c → Unfolding.pos-to-shape c (suc (suc zero)) pos2) eq
   ... | ()
@@ -211,6 +207,6 @@ module _ where
   -- Unconditional non-fullness for this instance
   -- 该实例下的无条件非满性
   listNotFull : ∃ λ (sf : StructuredFunc {C = C₀} {FC = ListFC})
-             → ¬ (∀ z → mapCosmosF (StructuredFunc.f sf) (out z)
+             → ¬ (∀ z → mapUnfolding (StructuredFunc.f sf) (out z)
                       ≡ out (StructuredFunc.f sf z))
   listNotFull = not-full listNontrivial

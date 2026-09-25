@@ -28,8 +28,7 @@ open import Categories.Functor.Coalgebra using (F-Coalgebra)
 import Categories.Category.Construction.F-Coalgebras as FCoalg
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.Unfolding using (module UnfoldingEndoFunctor)
-open import ALMA.Cosmos using (module CosmosMap)
+open import ALMA.Cosmos.Unfolding using (mapUnfolding; mapUnfolding-id; mapUnfolding-∘; module UnfoldingEndoFunctor)
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana; _≈C_)
 
@@ -49,22 +48,17 @@ module _ {o h e s p : Level}
               → Set (L ⊔ r₁ ⊔ r₂)
     CoalgHom′ {r₁} {r₂} = CoalgHom {o} {h} {e} {s} {p} {C} {FC} {r₁} {r₂}
 
-  -- Same as above: explicit C/FC for CosmosMap
-  -- 同上：为 CosmosMap 显式指定 C/FC
-  open CosmosMap {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
-    using (mapCosmosF; map-id; map-∘)
-
   -- Identity and composition of coalgebra homomorphisms
   -- 余代数同态的恒等与复合
   idCoalg : ∀ {r} {X : Coalgebra′ r} → CoalgHom′ X X
   idCoalg {X = X} = record
     { f       = record { to = id; cong = λ eq → eq }
-    ; commute = λ x → map-id (Func.to (Coal.α X) x)
+    ; commute = λ x → mapUnfolding-id (Func.to (Coal.α X) x)
     }
 
-  -- Composition: map-∘ reduces mapCosmosF (g∘f) to mapCosmosF g ∘ mapCosmosF f,
+  -- Composition: mapUnfolding-∘ reduces mapUnfolding (g∘f) to mapUnfolding g ∘ mapUnfolding f,
   -- then f.commute and g.commute chain to Z.α
-  -- 复合：map-∘ 将 mapCosmosF (g∘f) 归约为 mapCosmosF g ∘ mapCosmosF f，
+  -- 复合：mapUnfolding-∘ 将 mapUnfolding (g∘f) 归约为 mapUnfolding g ∘ mapUnfolding f，
   -- 再经 f.commute 与 g.commute 链式得到 Z.α
   _∘Coalg_ : ∀ {r₁ r₂ r₃}
                {X : Coalgebra′ r₁} {Y : Coalgebra′ r₂} {Z : Coalgebra′ r₃}
@@ -75,11 +69,11 @@ module _ {o h e s p : Level}
       ; cong = λ x≈y → Func.cong (Hom.f g) (Func.cong (Hom.f f) x≈y)
       }
     ; commute = λ x → begin
-        mapCosmosF (λ x → Func.to (Hom.f g) (Func.to (Hom.f f) x)) (Func.to (Coal.α X) x)
-          ≡⟨ map-∘ (Func.to (Hom.f g)) (Func.to (Hom.f f)) (Func.to (Coal.α X) x) ⟩
-        mapCosmosF (Func.to (Hom.f g)) (mapCosmosF (Func.to (Hom.f f)) (Func.to (Coal.α X) x))
-          ≡⟨ cong (mapCosmosF (Func.to (Hom.f g))) (Hom.commute f x) ⟩
-        mapCosmosF (Func.to (Hom.f g)) (Func.to (Coal.α Y) (Func.to (Hom.f f) x))
+        mapUnfolding (λ x → Func.to (Hom.f g) (Func.to (Hom.f f) x)) (Func.to (Coal.α X) x)
+          ≡⟨ mapUnfolding-∘ (Func.to (Hom.f g)) (Func.to (Hom.f f)) (Func.to (Coal.α X) x) ⟩
+        mapUnfolding (Func.to (Hom.f g)) (mapUnfolding (Func.to (Hom.f f)) (Func.to (Coal.α X) x))
+          ≡⟨ cong (mapUnfolding (Func.to (Hom.f g))) (Hom.commute f x) ⟩
+        mapUnfolding (Func.to (Hom.f g)) (Func.to (Coal.α Y) (Func.to (Hom.f f) x))
           ≡⟨ Hom.commute g (Func.to (Hom.f f) x) ⟩
         Func.to (Coal.α Z) (Func.to (Hom.f g) (Func.to (Hom.f f) x))
       ∎

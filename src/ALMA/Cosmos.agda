@@ -55,34 +55,6 @@ record Cosmos {o h e s p : Level}
     out : Unfolding FC (Cosmos C FC)
 open Cosmos public
 
--- Lightweight Functoriality of Unfolding
--- Unfolding 的简单函子性
-module CosmosMap {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)} where
-  -- Functorial action on the parameter: map along X → Y
-  -- 参数上的函子作用：沿 X → Y 映射
-  mapCosmosF : ∀ {x y : Level} {X : Set x} {Y : Set y}
-            → (X → Y) → Unfolding FC X → Unfolding FC Y
-  mapCosmosF = mapUnfolding
-
-  -- Identity law: mapCosmosF id ≡ id
-  -- 恒等律：mapCosmosF id ≡ id
-  map-id : ∀ {x : Level} {X : Set x} (c : Unfolding FC X)
-        → mapCosmosF (λ x → x) c ≡ c
-  map-id = mapUnfolding-id
-
-  -- Composition law: mapCosmosF (f ∘ g) ≡ mapCosmosF f ∘ mapCosmosF g
-  -- 复合律：mapCosmosF (f ∘ g) ≡ mapCosmosF f ∘ mapCosmosF g
-  map-∘ : ∀ {x y z : Level} {X : Set x} {Y : Set y} {Z : Set z}
-            (f : Y → Z) (g : X → Y) (c : Unfolding FC X)
-        → mapCosmosF (f ∘ g) c ≡ mapCosmosF f (mapCosmosF g c)
-  map-∘ = mapUnfolding-∘
-
-  -- Congruence: pointwise equal functions induce equal maps
-  -- 合同性：逐点相等的函数诱导相等的映射
-  map-cong : ∀ {x y : Level} {X : Set x} {Y : Set y}
-          → {f g : X → Y} → f ≡ g → mapCosmosF f ≡ mapCosmosF g
-  map-cong refl = refl
-
 -- Universe Morphisms: Coalgebra Homomorphisms
 -- Generalized homomorphism _⇒ℱ[_]_ parameterized by a shape functor S
 -- S : Functor (ShapeCat C FC) (ShapeCat C FC) controls how shape indices
@@ -251,7 +223,6 @@ UnitCosmos .out = record
 module CosmosFFunctor {o h e s p : Level}
                       {C : Category o h e}
                       {FC : Functor C (ContCat s p)} where
-  open CosmosMap
   private
     -- Instantiate the unfolding setoid module for the current container functor
     -- 为当前容器函子实例化展开集合模块

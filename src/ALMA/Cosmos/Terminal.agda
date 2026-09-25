@@ -30,8 +30,7 @@ open import Categories.Functor.Core using (Functor)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; module UnfoldingSetoid)
-open import ALMA.Cosmos using (Cosmos; out; module CosmosMap)
-open CosmosMap using (mapCosmosF)
+open import ALMA.Cosmos using (Cosmos; out)
 
 -- Parameterised module: fixes a base category C and a container-valued
 -- functor FC : C → ContCat; all constructions below are relative to these
@@ -72,7 +71,7 @@ module _ {o h e s p : Level}
       f       : Func X.Carrier Y.Carrier
       -- Commutation with the structure maps
       -- 与结构映射的交换性
-      commute : ∀ x → mapCosmosF (Func.to f) (Func.to X.α x)
+      commute : ∀ x → mapUnfolding (Func.to f) (Func.to X.α x)
                      ≡ Func.to Y.α (Func.to f x)
 
   -- Bisimulation _≈C_ on Cosmos and cosmosSetoid
@@ -287,10 +286,10 @@ module _ {o h e s p : Level}
   -- 终余代数性（Func 态射，≡ 交换条件）
   terminality : {r : Level} (X : Coalgebra r)
               → ∃ λ (f : Func (Coalgebra.Carrier X) cosmosSetoid) →
-                  (∀ x → mapCosmosF (Func.to f) (Func.to (Coalgebra.α X) x)
+                  (∀ x → mapUnfolding (Func.to f) (Func.to (Coalgebra.α X) x)
                          ≡ out (Func.to f x))
                 × (∀ (g : Func (Coalgebra.Carrier X) cosmosSetoid)
-                    → (∀ x → mapCosmosF (Func.to g) (Func.to (Coalgebra.α X) x)
+                    → (∀ x → mapUnfolding (Func.to g) (Func.to (Coalgebra.α X) x)
                            ≡ out (Func.to g x))
                     → ∀ x → Func.to f x ≈C Func.to g x)
   terminality X =

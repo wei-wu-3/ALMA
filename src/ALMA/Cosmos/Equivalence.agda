@@ -1,14 +1,14 @@
 ------------------------------------------------------------------------
 -- Bridge: a fully faithful and split essentially surjective functor
 -- induces a StrongEquivalence
--- 桥接：满忠实且分裂本质满射的函子诱导强等价
+-- 桥接：完全忠实且分裂本质满射的函子诱导强等价
 --
 -- Given F : C → D together with witnesses that F is fully faithful
 -- and split essentially surjective, constructs a StrongEquivalence C D
 -- The inverse functor is obtained from
 -- EssSurj×Full×Faithful⇒Invertible; the two natural isomorphisms
 -- F∘G ≅ id and G∘F ≅ id are constructed via fullness and faithfulness
--- 给定 F : C → D 以及 F 满忠实与分裂本质满射的见证，构造 StrongEquivalence C D
+-- 给定 F : C → D 以及 F 完全忠实与分裂本质满射的见证，构造 StrongEquivalence C D
 -- 逆函子取自 EssSurj×Full×Faithful⇒Invertible；
 -- 两个自然同构 F∘G ≅ id 与 G∘F ≅ id 经满性与忠实性构造
 ------------------------------------------------------------------------
@@ -31,7 +31,7 @@ open import Categories.Morphism using (_≅_; Iso)
 
 -- Bridge construction, parameterized by the functor, its fully-faithful
 -- witness, and the split essential surjectivity witness
--- 桥接构造，以函子、满忠实见证与分裂本质满射见证为参数
+-- 桥接构造，以函子、完全忠实见证与分裂本质满射见证为参数
 module _ {oc ℓc ec od ℓd ed : Level}
          {C : Category oc ℓc ec}
          {D : Category od ℓd ed}

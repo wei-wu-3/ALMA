@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- The category of containers (presentations of polynomial functors)
--- 容器范畴（容器是多项式函子的表示形式）
+-- 容器范畴（容器是多项式函子的语法呈现）
 --
 -- Defines the equivalence _≈M_ on morphisms between containers
 -- (pointwise propositional equality of the shape maps, equality of position
@@ -8,7 +8,7 @@
 -- category laws, and constructs a Category instance
 -- 定义容器态射上的等价关系 _≈M_
 -- （形状映射逐点命题相等；位置映射在沿形状映射相等的传输下命题相等），
--- 验证范畴公理，并构造 Category 实例
+-- 验证范畴定律，并构造 Category 实例
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 

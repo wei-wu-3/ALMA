@@ -44,6 +44,13 @@ import ALMA.Cosmos.FinCatNProjectiveObstruction
 import ALMA.Cosmos.FinCatNOuterObstruction
 import ALMA.Cosmos.FinCatNInnerObstruction
 import ALMA.Cosmos.FinCatNPermutedEmbedding
+import ALMA.Cosmos.FinCatNNonCommutative
+import ALMA.Cosmos.FinCatInfinity
+import ALMA.Cosmos.FinCatInfinityProjection
+import ALMA.Cosmos.FinCatInfinityTowerCompat
+import ALMA.Cosmos.FinCatInfinityColimit
+import ALMA.Cosmos.FinCatInfinityColimitUniversal
+-- import ALMA.Cosmos.WIP
 
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
@@ -63,7 +70,6 @@ import ALMA.Prototype.Indestructibility
 import ALMA.Prototype.Beings
 import ALMA.Prototype.Universe
 import ALMA.Prototype.StandardModel
-
+-- import ALMA.Prototype.Properties
 -- comp-cong-≃⇒ℱ hit a subst coherence obstruction and was left as a hole, excluded from CI
 -- comp-cong-≃⇒ℱ 撞上 subst 相干性障碍，留为洞，从 CI 排除
--- import ALMA.Prototype.Properties

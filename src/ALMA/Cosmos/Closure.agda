@@ -29,10 +29,9 @@ open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf)
-open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
+open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; mapUnfolding-id; mapUnfolding-∘; module UnfoldingSetoid)
 open import ALMA.Cosmos
-  using (Cosmos; out; UnitCosmos; UnitCat; UnitContainerFunctor; module CosmosMap)
-open CosmosMap
+  using (Cosmos; out; UnitCosmos; UnitCat; UnitContainerFunctor)
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; cosmosCoalg; _≈C_; ≈C-refl; ≈C-trans; cosmosSetoid)
 open import ALMA.Cosmos.Lambek using (in-F; in-F-resp-≈F; in∘out≈id; out∘in≈Fid)
@@ -89,7 +88,7 @@ module _ {o h e s p : Level}
   -- 映射闭包：将宇宙上的 Setoid 自映射提升为宇宙自身的映射
   mapℱ : Func CS CS → Func CS CS
   mapℱ F = record
-    { to   = λ x → in-F (mapCosmosF (Func.to F) (out x))
+    { to   = λ x → in-F (mapUnfolding (Func.to F) (out x))
     ; cong = λ {x} {y} x≈y →
         in-F-resp-≈F
           (Func.cong (US.mapUnfolding-resp F) (Func.cong outFunc x≈y))
@@ -103,8 +102,8 @@ module _ {o h e s p : Level}
     in begin
       Func.to (mapℱ idCS) x
         ≡⟨ refl ⟩
-      in-F (mapCosmosF (λ z → z) (out x))
-        ≡⟨ cong in-F (map-id (out x)) ⟩
+      in-F (mapUnfolding (λ z → z) (out x))
+        ≡⟨ cong in-F (mapUnfolding-id (out x)) ⟩
       in-F (out x)
         ≈⟨ in∘out≈id x ⟩
       x
@@ -120,13 +119,13 @@ module _ {o h e s p : Level}
     in begin
       Func.to (mapℱ (function F G)) x
         ≡⟨ refl ⟩
-      in-F (mapCosmosF (Func.to G ∘ Func.to F) (out x))
-        ≡⟨ cong in-F (map-∘ (Func.to G) (Func.to F) (out x)) ⟩
-      in-F (mapCosmosF (Func.to G) (mapCosmosF (Func.to F) (out x)))
+      in-F (mapUnfolding (Func.to G ∘ Func.to F) (out x))
+        ≡⟨ cong in-F (mapUnfolding-∘ (Func.to G) (Func.to F) (out x)) ⟩
+      in-F (mapUnfolding (Func.to G) (mapUnfolding (Func.to F) (out x)))
         ≈⟨ in-F-resp-≈F
             (Func.cong (US.mapUnfolding-resp G)
-              (US.≈U-sym CS (out∘in≈Fid (mapCosmosF (Func.to F) (out x))))) ⟩
-      in-F (mapCosmosF (Func.to G) (out (in-F (mapCosmosF (Func.to F) (out x)))))
+              (US.≈U-sym CS (out∘in≈Fid (mapUnfolding (Func.to F) (out x))))) ⟩
+      in-F (mapUnfolding (Func.to G) (out (in-F (mapUnfolding (Func.to F) (out x)))))
         ≡⟨ refl ⟩
       Func.to (mapℱ G) (Func.to (mapℱ F) x)
     ∎
@@ -134,8 +133,8 @@ module _ {o h e s p : Level}
   -- Compatibility of mapℱ with out (counit relation)
   -- mapℱ 与 out 的相容性（余单位关系）
   out-mapℱ : ∀ (F : Func CS CS) x
-           → US._≈U_ {X = CS} (out (Func.to (mapℱ F) x)) (mapCosmosF (Func.to F) (out x))
-  out-mapℱ F x = counit (mapCosmosF (Func.to F) (out x))
+           → US._≈U_ {X = CS} (out (Func.to (mapℱ F) x)) (mapUnfolding (Func.to F) (out x))
+  out-mapℱ F x = counit (mapUnfolding (Func.to F) (out x))
 
   -- Triangle identities for the adjoint equivalence out ⊣ in-F
   -- 伴随等价 out ⊣ in-F 的三角恒等式

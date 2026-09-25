@@ -8,13 +8,13 @@
 -- coalgebra. The key identities are:
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
---   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
+--   out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
 -- out : Cosmos → Unfolding Cosmos 构成弱同构：
 --   in-F ∘ out 与 id 互模拟，展开等价 US._≈U_
 -- 逆映射 in-F 由终对象的泛性质构造。关键恒等式为：
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
---   out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
+--   out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -33,9 +33,8 @@ open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
-open import ALMA.Cosmos using (Cosmos; out; module CosmosMap)
-open CosmosMap using (mapCosmosF; map-∘)
+open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; mapUnfolding-∘; module UnfoldingSetoid)
+open import ALMA.Cosmos using (Cosmos; out)
 open import ALMA.Cosmos.Terminal
   using (Coalgebra; CoalgHom; cosmosCoalg; ana-hom; unique-ana; ana-to; _≈C_; ≈C-sym; cosmosSetoid)
 
@@ -84,8 +83,8 @@ module _ {o h e s p : Level}
 
     FT-α : Func FT-Setoid (US.unfoldingSetoid FT-Setoid)
     FT-α = record
-      { to   = mapCosmosF out
-      ; cong = λ {c₁} {c₂} c₁≡c₂ → ≡→≈F-FT (cong (mapCosmosF out) c₁≡c₂)
+      { to   = mapUnfolding out
+      ; cong = λ {c₁} {c₂} c₁≡c₂ → ≡→≈F-FT (cong (mapUnfolding out) c₁≡c₂)
       }
 
   -- coalgebra (F T, F out)
@@ -127,11 +126,11 @@ module _ {o h e s p : Level}
     in∘out-hom : CoalgHom CC CC
     in∘out-hom = record { f = in∘out-f ; commute = commute-proof }
       where
-        commute-proof : ∀ x → mapCosmosF (in-F ∘ out) (out x) ≡ out (in-F (out x))
+        commute-proof : ∀ x → mapUnfolding (in-F ∘ out) (out x) ≡ out (in-F (out x))
         commute-proof x = let open ≡-Reasoning in begin
-          mapCosmosF (in-F ∘ out) (out x)
-            ≡⟨ map-∘ in-F out (out x) ⟩
-          mapCosmosF in-F (mapCosmosF out (out x))
+          mapUnfolding (in-F ∘ out) (out x)
+            ≡⟨ mapUnfolding-∘ in-F out (out x) ⟩
+          mapUnfolding in-F (mapUnfolding out (out x))
             ≡⟨ CoalgHom.commute in-hom (out x) ⟩
           out (in-F (out x))
           ∎
@@ -153,20 +152,20 @@ module _ {o h e s p : Level}
 
   -- out ∘ in-F ≡ F(in-F ∘ out)
   -- out ∘ in-F 与 F(in-F ∘ out) 命题相等
-  out∘in≡F∘ : ∀ y → out (in-F y) ≡ mapCosmosF (in-F ∘ out) y
+  out∘in≡F∘ : ∀ y → out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
   out∘in≡F∘ y = let open ≡-Reasoning in begin
     out (in-F y)
       ≡⟨ sym (CoalgHom.commute in-hom y) ⟩
-    mapCosmosF in-F (mapCosmosF out y)
-      ≡⟨ sym (map-∘ in-F out y) ⟩
-    mapCosmosF (in-F ∘ out) y
+    mapUnfolding in-F (mapUnfolding out y)
+      ≡⟨ sym (mapUnfolding-∘ in-F out y) ⟩
+    mapUnfolding (in-F ∘ out) y
     ∎
 
   -- F(in-F ∘ out) ≈F id_{F T}
   -- F(in-F ∘ out) 与 F T 上的恒等 ≈F 等价
   private
     open Unfolding using (unfold-next)
-    F∘≈Fid : ∀ y → US._≈U_ {X = CS} (mapCosmosF (in-F ∘ out) y) y
+    F∘≈Fid : ∀ y → US._≈U_ {X = CS} (mapUnfolding (in-F ∘ out) y) y
     F∘≈Fid y = record
       { unfoldFunctor₀-eq = λ _ → refl
       ; pos-to-shape-eq  = λ _ _ → refl
@@ -180,7 +179,7 @@ module _ {o h e s p : Level}
   out∘in≈Fid y =
     let open SetoidReasoning (US.unfoldingSetoid CS) in begin
       out (in-F y)                  ≡⟨ out∘in≡F∘ y ⟩
-      mapCosmosF (in-F ∘ out) y     ≈⟨ F∘≈Fid y ⟩
+      mapUnfolding (in-F ∘ out) y     ≈⟨ F∘≈Fid y ⟩
       y                             ∎
 
   -- out is a weak isomorphism (up to the respective equivalences)

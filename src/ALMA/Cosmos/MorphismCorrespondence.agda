@@ -28,8 +28,7 @@ open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
-open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_]; module CosmosMap)
-open CosmosMap using (mapCosmosF)
+open import ALMA.Cosmos using (Cosmos; out; _⇒ℱ[_]_; _⇒ℱ_; ⇒ℱLayer[_])
 open import ALMA.Cosmos.Terminal using (Coalgebra; CoalgHom; cosmosCoalg; _≈C_)
 open import ALMA.Cosmos.CoalgCat using (_≈Coalg_)
 
@@ -204,12 +203,12 @@ module _ {o h e s p : Level}
     field
       sf          : StructuredFunc
       x           : T
-      not-commute : ¬ (mapCosmosF (StructuredFunc.f sf) (out x)
+      not-commute : ¬ (mapUnfolding (StructuredFunc.f sf) (out x)
                      ≡ out (StructuredFunc.f sf x))
 
   not-full : NontrivialCosmos
     → ∃ λ (sf : StructuredFunc)
-    → ¬ (∀ z → mapCosmosF (StructuredFunc.f sf) (out z)
+    → ¬ (∀ z → mapUnfolding (StructuredFunc.f sf) (out z)
              ≡ out (StructuredFunc.f sf z))
   not-full nc =
     ( NontrivialCosmos.sf nc
