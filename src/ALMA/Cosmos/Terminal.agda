@@ -1,14 +1,16 @@
 ------------------------------------------------------------------------
--- Terminal Coalgebra of the Unfolding functor (Setoid carrier + ≡ commute)
--- Unfolding 函子的终余代数（Setoid 载体 + ≡ 交换条件）
+-- Terminal coalgebra of the Unfolding endofunctor, up to bisimulation
+-- (Setoid carrier + ≡ commute)
+-- 展开自函子在互模拟意义下的终余代数（Setoid 载体 + ≡ 交换条件）
 --
 -- Defines general F-coalgebras with Setoid carriers and Func structure maps,
 -- the anamorphism (unfold) into Cosmos, a bisimulation relation _≈C_ on Cosmos,
 -- and establishes the universal property: Cosmos is the terminal coalgebra of
--- the polynomial functor Unfolding (up to bisimulation)
+-- the unfolding endofunctor constructed from the container functor,
+-- up to bisimulation
 -- 定义具有 Setoid 载体与 Func 结构映射的一般 F-余代数、到 Cosmos 的 anamorphism（展开）、
--- Cosmos 上的互模拟关系 _≈C_，并证明泛性质：Cosmos 是多项式函子 Unfolding 的
--- （互模拟意义下的）终余代数
+-- Cosmos 上的互模拟关系 _≈C_，并证明泛性质：Cosmos 是由容器函子构造的展开自函子
+-- 在互模拟意义下的终余代数
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
@@ -16,10 +18,9 @@ module ALMA.Cosmos.Terminal where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Product.Base using (∃; _,_; _×_)
+open import Data.Product.Base using (∃; _,_; _×_; Σ; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (module ≡-Reasoning; subst-subst; subst-sym-subst)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 open import Relation.Binary.Bundles using (Setoid)
 open import Function.Bundles using (Func)
@@ -27,6 +28,7 @@ open import Function.Bundles using (Func)
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
+open import ALMA.Cosmos.Equivalence using (module SubstTransport-Left)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; module UnfoldingSetoid)
@@ -91,11 +93,30 @@ module _ {o h e s p : Level}
                        → subst (λ x → ShapeOf FC x) (unfoldFunctor₀-eq s)
                                 (UF.pos-to-shape s p)
                        ≡ UG.pos-to-shape s p
-      -- Next seeds are coinductively equivalent
-      -- 下一层种子余归纳地等价
+      -- Next seeds are coinductively equivalent (recursive _≈C_)
+      -- 下一层种子余归纳地等价（递归调用 _≈C_）
       unfold-next-eq   : ∀ {A} (s : ShapeOf FC A)
                        → UF.unfold-next s ≈C UG.unfold-next s
   open _≈C_
+
+  -- Instance of SubstTransport-Left for _≈C_, used only for the shape and
+  -- position components
+  -- 针对 _≈C_ 的 SubstTransport-Left 实例，仅用于 shape 与 position 分量
+  private
+    module ST = SubstTransport-Left
+      {S = Σ (Category.Obj C) (ShapeOf FC)}
+      {T = Category.Obj C}
+      (ShapeOf FC)
+      (λ { (A , s) → PosOf FC s })
+      {F = Cosmos C FC}
+      (λ F → Functor.₀ (Unfolding.unfoldFunctor (out F)))
+      (λ F {s} → Unfolding.pos-to-shape (out F) {proj₁ s} (proj₂ s))
+
+    to≈sl : ∀ {F G} → F ≈C G → ST._≈sl_ F G
+    to≈sl eq = record
+      { shape-eq    = λ { (A , s) → eq .unfoldFunctor₀-eq {A = A} s }
+      ; position-eq = λ { (A , s) p → eq .pos-to-shape-eq {A = A} s p }
+      }
 
   -- Reflexivity of the bisimulation relation
   -- 互模拟关系的自反性
@@ -109,41 +130,16 @@ module _ {o h e s p : Level}
   ≈C-sym : ∀ {F G} → F ≈C G → G ≈C F
   ≈C-sym {F} {G} eq .unfoldFunctor₀-eq = λ s → sym (eq .unfoldFunctor₀-eq s)
   ≈C-sym {F} {G} eq .pos-to-shape-eq {A} s p =
-    let module UF' = Unfolding (out F)
-        module UG' = Unfolding (out G)
-        u = eq .unfoldFunctor₀-eq s
-    in begin
-      subst (λ x → ShapeOf FC x) (sym u) (UG'.pos-to-shape s p)
-        ≡⟨ cong (subst (λ x → ShapeOf FC x) (sym u)) (sym (eq .pos-to-shape-eq s p)) ⟩
-      subst (λ x → ShapeOf FC x) (sym u)
-            (subst (λ x → ShapeOf FC x) u (UF'.pos-to-shape s p))
-        ≡⟨ subst-sym-subst u ⟩
-      UF'.pos-to-shape s p
-    ∎
+    ST._≈sl_.position-eq (ST.≈sl-sym (to≈sl eq)) (A , s) p
   ≈C-sym eq .unfold-next-eq s = ≈C-sym (eq .unfold-next-eq s)
 
   -- Transitivity of the bisimulation relation
   -- 互模拟关系的传递性
   ≈C-trans : ∀ {F G H} → F ≈C G → G ≈C H → F ≈C H
-  ≈C-trans {F} {G} {H} e1 e2 .unfoldFunctor₀-eq = λ s → trans (e1 .unfoldFunctor₀-eq s) (e2 .unfoldFunctor₀-eq s)
+  ≈C-trans {F} {G} {H} e1 e2 .unfoldFunctor₀-eq =
+    λ s → trans (e1 .unfoldFunctor₀-eq s) (e2 .unfoldFunctor₀-eq s)
   ≈C-trans {F} {G} {H} e1 e2 .pos-to-shape-eq {A} s p =
-    let module UF' = Unfolding (out F)
-        module UG' = Unfolding (out G)
-        module UH' = Unfolding (out H)
-        p₁ = e1 .unfoldFunctor₀-eq s
-        p₂ = e2 .unfoldFunctor₀-eq s
-        uf = UF'.pos-to-shape s p
-        ug = UG'.pos-to-shape s p
-        uh = UH'.pos-to-shape s p
-    in begin
-      subst (λ x → ShapeOf FC x) (trans p₁ p₂) uf
-        ≡⟨ sym (subst-subst p₁ {y≡z = p₂}) ⟩
-      subst (λ x → ShapeOf FC x) p₂ (subst (λ x → ShapeOf FC x) p₁ uf)
-        ≡⟨ cong (subst (λ x → ShapeOf FC x) p₂) (e1 .pos-to-shape-eq s p) ⟩
-      subst (λ x → ShapeOf FC x) p₂ ug
-        ≡⟨ e2 .pos-to-shape-eq s p ⟩
-      uh
-    ∎
+    ST._≈sl_.position-eq (ST.≈sl-trans (to≈sl e1) (to≈sl e2)) (A , s) p
   ≈C-trans e1 e2 .unfold-next-eq s =
     ≈C-trans (e1 .unfold-next-eq s) (e2 .unfold-next-eq s)
 
@@ -282,8 +278,8 @@ module _ {o h e s p : Level}
                 b'≡ = cong (λ u → unfold-next u s) eq-UG
             in helper seed a'≡ b'≡
 
-  -- Terminality (Func morphism, ≡ commute condition)
-  -- 终余代数性（Func 态射，≡ 交换条件）
+  -- Terminality up to _≈C_ (Func morphism, ≡ commute condition)
+  -- 在 _≈C_ 意义下的终余代数性（Func 态射，≡ 交换条件）
   terminality : {r : Level} (X : Coalgebra r)
               → ∃ λ (f : Func (Coalgebra.Carrier X) cosmosSetoid) →
                   (∀ x → mapUnfolding (Func.to f) (Func.to (Coalgebra.α X) x)

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
--- The category of containers (presentations of polynomial functors)
--- 容器范畴（容器是多项式函子的语法呈现）
+-- The category of containers (syntactic presentations of polynomial functors)
+-- 容器范畴（容器是多项式函子的语法表示；多项式函子是容器的语义解释）
 --
 -- Defines the equivalence _≈M_ on morphisms between containers
 -- (pointwise propositional equality of the shape maps, equality of position
@@ -19,13 +19,14 @@ open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.Structures using (IsEquivalence)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≗_; cong; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (subst-subst; subst-subst-sym; module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 open import Data.Container.Core using (Container; Shape; Position; _⇒_)
 open import Data.Container.Morphism using (id; _∘_)
 
 open import Categories.Category.Core using (Category)
+
+open import ALMA.Cosmos.Equivalence using (module SubstTransport-Right)
 
 -- The equivalence relation on morphisms: pointwise equal on shape maps,
 -- and on positions up to transport
@@ -41,56 +42,41 @@ module _ {s p} {X Y : Container s p} where
       position-eq   : ∀ (sh : Shape X) (q : Position Y (f.shape sh))
                 → f.position {sh} q ≡ g.position {sh} (subst (Position Y) (shape-eq sh) q)
 
+  open _≈M_
+
+  private
+    module SR = SubstTransport-Right
+      {S = Shape X} {T = Shape Y}
+      (Position Y) (Position X)
+      {F = X ⇒ Y}
+      _⇒_.shape _⇒_.position
+
+    to≈M : ∀ {f g} → SR._≈sr_ f g → f ≈M g
+    to≈M sr = record
+      { shape-eq    = SR._≈sr_.shape-eq sr
+      ; position-eq = SR._≈sr_.position-eq sr
+      }
+
+    to≈sr : ∀ {f g} → f ≈M g → SR._≈sr_ f g
+    to≈sr eq = record
+      { shape-eq    = eq .shape-eq
+      ; position-eq = eq .position-eq
+      }
+
   -- Reflexivity of _≈M_
   -- _≈M_ 的自反性
   ≈M-refl : ∀ {f : X ⇒ Y} → f ≈M f
-  ≈M-refl = record { shape-eq = λ _ → refl ; position-eq = λ _ _ → refl }
+  ≈M-refl = to≈M SR.≈sr-refl
 
   -- Symmetry of _≈M_
   -- _≈M_ 的对称性
   ≈M-sym : ∀ {f g : X ⇒ Y} → f ≈M g → g ≈M f
-  ≈M-sym {f} {g} eq = record
-    { shape-eq = λ sh → sym (eq.shape-eq sh)
-    ; position-eq   = λ sh q →
-        let e = eq.shape-eq sh in
-        begin
-          G.position {sh} q
-            ≡˘⟨ cong (G.position {sh}) (subst-subst-sym e) ⟩
-          G.position {sh}
-            (subst (Position Y) e (subst (Position Y) (sym e) q))
-            ≡˘⟨ eq.position-eq sh (subst (Position Y) (sym e) q) ⟩
-          F.position {sh} (subst (Position Y) (sym e) q)
-        ∎
-    }
-    where
-      module F  = _⇒_ f
-      module G  = _⇒_ g
-      module eq = _≈M_ eq
+  ≈M-sym eq = to≈M (SR.≈sr-sym (to≈sr eq))
 
   -- Transitivity of _≈M_
   -- _≈M_ 的传递性
   ≈M-trans : ∀ {f g h : X ⇒ Y} → f ≈M g → g ≈M h → f ≈M h
-  ≈M-trans {f} {g} {h} eq-fg eq-gh = record
-    { shape-eq = λ sh → trans (FG.shape-eq sh) (GH.shape-eq sh)
-    ; position-eq   = λ sh q →
-        let q₁ = subst (Position Y) (FG.shape-eq sh) q in
-        begin
-          F.position {sh} q
-            ≡⟨ FG.position-eq sh q ⟩
-          G.position {sh} q₁
-            ≡⟨ GH.position-eq sh q₁ ⟩
-          H.position {sh} (subst (Position Y) (GH.shape-eq sh) q₁)
-            ≡⟨ cong (H.position {sh})
-                 (subst-subst (FG.shape-eq sh) {y≡z = GH.shape-eq sh}) ⟩
-          H.position {sh} (subst (Position Y) (trans (FG.shape-eq sh) (GH.shape-eq sh)) q)
-            ∎
-    }
-    where
-      module F  = _⇒_ f
-      module G  = _⇒_ g
-      module H  = _⇒_ h
-      module FG = _≈M_ eq-fg
-      module GH = _≈M_ eq-gh
+  ≈M-trans eq₁ eq₂ = to≈M (SR.≈sr-trans (to≈sr eq₁) (to≈sr eq₂))
 
   -- _≈M_ is an equivalence relation
   -- _≈M_ 构成等价关系
@@ -105,8 +91,10 @@ module _ {s p} {X Y : Container s p} where
   -- 容器态射等价 _≈M_ 的等式推理组合子
   module ≈M-Reasoning where
     open import Relation.Binary.Reasoning.Setoid (record
-      { Carrier = X ⇒ Y ; _≈_ = _≈M_ ; isEquivalence = ≈M-isEquiv })
-      public
+      { Carrier       = X ⇒ Y
+      ; _≈_           = _≈M_
+      ; isEquivalence = ≈M-isEquiv
+      }) public
 
 module _ {s p} {B C : Container s p} where
   -- Position commutes with substitution along shape map equalities
@@ -118,7 +106,7 @@ module _ {s p} {B C : Container s p} where
   position-subst g refl q = refl
 
   -- Left whiskering: g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
-  -- 左复合保持等价：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
+  -- 左 whiskering（与 f 前复合）保持等价：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
   ∘M-resp-≈ˡ : ∀ {A : Container s p} {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
             → g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
   ∘M-resp-≈ˡ {A} {g₁} {g₂} {f} eq = record
@@ -130,7 +118,7 @@ module _ {s p} {B C : Container s p} where
       module eq = _≈M_ eq
 
   -- Right whiskering: f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
-  -- 右复合保持等价：f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
+  -- 右 whiskering（与 g 后复合）保持等价：f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
   ∘M-resp-≈ʳ : ∀ {A : Container s p} {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
             → f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
   ∘M-resp-≈ʳ {A} {g} {f₁} {f₂} eq = record

@@ -1,22 +1,32 @@
 ------------------------------------------------------------------------
--- Bridge: a fully faithful and split essentially surjective functor
--- induces a StrongEquivalence
--- 桥接：完全忠实且分裂本质满射的函子诱导强等价
+-- Abstract equivalence-relation skeleton and StrongEquivalence bridge
+-- 抽象等价关系骨架与强等价桥接
 --
--- Given F : C → D together with witnesses that F is fully faithful
--- and split essentially surjective, constructs a StrongEquivalence C D
--- The inverse functor is obtained from
+-- proof combinators for the equivalence-relation
+-- pattern "pointwise equality + subst-transport", used by _≈M_ and _≈U_
+-- given F : C → D together with witnesses that F
+-- is fully faithful and split essentially surjective, constructs a
+-- StrongEquivalence C D.  The inverse functor is obtained from
 -- EssSurj×Full×Faithful⇒Invertible; the two natural isomorphisms
 -- F∘G ≅ id and G∘F ≅ id are constructed via fullness and faithfulness
--- 给定 F : C → D 以及 F 完全忠实与分裂本质满射的见证，构造 StrongEquivalence C D
--- 逆函子取自 EssSurj×Full×Faithful⇒Invertible；
--- 两个自然同构 F∘G ≅ id 与 G∘F ≅ id 经满性与忠实性构造
+-- _≈M_ 与 _≈U_ 所用的"逐点相等 + subst 传输"模式的证明组合子
+-- 非依赖函数用 _≗_，依赖函数用 ≡-setoid
+-- 给定 F : C → D 以及 F 完全忠实与分裂本质满射的
+-- 见证，构造 StrongEquivalence C D。逆函子取自
+-- EssSurj×Full×Faithful⇒Invertible；两个自然同构 F∘G ≅ id 与 G∘F ≅ id
+-- 经满性与忠实性构造
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
 
 module ALMA.Cosmos.Equivalence where
 
-open import Agda.Primitive using (Level)
+open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Builtin.Equality using (_≡_)
+open import Relation.Binary.PropositionalEquality.Core
+  using (refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality.Properties
+  using (subst-subst; subst-subst-sym; subst-sym-subst; module ≡-Reasoning)
+open import Relation.Binary.Structures using (IsEquivalence)
 open import Data.Product.Base using (proj₁; proj₂)
 
 open import Categories.Category.Core using (Category)
@@ -28,6 +38,147 @@ open import Categories.Functor.Properties
 open import Categories.NaturalTransformation.Core using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism)
 open import Categories.Morphism using (_≅_; Iso)
+
+-- Pointwise equality with subst-transport, target-side transport
+-- Corresponds to _≈M_: the shape component is pointwise equality, and
+-- the position component transports a target-side position along the
+-- shape equality before applying pos back to the source
+-- 逐点相等 + subst 传输，目标侧传输
+-- 对应 _≈M_：形状分量逐点相等；位置分量中 subst 作用在目标侧位置，
+-- 再经 pos 映回源位置
+module SubstTransport-Right
+    {a b c d e : Level}
+    {S : Set a} {T : Set c}
+    (P : T → Set b)
+    (R : S → Set d)
+    {F : Set e}
+    (shape : F → S → T)
+    (pos   : (f : F) → ∀ {s : S} → P (shape f s) → R s)
+  where
+
+  record _≈sr_ (f g : F) : Set (a ⊔ b ⊔ c ⊔ d ⊔ e) where
+    field
+      shape-eq    : ∀ s → shape f s ≡ shape g s
+      position-eq : ∀ s (q : P (shape f s))
+                  → pos f q ≡ pos g (subst P (shape-eq s) q)
+  open _≈sr_
+
+  ≈sr-refl : ∀ {f} → f ≈sr f
+  ≈sr-refl = record
+    { shape-eq    = λ _ → refl
+    ; position-eq = λ _ _ → refl
+    }
+
+  ≈sr-sym : ∀ {f g} → f ≈sr g → g ≈sr f
+  ≈sr-sym {f} {g} p = record
+    { shape-eq    = λ s → sym (p .shape-eq s)
+    ; position-eq = λ s q →
+        let e = p .shape-eq s
+        in begin
+          pos g q
+            ≡˘⟨ cong (pos g) (subst-subst-sym {P = P} e {p = q}) ⟩
+          pos g (subst P e (subst P (sym e) q))
+            ≡˘⟨ p .position-eq s (subst P (sym e) q) ⟩
+          pos f (subst P (sym e) q)
+          ∎
+    }
+    where open ≡-Reasoning
+
+  ≈sr-trans : ∀ {f g h} → f ≈sr g → g ≈sr h → f ≈sr h
+  ≈sr-trans {f} {g} {h} p q = record
+    { shape-eq    = λ s → trans (p .shape-eq s) (q .shape-eq s)
+    ; position-eq = λ s r →
+        let e₁ = p .shape-eq s
+            e₂ = q .shape-eq s
+            r₁ = subst P e₁ r
+        in begin
+          pos f r
+            ≡⟨ p .position-eq s r ⟩
+          pos g r₁
+            ≡⟨ q .position-eq s r₁ ⟩
+          pos h (subst P e₂ r₁)
+            ≡⟨ cong (pos h) (subst-subst {P = P} e₁ {y≡z = e₂} {p = r}) ⟩
+          pos h (subst P (trans e₁ e₂) r)
+          ∎
+    }
+    where open ≡-Reasoning
+
+  ≈sr-isEquivalence : IsEquivalence _≈sr_
+  ≈sr-isEquivalence = record
+    { refl  = ≈sr-refl
+    ; sym   = ≈sr-sym
+    ; trans = ≈sr-trans
+    }
+
+-- Pointwise equality with subst-transport, source-side transport
+-- Corresponds to _≈U_: the shape component is pointwise equality, and
+-- the position component transports the result of pos along the shape
+-- equality from the source to the target side
+-- 逐点相等 + subst 传输，源侧传输
+-- 对应 _≈U_：形状分量逐点相等；位置分量中 subst 作用在 pos 的结果上，
+-- 把源侧位置沿形状等式搬到目标侧
+module SubstTransport-Left
+    {a b c d e : Level}
+    {S : Set a} {T : Set c}
+    (P : T → Set b)
+    (R : S → Set d)
+    {F : Set e}
+    (shape : F → S → T)
+    (pos   : (f : F) → ∀ {s : S} → R s → P (shape f s))
+  where
+
+  record _≈sl_ (f g : F) : Set (a ⊔ b ⊔ c ⊔ d ⊔ e) where
+    field
+      shape-eq    : ∀ s → shape f s ≡ shape g s
+      position-eq : ∀ s (q : R s)
+                  → subst P (shape-eq s) (pos f q) ≡ pos g q
+  open _≈sl_
+
+  ≈sl-refl : ∀ {f} → f ≈sl f
+  ≈sl-refl = record
+    { shape-eq    = λ _ → refl
+    ; position-eq = λ _ _ → refl
+    }
+
+  ≈sl-sym : ∀ {f g} → f ≈sl g → g ≈sl f
+  ≈sl-sym {f} {g} p = record
+    { shape-eq    = λ s → sym (p .shape-eq s)
+    ; position-eq = λ s q →
+        let e = p .shape-eq s
+        in begin
+          subst P (sym e) (pos g q)
+            ≡˘⟨ cong (subst P (sym e)) (p .position-eq s q) ⟩
+          subst P (sym e) (subst P e (pos f q))
+            ≡⟨ subst-sym-subst {P = P} e {p = pos f q} ⟩
+          pos f q
+          ∎
+    }
+    where open ≡-Reasoning
+
+  ≈sl-trans : ∀ {f g h} → f ≈sl g → g ≈sl h → f ≈sl h
+  ≈sl-trans {f} {g} {h} p q = record
+    { shape-eq    = λ s → trans (p .shape-eq s) (q .shape-eq s)
+    ; position-eq = λ s r →
+        let e₁ = p .shape-eq s
+            e₂ = q .shape-eq s
+        in begin
+          subst P (trans e₁ e₂) (pos f r)
+            ≡⟨ sym (subst-subst {P = P} e₁ {y≡z = e₂} {p = pos f r}) ⟩
+          subst P e₂ (subst P e₁ (pos f r))
+            ≡⟨ cong (subst P e₂) (p .position-eq s r) ⟩
+          subst P e₂ (pos g r)
+            ≡⟨ q .position-eq s r ⟩
+          pos h r
+          ∎
+    }
+    where open ≡-Reasoning
+
+  ≈sl-isEquivalence : IsEquivalence _≈sl_
+  ≈sl-isEquivalence = record
+    { refl  = ≈sl-refl
+    ; sym   = ≈sl-sym
+    ; trans = ≈sl-trans
+    }
 
 -- Bridge construction, parameterized by the functor, its fully-faithful
 -- witness, and the split essential surjectivity witness
