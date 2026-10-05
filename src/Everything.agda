@@ -87,6 +87,7 @@ import ALMA.Cosmos.Carried.FinNatUIP
 import ALMA.Cosmos.Carried.FinProj
 import ALMA.Cosmos.Carried.LimitSystem
 import ALMA.Cosmos.Carried.FinColimit
+import ALMA.Cosmos.Carried.FinTower
 
 ------------------------------------------------------------------------
 -- Frozen archives
