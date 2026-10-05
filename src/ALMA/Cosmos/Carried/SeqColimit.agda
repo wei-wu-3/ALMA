@@ -51,10 +51,13 @@
 module ALMA.Cosmos.Carried.SeqColimit where
 
 open import Agda.Primitive using (Level; _⊔_; lsuc)
+open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Builtin.Equality using (_≡_)
 open import Data.Nat.Base using (ℕ; zero; suc)
 
 open import ALMA.Base.MCorr
   using (Sys; FMap; _≈F_; idF; compF
+        ; I
         ; ≈F-refl; ≈F-trans
         ; ∘-resp-≈; sym-assoc-f; identityʳ-f)
 
@@ -208,3 +211,71 @@ record Colimit (i a b : Level) (ch : Chain i a b)
     has  : IsColimit Apex coc
 
 open Colimit public
+
+------------------------------------------------------------------------
+-- Carried colimit LIMIT STRUCTURE (existence data).
+--
+-- A chain alone does not determine a colimit without quotienting
+-- indices (which would reintroduce propositional identification). The
+-- colimit exists relative to a pre-given limit system L with UNBOUNDED
+-- positions (the analogue of FinCat∞/ℕ) and carried injections π m of
+-- each stage into L, together with:
+--
+--   * π-coh — the injections are compatible with the embeddings, up to
+--     behavioural equivalence (this packages the carried cocone);
+--
+--   * rep    — EVERY limit point has a SPECIFIED, TOTAL finite-stage
+--     representative (m , x) together with the homogeneous graph
+--     witness u (π m) x ≡ v.
+--
+-- rep is the carried replacement for the old defaultFin. The old
+-- defaultFin : ℕ → Fin n was a PARTIAL canonicaliser into a BOUNDED
+-- finite set (out-of-range collapsed to fzero), which forced the
+-- "sufficiently large layer L ≥ base+k+1" device in the uniqueness
+-- proof. Here the limit positions are unbounded (ℕ), so the
+-- representative at position k is simply stage k: rep is a total
+-- function with no bound, no out-of-range case, no threshold. The graph
+-- witness is homogeneous in I L — the only equality, on a single index
+-- type; dependent fibres are aligned by carried FiberAdj (added later
+-- as rep-child), never transported.
+--
+-- 携带式余极限的极限结构（存在性数据）。
+-- 仅有链并不能在不商索引的前提下确定余极限（商索引会重新引入命题
+-- 识别）。余极限相对于一个预给的极限系统 L 存在：L 具有无界位置（类
+-- 比 FinCat∞/ℕ），每层到 L 有携带注入 π m，并附带：
+--
+--   * π-coh —— 注入与嵌入在行为等价意义下相容（即打包的携带余锥）；
+--
+--   * rep   —— 每个极限点都有一个指定的、全函数的有限层代表
+--     (m , x) 及同质图见证 u (π m) x ≡ v。
+--
+-- rep 是旧 defaultFin 的携带替代。旧 defaultFin : ℕ → Fin n 是到有界
+-- 有限集的偏典范化（越界塌为 fzero），逼出了唯一性证明里"足够大层
+-- L ≥ base+k+1"的装置。此处极限位置无界（ℕ），位置 k 的代表就是第
+-- k 层：rep 是全函数，无界、无越界、无阈值。图见证在 I L 中同质 ——
+-- 唯一的等式，位于单一索引类型；依赖纤维由携带的 FiberAdj（后续以
+-- rep-child 加入）对齐，绝不传输。
+------------------------------------------------------------------------
+record Limit {i a b : Level} (ch : Chain i a b)
+       : Set (lsuc (i ⊔ a ⊔ b)) where
+
+  field
+    L     : Sys i a b
+    π     : (m : ℕ) → FMap (X ch m) L
+    π-coh : (m : ℕ) → compF (π (suc m)) (emb ch m) ≈F π m
+
+    -- Total finite-stage representative of every limit point.
+    --
+    -- 每个极限点的全函数有限层代表。
+    rep   : (v : I L)
+          → Σ ℕ λ m →
+            Σ (I (X ch m)) λ x →
+            FMap.u (π m) x ≡ v
+
+  -- The injections are a carried cocone over the chain with apex L.
+  --
+  -- 注入即以 L 为 apex 的携带余锥。
+  cocone : Cocone ch L
+  cocone = record { leg = π ; coh = π-coh }
+
+open Limit public
