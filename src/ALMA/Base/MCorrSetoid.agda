@@ -65,7 +65,7 @@ open import Data.Nat using (ℕ)
 open import Data.Bool using (Bool; true; false)
 open import Data.Product.Base using (_×_; proj₁; proj₂)
 
-open import ALMA.Base.MCorr using (M; FiberAdj)
+open import ALMA.Base.MCorr using (M; FiberAdj; _⍮_)
 
 ------------------------------------------------------------------------
 -- Equivalence on a manifest carrier
@@ -233,6 +233,121 @@ toAdjˢ a = record
   ; fro = fro a
   ; η   = η a
   ; ε   = ε a
+  }
+
+------------------------------------------------------------------------
+-- Systems carrying label/edge equivalences
+-- A SysEq is a MCorr Sys together with a label EqOn at every index
+-- and an edge EqOn on every edge fibre.  The M type itself is unchanged
+-- (edges are data); only the comparison/coherence regime is carried.
+--
+-- 携带标签/边等价的系统
+-- SysEq 即 MCorr Sys 外加每个索引上的标签 EqOn 与每根边纤维上的边
+-- EqOn。M 型本身不变（边是数据）；被携带的只是比较/相干制度。
+------------------------------------------------------------------------
+record SysEq (i a b ℓa ℓe : Level) : Set (lsuc (i ⊔ a ⊔ ℓa ⊔ b ⊔ ℓe)) where
+  field
+    I   : Set i
+    A   : I → Set a
+    E   : (x : I) (a : A x) (y : I) → Set b
+    ≈A  : (x : I) → EqOn {ℓ = ℓa} (A x)
+    ≈E  : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y)
+open SysEq public
+
+------------------------------------------------------------------------
+-- One-step carried correspondence over an arbitrary index layer R,
+-- with the edge fibre adjunction at the carried EqOn.  The index layer
+-- R stays arbitrary (it need not be propositional equality); the tree
+-- action mapR only uses fro/pull and contains no equality at all.
+--
+-- 任意索引层 R 上的一步携带对应，边纤维伴随建立在携带的 EqOn 上。
+-- 索引层 R 保持任意（不必是命题相等）；树作用 mapR 仅用 fro/pull，
+-- 不含任何相等。
+------------------------------------------------------------------------
+record Stepˢ {i j a b c d ℓr ℓa ℓe ℓc ℓd : Level}
+             (X : SysEq i a b ℓa ℓe)
+             (Y : SysEq j c d ℓc ℓd)
+             (R : I X → I Y → Set ℓr)
+             {x : I X} {y : I Y} (r : R x y)
+       : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓr ⊔ ℓa ⊔ ℓe ⊔ ℓc ⊔ ℓd) where
+  field
+    shapeᴿ   : A X x → A Y y
+    child    : (a : A X x) (v : I Y) → Σ (I X) λ x' → R x' v
+    edge-adj : (a : A X x) (v : I Y)
+             → FiberAdjˢ (≈E Y y (shapeᴿ a) v)
+                          (≈E X x a (proj₁ (child a v)))
+
+  pullˢ : (a : A X x) (v : I Y) (q : E Y y (shapeᴿ a) v)
+        → Σ (I X) λ x' → Σ (E X x a x') λ e → R x' v
+  pullˢ a v q =
+    let x' , r' = child a v
+    in x' , fro (edge-adj a v) q , r'
+open Stepˢ public
+
+record Morphˢ {i j a b c d ℓr ℓa ℓe ℓc ℓd : Level}
+              (X : SysEq i a b ℓa ℓe)
+              (Y : SysEq j c d ℓc ℓd)
+              (R : I X → I Y → Set ℓr)
+       : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓr ⊔ ℓa ⊔ ℓe ⊔ ℓc ⊔ ℓd) where
+  field
+    step : ∀ {x : I X} {y : I Y} (r : R x y)
+         → Stepˢ X Y R r
+
+  mapR : ∀ {x : I X} {y : I Y} → R x y
+       → M (A X) (E X) x → M (A Y) (E Y) y
+  mapR r t .M.here   = shapeᴿ (step r) (M.here t)
+  mapR r t .M.below v q =
+    let x' , e , r' = pullˢ (step r) (M.here t) v q
+    in mapR r' (M.below t x' e)
+open Morphˢ public
+
+------------------------------------------------------------------------
+-- Composition of setoid carried correspondences; the edge adjunctions
+-- compose via compAdjˢ (round-trips at the carried EqOn).
+--
+-- setoid 携带式对应的复合；边伴随经 compAdjˢ 复合（往返律建立在携带
+-- 的 EqOn 上）。
+------------------------------------------------------------------------
+compMˢ :
+  ∀ {i j k a b c d e f ℓ₁ ℓ₂ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+    {X : SysEq i a b ℓa ℓe}
+    {Y : SysEq j c d ℓc ℓd}
+    {Z : SysEq k e f ℓg ℓh}
+    {R : I X → I Y → Set ℓ₁} {S : I Y → I Z → Set ℓ₂}
+  → Morphˢ X Y R → Morphˢ Y Z S → Morphˢ X Z (R ⍮ S)
+compMˢ {X = X} {Y = Y} {Z = Z} φ ψ .step {x = x} {y = z} (ym , r , s) =
+  let φr = step φ r
+      ψs = step ψ s
+  in record
+  { shapeᴿ = λ a → shapeᴿ ψs (shapeᴿ φr a)
+  ; child = λ a w →
+      let ym' , s' = child ψs (shapeᴿ φr a) w
+          x' , r'  = child φr a ym'
+      in x' , (ym' , r' , s')
+  ; edge-adj = λ a w →
+      let ym' , s' = child ψs (shapeᴿ φr a) w
+          x' , r'  = child φr a ym'
+      in compAdjˢ (≈E X x a x')
+                  (≈E Y ym (shapeᴿ φr a) ym')
+                  (≈E Z z (shapeᴿ ψs (shapeᴿ φr a)) w)
+                  (edge-adj φr a ym')
+                  (edge-adj ψs (shapeᴿ φr a) w)
+  }
+
+------------------------------------------------------------------------
+-- Identity: the free path groupoid on the index.  The index layer here
+-- is propositional equality (matching the old Cosmos index regime),
+-- while the edge round-trips are at the carried EqOn.
+--
+-- 恒等：索引上的自由路径广群。此处索引层为命题相等（与旧 Cosmos 索引
+-- 制度一致），而边往返律建立在携带的 EqOn 上。
+------------------------------------------------------------------------
+idMˢ : ∀ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
+     → Morphˢ X X (λ (x y : I X) → x ≡ y)
+idMˢ X .step {x = x₀} {y = .x₀} ≡refl = record
+  { shapeᴿ   = λ a → a
+  ; child    = λ a v → v , ≡refl
+  ; edge-adj = λ a v → idAdjˢ (≈E X x₀ a v)
   }
 
 ------------------------------------------------------------------------
