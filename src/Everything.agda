@@ -89,6 +89,7 @@ import ALMA.Cosmos.Carried.LimitSystem
 import ALMA.Cosmos.Carried.FinColimit
 import ALMA.Cosmos.Carried.FinTower
 import ALMA.Cosmos.Carried.DetColimit
+import ALMA.Cosmos.Carried.Boundaries
 import ALMA.Cosmos.Carried.FinEmbed
 
 ------------------------------------------------------------------------
