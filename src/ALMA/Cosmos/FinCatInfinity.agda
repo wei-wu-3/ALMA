@@ -1,20 +1,34 @@
 ------------------------------------------------------------------------
--- FinCat∞: colimit category Indiscrete ℕ with universal property
--- FinCat∞：余极限范畴 Indiscrete ℕ 及其泛性质
+-- FinCat∞: the colimit category Indiscrete ℕ (carried, zero-subst core)
+-- FinCat∞：余极限范畴 Indiscrete ℕ（携带式零 subst 内核）
 --
--- The family {FinCatN m} = {Indiscrete (Fin n_m)}, where n_m = suc (suc m),
--- has colimit Indiscrete ℕ. This module proves the universal property at
--- Set level:
---   ColimitCone X: a compatible family {g_m : Fin n_m → X} with
---     g_{suc m} ∘ inject₁ ≡ g_m
---   colimitUniv: every cone has a unique extension g∞ : ℕ → X with
---     g∞ ∘ toℕ ≡ g_m for all m
--- The construction uses natToFin k : Fin (suc (suc k)) (toℕ = k) and
--- compatibility to make the choice of m irrelevant.
--- {FinCatN m}（n_m = suc(suc m)）的余极限为 Indiscrete ℕ。
--- 本模块在 Set 层面证明泛性质：
---   ColimitCone X：相容族 {g_m}，满足 g_{suc m} ∘ inject₁ ≡ g_m
---   colimitUniv：每个锥有唯一扩展 g∞ : ℕ → X，g∞ ∘ toℕ ≡ g_m
+-- The family {FinCatN m} = {Indiscrete (Fin n_m)}, n_m = suc (suc m),
+-- has colimit Indiscrete ℕ. This module now keeps only the live surface:
+--
+--   FinCat∞ / TrivialFC∞ / ∞Layer / ∞Idx / ∞Tower / n-at
+--
+-- The Set-level colimit universal property (formerly a ~170-line
+-- construction with inject₁^d packaged in subst Fin (+-suc) and a
+-- two-way ≤-total argument) is now provided ZERO-SUBST by
+-- ALMA.Cosmos.Carried.FinColimit (FinCone / colimitUniv), re-exported
+-- below under the historical names for a stable API. The d-fold finite
+-- embedding is embFin from LimitSystem, whose target size
+-- n-at (shift d m) reduces definitionally (shift d m = m + d by the same
+-- recursion), so there is no subst Fin (+-suc) / castCosmos /
+-- ShiftedTower anywhere.
+--
+-- 有限族 {FinCatN m} = {Indiscrete (Fin n_m)}（n_m = suc (suc m)）的余
+-- 极限为 Indiscrete ℕ。本模块现在只保留活跃表面：
+--
+--   FinCat∞ / TrivialFC∞ / ∞Layer / ∞Idx / ∞Tower / n-at
+--
+-- Set 层余极限泛性质（先前是约 170 行、把 inject₁^d 包在
+-- subst Fin (+-suc) 并用双向 ≤-total 的构造）现由
+-- ALMA.Cosmos.Carried.FinColimit（FinCone / colimitUniv）零 subst 提
+-- 供，并在下方以历史名重新导出以稳定 API。d 次有限嵌入即 LimitSystem
+-- 的 embFin，其目标尺寸 n-at (shift d m) 定义性归约（shift d m 与
+-- m + d 是同一递归），故全程无 subst Fin (+-suc) / castCosmos /
+-- ShiftedTower。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
@@ -24,17 +38,8 @@ open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Level using (Lift; lift)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _≤_)
-open import Data.Nat.Properties
-  using ( +-suc; +-identityʳ; m+[n∸m]≡n; ≤-total )
-open import Data.Fin.Base using (Fin; toℕ; inject₁)
-  renaming (zero to fzero; suc to fsuc)
-open import Data.Fin.Properties using (toℕ-inject₁; toℕ-injective)
-open import Data.Product.Base using (Σ; _,_)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open ≡-Reasoning
+open import Data.Nat using (ℕ)
+open import Data.Fin.Base using (Fin; toℕ)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Indiscrete using (Indiscrete)
@@ -44,6 +49,20 @@ open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.StrictLift using (StrictLayer)
 open import ALMA.Cosmos.CumulativeHierarchyLimit using (LayerIdx; Tower)
 
+-- The carried, zero-subst size / representatives / embedding and the
+-- Set-level universal property (single source of truth).
+--
+-- 携带式零 subst 的尺寸 / 代表 / 嵌入与 Set 层泛性质（唯一事实来源）。
+open import ALMA.Cosmos.Carried.LimitSystem public
+  using (n-at; natToFin; toℕ-natToFin; embFin; toℕ-embFin)
+open import ALMA.Cosmos.Carried.SeqColimit public using (shift)
+open import ALMA.Cosmos.Carried.FinColimit public
+  using (FinCone; colimitUniv)
+
+-- The colimit category and its trivial container functor (all shapes and
+-- positions are the lifted unit).
+--
+-- 余极限范畴及其平凡容器函子（所有形状与位置均为提升的单位类型）。
 FinCat∞ : Category lzero lzero lzero
 FinCat∞ = Indiscrete ℕ
 
@@ -80,176 +99,31 @@ TrivialFC∞ = record
 ∞Tower : Tower ∞Idx
 ∞Tower = record { layer₀ = ∞Layer }
 
--- Colimit universal property at Set level
--- Set 层面的余极限泛性质
+------------------------------------------------------------------------
+-- Historical API names, backed by the zero-subst carried construction.
+--
+-- 历史 API 名，由零 subst 携带式构造支撑。
+------------------------------------------------------------------------
 
--- n-at m = suc (suc m): the size of FinCatN m's object set
--- n-at m = suc (suc m)：FinCatN m 对象集的大小
-n-at : ℕ → ℕ
-n-at m = suc (suc m)
+-- A compatible cone over the finite stages (formerly ColimitCone).
+-- FinCone carries at / compat plus the subst-free compat-emb.
+--
+-- 有限层上的相容锥（旧名 ColimitCone）。FinCone 携带 at / compat 以及
+-- 零 subst 的 compat-emb。
+ColimitCone : Set → Set
+ColimitCone = FinCone
 
--- natToFin k : Fin (n-at k), the unique element with toℕ = k
--- natToFin k : Fin (n-at k)，toℕ = k 的唯一元素
-natToFin : ∀ k → Fin (n-at k)
-natToFin zero    = fzero
-natToFin (suc k) = fsuc (natToFin k)
+-- d-fold finite embedding, stated with the carried shift index (which is
+-- definitionally m + d). This replaces the old subst Fin (+-suc) packaging.
+--
+-- d 次有限嵌入，以携带式 shift 索引陈述（定义性等于 m + d）。取代旧的
+-- subst Fin (+-suc) 包装。
+inject₁^d : ∀ d {m} → Fin (n-at m) → Fin (n-at (shift d m))
+inject₁^d d {m} x = embFin d m x
 
-toℕ-natToFin : ∀ k → toℕ (natToFin k) ≡ k
-toℕ-natToFin zero    = refl
-toℕ-natToFin (suc k) = cong suc (toℕ-natToFin k)
-
--- inject₁^d d: iterated inject₁, Fin (n-at m) → Fin (n-at (m + d))
--- inject₁^d d：inject₁ 的 d 次迭代，Fin (n-at m) → Fin (n-at (m + d))
-inject₁^d : ∀ d {m} → Fin (n-at m) → Fin (n-at (m + d))
-inject₁^d zero    {m} x = subst Fin (cong n-at (sym (+-identityʳ m))) x
-inject₁^d (suc d) {m} x =
-  subst Fin (cong n-at (sym (+-suc m d))) (inject₁ (inject₁^d d x))
-
-toℕ-subst : ∀ {n m} (eq : n ≡ m) (x : Fin n) → toℕ (subst Fin eq x) ≡ toℕ x
-toℕ-subst refl x = refl
-
-at-subst : ∀ {X : Set} (at : ∀ m → Fin (n-at m) → X)
-  {m m'} (eq : m ≡ m') (z : Fin (n-at m))
-  → at m' (subst Fin (cong n-at eq) z) ≡ at m z
-at-subst at refl z = refl
-
-toℕ-inject₁^d : ∀ d {m} (x : Fin (n-at m)) → toℕ (inject₁^d d x) ≡ toℕ x
-toℕ-inject₁^d zero    {m} x =
-  toℕ-subst (cong n-at (sym (+-identityʳ m))) x
-toℕ-inject₁^d (suc d) {m} x =
-  begin
-    toℕ (inject₁^d (suc d) x)
-      ≡⟨ toℕ-subst (cong n-at (sym (+-suc m d))) (inject₁ (inject₁^d d x)) ⟩
-    toℕ (inject₁ (inject₁^d d x))
-      ≡⟨ toℕ-inject₁ (inject₁^d d x) ⟩
-    toℕ (inject₁^d d x)
-      ≡⟨ toℕ-inject₁^d d x ⟩
-    toℕ x
-  ∎
-
--- Compatible cone: family {g_m} with g_{suc m} (inject₁ x) ≡ g_m x
--- 相容锥：族 {g_m}，满足 g_{suc m} (inject₁ x) ≡ g_m x
-record ColimitCone (X : Set) : Set where
-  field
-    at     : ∀ m → Fin (n-at m) → X
-    compat : ∀ m (x : Fin (n-at m)) → at (suc m) (inject₁ x) ≡ at m x
-
-  compat-iter : ∀ d m (x : Fin (n-at m))
-    → at (m + d) (inject₁^d d x) ≡ at m x
-  compat-iter zero    m x = at-subst at (sym (+-identityʳ m)) x
-  compat-iter (suc d) m x =
-    begin
-      at (m + suc d) (inject₁^d (suc d) x)
-        ≡⟨ at-subst at (sym (+-suc m d)) (inject₁ (inject₁^d d x)) ⟩
-      at (suc (m + d)) (inject₁ (inject₁^d d x))
-        ≡⟨ compat (m + d) (inject₁^d d x) ⟩
-      at (m + d) (inject₁^d d x)
-        ≡⟨ compat-iter d m x ⟩
-      at m x
-    ∎
-open ColimitCone
-
--- Value at k is independent of the chosen m
--- k 处的值与所选 m 无关
-value-independent-of-m
-  : ∀ {X} (cone : ColimitCone X) m (x : Fin (n-at m))
-  → at cone (toℕ x) (natToFin (toℕ x)) ≡ at cone m x
-value-independent-of-m {X} cone m x = go (≤-total m k)
-  where
-    k : ℕ
-    k = toℕ x
-    go : (m ≤ k) ⊎ (k ≤ m) → at cone k (natToFin k) ≡ at cone m x
-    go (inj₁ m≤k) =
-      let
-        d : ℕ
-        d = k ∸ m
-        k≡m+d : k ≡ m + d
-        k≡m+d = sym (m+[n∸m]≡n m≤k)
-        x↑ : Fin (n-at k)
-        x↑ = subst Fin (cong n-at (sym k≡m+d)) (inject₁^d d x)
-        at-k-x↑ : at cone k x↑ ≡ at cone (m + d) (inject₁^d d x)
-        at-k-x↑ = at-subst (at cone) (sym k≡m+d) (inject₁^d d x)
-        at-md-x : at cone (m + d) (inject₁^d d x) ≡ at cone m x
-        at-md-x = compat-iter cone d m x
-        toℕ-x↑ : toℕ x↑ ≡ k
-        toℕ-x↑ = begin
-          toℕ x↑
-            ≡⟨ toℕ-subst (cong n-at (sym k≡m+d)) (inject₁^d d x) ⟩
-          toℕ (inject₁^d d x)
-            ≡⟨ toℕ-inject₁^d d x ⟩
-          k
-          ∎
-        x↑≡natToFin : x↑ ≡ natToFin k
-        x↑≡natToFin = toℕ-injective (trans toℕ-x↑ (sym (toℕ-natToFin k)))
-      in
-      begin
-        at cone k (natToFin k)
-          ≡˘⟨ cong (at cone k) x↑≡natToFin ⟩
-        at cone k x↑
-          ≡⟨ at-k-x↑ ⟩
-        at cone (m + d) (inject₁^d d x)
-          ≡⟨ at-md-x ⟩
-        at cone m x
-      ∎
-    go (inj₂ k≤m) =
-      let
-        d : ℕ
-        d = m ∸ k
-        m≡k+d : m ≡ k + d
-        m≡k+d = sym (m+[n∸m]≡n k≤m)
-        y↑ : Fin (n-at m)
-        y↑ = subst Fin (cong n-at (sym m≡k+d)) (inject₁^d d (natToFin k))
-        at-m-y↑ : at cone m y↑ ≡ at cone (k + d) (inject₁^d d (natToFin k))
-        at-m-y↑ = at-subst (at cone) (sym m≡k+d) (inject₁^d d (natToFin k))
-        at-kd-y : at cone (k + d) (inject₁^d d (natToFin k))
-                ≡ at cone k (natToFin k)
-        at-kd-y = compat-iter cone d k (natToFin k)
-        toℕ-y↑ : toℕ y↑ ≡ k
-        toℕ-y↑ = begin
-          toℕ y↑
-            ≡⟨ toℕ-subst (cong n-at (sym m≡k+d)) (inject₁^d d (natToFin k)) ⟩
-          toℕ (inject₁^d d (natToFin k))
-            ≡⟨ toℕ-inject₁^d d (natToFin k) ⟩
-          toℕ (natToFin k)
-            ≡⟨ toℕ-natToFin k ⟩
-          k
-          ∎
-        y↑≡x : y↑ ≡ x
-        y↑≡x = toℕ-injective (trans toℕ-y↑ refl)
-      in
-      begin
-        at cone k (natToFin k)
-          ≡˘⟨ at-kd-y ⟩
-        at cone (k + d) (inject₁^d d (natToFin k))
-          ≡˘⟨ at-m-y↑ ⟩
-        at cone m y↑
-          ≡⟨ cong (at cone m) y↑≡x ⟩
-        at cone m x
-      ∎
-
--- Universal property: every cone has a unique extension g∞ : ℕ → X
--- 泛性质：每个锥有唯一扩展 g∞ : ℕ → X
-colimitUniv
-  : ∀ {X : Set} (cone : ColimitCone X)
-  → Σ (ℕ → X) λ g∞ →
-      Σ (∀ m (x : Fin (n-at m)) → g∞ (toℕ x) ≡ at cone m x) λ _ →
-      (∀ (h : ℕ → X) → (∀ m (x : Fin (n-at m)) → h (toℕ x) ≡ at cone m x)
-       → ∀ k → h k ≡ g∞ k)
-colimitUniv {X} cone = g∞ , (extends , unique)
-  where
-    g∞ : ℕ → X
-    g∞ k = at cone k (natToFin k)
-    extends : ∀ m (x : Fin (n-at m)) → g∞ (toℕ x) ≡ at cone m x
-    extends m x = value-independent-of-m cone m x
-    unique : ∀ (h : ℕ → X)
-      → (∀ m (x : Fin (n-at m)) → h (toℕ x) ≡ at cone m x)
-      → ∀ k → h k ≡ g∞ k
-    unique h h-ext k = begin
-      h k
-        ≡⟨ cong h (sym (toℕ-natToFin k)) ⟩
-      h (toℕ (natToFin k))
-        ≡⟨ h-ext k (natToFin k) ⟩
-      at cone k (natToFin k)
-        ≡⟨ refl ⟩
-      g∞ k
-        ∎
+-- The iterated embedding preserves the natural-number position.
+--
+-- 迭代嵌入保持自然数位置。
+toℕ-inject₁^d : ∀ d {m} (x : Fin (n-at m))
+              → toℕ (inject₁^d d {m} x) ≡ toℕ x
+toℕ-inject₁^d d {m} x = toℕ-embFin d m x
