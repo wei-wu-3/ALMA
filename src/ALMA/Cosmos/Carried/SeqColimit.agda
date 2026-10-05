@@ -57,7 +57,7 @@ open import Data.Nat.Base using (ℕ; zero; suc)
 
 open import ALMA.Base.MCorr
   using (Sys; FMap; _≈F_; idF; compF
-        ; I
+        ; I; A
         ; ≈F-refl; ≈F-trans
         ; ∘-resp-≈; sym-assoc-f; identityʳ-f)
 
@@ -218,15 +218,16 @@ open Colimit public
 -- A chain alone does not determine a colimit without quotienting
 -- indices (which would reintroduce propositional identification). The
 -- colimit exists relative to a pre-given limit system L with UNBOUNDED
--- positions (the analogue of FinCat∞/ℕ) and carried injections π m of
--- each stage into L, together with:
+-- positions (the analogue of FinCat∞/ℕ), a plain (non-FMap, not
+-- child-surjective) position/label injection inj-u / inj-shape of each
+-- stage into L, together with:
 --
---   * π-coh — the injections are compatible with the embeddings, up to
---     behavioural equivalence (this packages the carried cocone);
+--   * inj-coh — the embedding preserves the injected position
+--     (toℕ-inject₁); one homogeneous equation on I L;
 --
 --   * rep    — EVERY limit point has a SPECIFIED, TOTAL finite-stage
 --     representative (m , x) together with the homogeneous graph
---     witness u (π m) x ≡ v.
+--     witness inj-u m x ≡ v.
 --
 -- rep is the carried replacement for the old defaultFin. The old
 -- defaultFin : ℕ → Fin n was a PARTIAL canonicaliser into a BOUNDED
@@ -242,12 +243,14 @@ open Colimit public
 -- 携带式余极限的极限结构（存在性数据）。
 -- 仅有链并不能在不商索引的前提下确定余极限（商索引会重新引入命题
 -- 识别）。余极限相对于一个预给的极限系统 L 存在：L 具有无界位置（类
--- 比 FinCat∞/ℕ），每层到 L 有携带注入 π m，并附带：
+-- 比 FinCat∞/ℕ），每层到 L 有一个普通的（非 FMap、不满足子节点满）位
+-- 置/标签注入 inj-u / inj-shape，并附带：
 --
---   * π-coh —— 注入与嵌入在行为等价意义下相容（即打包的携带余锥）；
+--   * inj-coh —— 嵌入保持注入位置（toℕ-inject₁）；I L 上的单一同质
+--     等式；
 --
 --   * rep   —— 每个极限点都有一个指定的、全函数的有限层代表
---     (m , x) 及同质图见证 u (π m) x ≡ v。
+--     (m , x) 及同质图见证 inj-u m x ≡ v。
 --
 -- rep 是旧 defaultFin 的携带替代。旧 defaultFin : ℕ → Fin n 是到有界
 -- 有限集的偏典范化（越界塌为 fzero），逼出了唯一性证明里"足够大层
@@ -260,22 +263,49 @@ record Limit {i a b : Level} (ch : Chain i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
 
   field
-    L     : Sys i a b
-    π     : (m : ℕ) → FMap (X ch m) L
-    π-coh : (m : ℕ) → compF (π (suc m)) (emb ch m) ≈F π m
-
-    -- Total finite-stage representative of every limit point.
+    -- The pre-given limit system with unbounded positions (FinCat∞/ℕ).
     --
-    -- 每个极限点的全函数有限层代表。
+    -- 预给的、位置无界的极限系统（FinCat∞/ℕ）。
+    L : Sys i a b
+
+    -- Stage→limit POSITION injection (toℕ). This is NOT a FMap: it is
+    -- not child-surjective (a limit position ≥ n-at m has no stage-m
+    -- preimage), so it has no tree action. It is a plain carried
+    -- function on indices, together with the label map.
+    --
+    -- 阶段→极限的位置注入（toℕ）。它不是 FMap：不满足子节点满（极限位
+    -- 置 ≥ n-at m 在第 m 层无原像），故无树作用。它只是索引上的普通携
+    -- 带函数，外加标签映射。
+    inj-u : (m : ℕ) → I (X ch m) → I L
+
+    -- Label injection at the image positions (trivial in the current
+    -- tower; carried as a function, no equation).
+    --
+    -- 像位置处的标签注入（当前塔中平凡；作为函数携带，无等式）。
+    inj-shape : (m : ℕ) (x : I (X ch m))
+              → A (X ch m) x → A L (inj-u m x)
+
+    -- The embedding preserves limit positions:
+    --   inj-u (suc m) (u (emb m) x) ≡ inj-u m x
+    -- (the analogue of toℕ-inject₁). A single HOMOGENEOUS equation on
+    -- I L; no layer-arithmetic cast (the +-suc transport is done
+    -- definitionally by shift / emb^d).
+    --
+    -- 嵌入保持极限位置：inj-u (suc m) (u (emb m) x) ≡ inj-u m x
+    -- （类比 toℕ-inject₁）。I L 上的单一同质等式；无层算术 cast
+    -- （+-suc 传输由 shift / emb^d 定义性完成）。
+    inj-coh : (m : ℕ) (x : I (X ch m))
+            → inj-u (suc m) (FMap.u (emb ch m) x) ≡ inj-u m x
+
+    -- Total finite-stage representative of every limit point (natToFin):
+    -- position k is represented canonically at stage k, which always
+    -- contains k. Replaces the partial defaultFin and its threshold.
+    --
+    -- 每个极限点的全函数有限层代表（natToFin）：位置 k 在第 k 层有典范
+    -- 代表，而第 k 层必含 k。取代偏函数 defaultFin 及其阈值。
     rep   : (v : I L)
           → Σ ℕ λ m →
             Σ (I (X ch m)) λ x →
-            FMap.u (π m) x ≡ v
-
-  -- The injections are a carried cocone over the chain with apex L.
-  --
-  -- 注入即以 L 为 apex 的携带余锥。
-  cocone : Cocone ch L
-  cocone = record { leg = π ; coh = π-coh }
+            inj-u m x ≡ v
 
 open Limit public
