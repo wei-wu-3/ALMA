@@ -54,7 +54,9 @@ open import Agda.Primitive using (Level; _⊔_; lsuc)
 open import Data.Nat.Base using (ℕ; zero; suc)
 
 open import ALMA.Base.MCorr
-  using (Sys; FMap; _≈F_; idF; compF)
+  using (Sys; FMap; _≈F_; idF; compF
+        ; ≈F-refl; ≈F-trans
+        ; ∘-resp-≈; sym-assoc-f; identityʳ-f)
 
 ------------------------------------------------------------------------
 -- Stage shift by d successor edges.
@@ -118,6 +120,54 @@ record Cocone {i a b : Level} (ch : Chain i a b) (Y : Sys i a b)
         → compF (leg (suc m)) (emb ch m) ≈F leg m
 
 open Cocone public
+
+------------------------------------------------------------------------
+-- d-fold leg coherence, carried.
+--
+-- From the one-step compatibility coh m we derive, by induction on d,
+-- that the leg at the stage reached after d embeddings, factored
+-- through the d-fold embedding, is the leg at m:
+--
+--   compF (leg (shift d m)) (emb^d m d) ≈F leg m
+--
+-- This is the carried replacement for the old transport wrapping: the
+-- old code packaged every cocone / g leg in subst-src-FinCatN along a
+-- defaultFin-src-eq and realigned the iterated embedCosmos^d with the
+-- E1…E5 transport lemmas before every coinductive step. Here the
+-- iteration is plain carried composition; coherence is a finite chain
+-- of behavioural equivalences (associativity, congruence, the one-step
+-- coh), with no source-object equality and no dependent transport.
+--
+-- d 次腿的携带相干性。
+-- 由一步相容性 coh m 对 d 归纳，得到：经 d 次嵌入分解后的、偏移 d 层
+-- 处的腿，在行为等价意义下就是 m 处的腿：
+--
+--   compF (leg (shift d m)) (emb^d m d) ≈F leg m
+--
+-- 这是旧传输包裹的携带替代：旧代码把每条余锥 / g 腿沿
+-- defaultFin-src-eq 包一层 subst-src-FinCatN，并在每个余归纳步前用
+-- E1…E5 传输引理对齐迭代的 embedCosmos^d。此处迭代就是纯携带复合，
+-- 相干性是行为等价的有限链（结合律、同余、一步 coh），无源对象等式，
+-- 无依赖传输。
+------------------------------------------------------------------------
+module _ {i a b : Level} {ch : Chain i a b} {L : Sys i a b}
+         (coc : Cocone ch L) where
+
+  leg-coh^d : (m d : ℕ)
+            → compF (leg coc (shift d m)) (emb^d ch m d) ≈F leg coc m
+  leg-coh^d m zero =
+    identityʳ-f (leg coc m)
+  leg-coh^d m (suc d) =
+    ≈F-trans
+      (sym-assoc-f
+         (emb ch m)
+         (emb^d ch (suc m) d)
+         (leg coc (shift d (suc m))))
+      (≈F-trans
+         (∘-resp-≈
+            (leg-coh^d (suc m) d)
+            (≈F-refl (emb ch m)))
+         (coh coc m))
 
 ------------------------------------------------------------------------
 -- The colimit universal property, expressed entirely with carried
