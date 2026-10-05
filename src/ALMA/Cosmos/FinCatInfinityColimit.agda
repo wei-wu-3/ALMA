@@ -7,12 +7,25 @@
 -- the tower. Using these, projCosmos and embedCosmos are promoted to
 -- cross-category morphisms. A compatible tower {x_m} satisfies
 -- x_{suc m} ≈C embedCosmos m x_m; its colimit towerColimit satisfies
--- projCosmos m x_m ≈C towerColimit for all m, and is unique
+-- projCosmos m x_m ≈C towerColimit for all m, and is unique.
 --
 -- 定义跨范畴宇宙态射 _⇒ℱX[_]_ 及其恒等与复合，以及塔相关的形状函子
 -- S-proj 与 S-embed。借助这些，projCosmos 与 embedCosmos 被提升为
 -- 跨范畴态射。相容塔 {x_m} 满足 x_{suc m} ≈C embedCosmos m x_m；
--- 其余极限 towerColimit 满足对所有 m，projCosmos m x_m ≈C towerColimit，且唯一
+-- 其余极限 towerColimit 满足对所有 m，projCosmos m x_m ≈C towerColimit，且唯一。
+--
+-- Zero-subst carried style: the partial finFromℕ-maybe / restrictFin
+-- machine and every explicit Fin-index subst are deleted. The total clamp
+-- representative cl (exact on the inject₁ image, top dummy beyond range)
+-- supplies both the projection default and the embedding predecessor;
+-- cross-stage agreement is cl-embed-default, and the only rewrites are
+-- natural-number stage arithmetic (m + suc d = suc (m + d) is definitional,
+-- m + (k ∸ m) = k by m+[n∸m]≡n). No subst, no cast, no Dec/Bool match.
+-- 零 subst 携带式：删除偏函数 finFromℕ-maybe / restrictFin 机器及所有
+-- 显式 Fin 索引 subst。全函数 clamp 代表 cl（inject₁ 像上精确、越界取
+-- 末位哑元）同时提供投影默认值与嵌入前驱；跨层一致由 cl-embed-default
+-- 给出，唯一的 rewrite 是自然数层算术（m + suc d = suc (m + d) 为定义性，
+-- m + (k ∸ m) = k 由 m+[n∸m]≡n）。无 subst、无 cast、无 Dec/Bool 匹配。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
@@ -22,14 +35,15 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Level using (lift)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Data.Nat using (ℕ; zero; suc; _+_; _∸_)
-open import Data.Nat.Properties using (+-identityʳ; +-suc; ≤-total; m+[n∸m]≡n)
+open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _≤_; _<_)
+open import Data.Nat.Properties
+  using ( +-identityʳ; +-suc; m+[n∸m]≡n
+        ; ≤-refl; ≤-trans; m≤n⇒m≤1+n )
 open import Data.Fin.Base using (Fin; toℕ; inject₁)
 open import Data.Fin.Properties using (toℕ-inject₁)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
-open import Data.Maybe.Base using (just; nothing)
 open import Data.Sum.Base using (inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 
@@ -46,14 +60,16 @@ open import ALMA.Cosmos.MorphismObject
 open import ALMA.Cosmos.MorphismMorphism
   using (MorphismMorphism; idMorphismMorphism; compMorphismMorphism)
 open import ALMA.Cosmos using (Cosmos; out)
-open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-sym; ≈C-trans)
+open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl; ≈C-sym; ≈C-trans)
 open _≈C_
 open import ALMA.Cosmos.FinCatNWitness using (module FinCatN)
 open import ALMA.Cosmos.FinCatInfinity using (FinCat∞; TrivialFC∞; n-at)
 open import ALMA.Cosmos.FinCatInfinityProjection
-  using (finFromℕ-maybe; module FinCatNColimitProjection)
-open FinCatNColimitProjection using (extendFin; defaultFin; projCosmos; projCosmos-F₀-spec)
+  using (module FinCatNColimitProjection)
+open FinCatNColimitProjection
+  using (extendFin; defaultFin; projCosmos; projCosmos-F₀-spec; cl-self)
 open import ALMA.Cosmos.FinCatInfinityTowerCompat using (module FinCatTowerCompat)
+open import ALMA.Cosmos.Carried.LimitSystem using (cl; ≤-or->)
 
 -- Cross-category cosmos morphism _⇒ℱX[_]_
 -- 跨范畴宇宙态射 _⇒ℱX[_]_
@@ -184,7 +200,6 @@ module TowerShapeFunctors (m : ℕ) where
 -- projCosmos 作为跨范畴态射
 module ProjCosmosMorphism (m : ℕ) where
   open TowerShapeFunctors m
-  open FinCatTowerCompat m using (embedCosmos; restrictFin; restrictFin-defaultFin)
   open FinCatN m
   module S-proj = Functor S-proj
   open MorphismObject
@@ -192,9 +207,10 @@ module ProjCosmosMorphism (m : ℕ) where
 
   -- projCosmos m as a cross-category morphism along S-proj: shapeTrans,
   -- onPos, and onActP are trivially lift tt; onunfold-next recurses
-  -- after rewriting defaultFin (toℕ A) to A
+  -- after the total clamp defaultFin (toℕ A) reduces to A (cl-self).
   -- projCosmos m 沿 S-proj 的跨范畴态射：shapeTrans、onPos、onActP
-  -- 均为平凡的 lift tt；onunfold-next 在把 defaultFin (toℕ A) 重写为 A 后递归
+  -- 均为平凡的 lift tt；onunfold-next 在全函数 clamp 默认值
+  -- defaultFin (toℕ A) 归约为 A（cl-self）后递归
   projCosmos-morphism : ∀ (x : Cosmos M.FinCatN TrivialFCN)
     → x ⇒ℱX[ S-proj ] projCosmos m x
   projCosmos-morphism x .out .shapeTrans {A} _ = lift tt
@@ -212,20 +228,27 @@ module ProjCosmosMorphism (m : ℕ) where
 -- embedCosmos 作为跨范畴态射
 module EmbedCosmosMorphism (m : ℕ) where
   open TowerShapeFunctors m
-  open FinCatTowerCompat m using (embedCosmos; restrictFin)
-  open FinCatNColimitProjection m using (finFromℕ-maybe-just-self)
+  open FinCatTowerCompat m using (embedCosmos)
+  open FinCatN m
   module S-embed = Functor S-embed
 
-  -- restrictFin is a left inverse of inject₁
-  -- restrictFin 是 inject₁ 的左逆
-  restrictFin-inject₁ : ∀ (A : Fin M.n) → restrictFin (inject₁ A) ≡ A
-  restrictFin-inject₁ A rewrite toℕ-inject₁ A | finFromℕ-maybe-just-self A = refl
+  -- The total clamp predecessor of an inject₁ image at stage suc m is the
+  -- original stage-m element: cl m (toℕ (inject₁ A)) = cl m (toℕ A) = A.
+  -- This replaces the old partial restrictFin left-inverse.
+  --
+  -- 层 suc m 上 inject₁ 像的全函数 clamp 前驱即原层 m 元素：
+  -- cl m (toℕ (inject₁ A)) = cl m (toℕ A) = A。
+  -- 这替代旧的偏函数 restrictFin 左逆。
+  pred-inject₁ : ∀ (A : Fin M.n) → cl m (toℕ (inject₁ A)) ≡ A
+  pred-inject₁ A rewrite toℕ-inject₁ A =
+    FinCatNColimitProjection.cl-self m A
 
   -- embedCosmos m as a cross-category morphism along S-embed: shapeTrans,
-  -- onPos, and onActP are trivially lift tt; onunfold-next recurses
-  -- after rewriting restrictFin (inject₁ A) to A
+  -- onPos, and onActP are trivially lift tt; onunfold-next recurses after
+  -- the clamp predecessor of inject₁ A reduces to A.
   -- embedCosmos m 沿 S-embed 的跨范畴态射：shapeTrans、onPos、onActP
-  -- 均为平凡的 lift tt；onunfold-next 在把 restrictFin (inject₁ A) 重写为 A 后递归
+  -- 均为平凡的 lift tt；onunfold-next 在 inject₁ A 的 clamp 前驱归约
+  -- 为 A 后递归
   embedCosmos-morphism : ∀ (x : Cosmos M.FinCatN M.TrivialFCN)
     → x ⇒ℱX[ S-embed ] embedCosmos x
   embedCosmos-morphism x .out = record
@@ -248,7 +271,7 @@ module EmbedCosmosMorphism (m : ℕ) where
           Unfolding.unfold-next (out (embedCosmos x))
             {A = inject₁ A} (lift tt)
       onunfold {A} (lift tt)
-        rewrite restrictFin-inject₁ A
+        rewrite pred-inject₁ A
         = embedCosmos-morphism (UX.unfold-next {A = A} (lift tt))
 
 -- Compatible tower and its colimit
@@ -272,13 +295,16 @@ private
   f-at tower m A =
     Functor.F₀ (Unfolding.unfoldFunctor (out (seq tower m))) (A , lift tt)
 
-  -- extendFin is invariant under pointwise equal functions
-  -- extendFin 在逐点相等的函数下不变
+  -- extendFin is invariant under pointwise equal functions. The total
+  -- extendFin reads f on cl m k in range and is k beyond range.
+  --
+  -- extendFin 在逐点相等的函数下不变。全函数 extendFin 在范围内于
+  -- cl m k 上读 f，越界恒为 k。
   extendFin-cong : ∀ m (f g : Fin (n-at m) → Fin (n-at m)) k
     → (∀ x → f x ≡ g x) → extendFin m f k ≡ extendFin m g k
-  extendFin-cong m f g k feq with finFromℕ-maybe (n-at m ∸ 1) k
-  ... | just x  = cong toℕ (feq x)
-  ... | nothing = refl
+  extendFin-cong m f g k feq with ≤-or-> (suc m) k
+  ... | inj₁ _  = cong toℕ (feq (cl m k))
+  ... | inj₂ _  = refl
 
   -- One-step compatibility of F₀ across the tower embedding
   -- 跨塔嵌入的 F₀ 一步相容性
@@ -295,64 +321,67 @@ private
       extendFin m (f-at tower m) k
     ∎
 
-  -- Iterated compatibility: extendFin at layer m+d equals extendFin at m
-  -- 迭代相容性：层 m+d 的 extendFin 等于层 m 的 extendFin
+  -- Iterated compatibility: extendFin at layer m+d equals extendFin at m.
+  -- m + suc d reduces to suc (m + d) definitionally, so no +-suc subst.
+  --
+  -- 迭代相容性：层 m+d 的 extendFin 等于层 m 的 extendFin。
+  -- m + suc d 定义性归约为 suc (m + d)，故无需 +-suc subst。
   extendFin-iter : ∀ (tower : CompatibleTower) m d k
     → extendFin (m + d) (f-at tower (m + d)) k ≡ extendFin m (f-at tower m) k
-  extendFin-iter tower m zero k =
+  extendFin-iter tower m zero k
+    rewrite +-identityʳ m = refl
+  extendFin-iter tower m (suc d) k rewrite +-suc m d =
     begin
-      extendFin (m + zero) (f-at tower (m + zero)) k
-        ≡⟨ cong (λ j → extendFin j (f-at tower j) k) (+-identityʳ m) ⟩
-      extendFin m (f-at tower m) k
-    ∎
-  extendFin-iter tower m (suc d) k =
-    begin
-      extendFin (m + suc d) (f-at tower (m + suc d)) k
-        ≡⟨ subst (λ j → extendFin j (f-at tower j) k
-                      ≡ extendFin (m + d) (f-at tower (m + d)) k)
-                (sym (+-suc m d))
-                (extendFin-step tower (m + d) k) ⟩
+      extendFin (suc (m + d)) (f-at tower (suc (m + d))) k
+        ≡⟨ extendFin-step tower (m + d) k ⟩
       extendFin (m + d) (f-at tower (m + d)) k
         ≡⟨ extendFin-iter tower m d k ⟩
       extendFin m (f-at tower m) k
     ∎
 
-  -- Layer independence: extendFin m (f-at m) k = extendFin k (f-at k) k
-  -- Case split on ≤-total m k
-  -- 层独立性：extendFin m (f-at m) k = extendFin k (f-at k) k
-  -- 对 ≤-total m k 做情形划分
+  -- Layer independence: extendFin m (f-at m) k = extendFin k (f-at k) k.
+  -- Structurally recursive strict dichotomy ≤-or-> (Cubical-safe); the
+  -- only rewrite is the natural-number subtraction lemma.
+  --
+  -- 层独立性：extendFin m (f-at m) k = extendFin k (f-at k) k。
+  -- 用结构化递归严格二分 ≤-or->（Cubical 安全）；唯一 rewrite 是
+  -- 自然数减法引理。
+  -- m < k branch: read the m-th leg as the k-th one via d = k ∸ m.
+  -- m < k 分支：经 d = k ∸ m 把第 m 条腿读作第 k 条。
+  layer-up : ∀ (tower : CompatibleTower) m k
+    → (m<k : m < k)
+    → extendFin m (f-at tower m) k ≡ extendFin k (f-at tower k) k
+  layer-up tower m k m<k =
+    trans (sym (extendFin-iter tower m (k ∸ m) k))
+          (cong (λ j → extendFin j (f-at tower j) k)
+                (m+[n∸m]≡n m≤k))
+    where
+      m≤k = ≤-trans (m≤n⇒m≤1+n (≤-refl {x = m})) m<k
+
+  -- k ≤ m branch: read the k-th leg directly via d = m ∸ k.
+  -- k ≤ m 分支：经 d = m ∸ k 直接读第 k 条腿。
+  layer-down : ∀ (tower : CompatibleTower) m k
+    → (k≤m : k ≤ m)
+    → extendFin m (f-at tower m) k ≡ extendFin k (f-at tower k) k
+  layer-down tower m k k≤m =
+    trans (cong (λ j → extendFin j (f-at tower j) k)
+                (sym (m+[n∸m]≡n k≤m)))
+          (extendFin-iter tower k (m ∸ k) k)
+
   extendFin-layer-independent : ∀ (tower : CompatibleTower) m k
     → extendFin m (f-at tower m) k ≡ extendFin k (f-at tower k) k
-  extendFin-layer-independent tower m k with ≤-total m k
-  ... | inj₁ m≤k =
-      let d = k ∸ m
-          k≡m+d : k ≡ m + d
-          k≡m+d = sym (m+[n∸m]≡n m≤k)
-      in begin
-          extendFin m (f-at tower m) k
-            ≡˘⟨ subst (λ j → extendFin j (f-at tower j) k
-                          ≡ extendFin m (f-at tower m) k)
-                      (sym k≡m+d)
-                      (extendFin-iter tower m d k) ⟩
-          extendFin k (f-at tower k) k
-        ∎
-  ... | inj₂ k≤m =
-      let d = m ∸ k
-          m≡k+d : m ≡ k + d
-          m≡k+d = sym (m+[n∸m]≡n k≤m)
-      in begin
-          extendFin m (f-at tower m) k
-            ≡⟨ subst (λ j → extendFin j (f-at tower j) k
-                          ≡ extendFin k (f-at tower k) k)
-                    (sym m≡k+d)
-                    (extendFin-iter tower k d k) ⟩
-          extendFin k (f-at tower k) k
-        ∎
+  extendFin-layer-independent tower m k with ≤-or-> m k
+  ... | inj₂ m<k = layer-up tower m k m<k
+  ... | inj₁ k≤m = layer-down tower m k k≤m
 
--- Sub-tower at position k: replace each layer by its unfold-next at
--- defaultFin k, with compatibility inherited from the original tower
--- 位置 k 处的子塔：将每层替换为其在 defaultFin k 处的 unfold-next，
--- 相容性继承自原塔
+-- Sub-tower at position k: replace each layer by its unfold-next at the
+-- total clamp defaultFin k, with compatibility inherited from the
+-- original tower. The embedding predecessor of the stage-(suc m) default
+-- is the stage-m default by cl-embed-default (a plain congruence, no
+-- subst).
+-- 位置 k 处的子塔：将每层替换为其在全函数 clamp 默认值 defaultFin k
+-- 处的 unfold-next，相容性继承自原塔。层 (suc m) 默认值的嵌入前驱由
+-- cl-embed-default 等于层 m 默认值（纯同余，无 subst）。
 subtower : CompatibleTower → ℕ → CompatibleTower
 subtower tower k = record
   { seq    = λ m →
@@ -361,52 +390,67 @@ subtower tower k = record
   ; compat = subtower-compat tower k
   }
   where
-    -- Compatibility of the sub-tower, obtained by applying the original
-    -- compatibility witness to defaultFin (suc m) k and rewriting the
-    -- restricted argument via restrictFin-defaultFin
-    -- 子塔的相容性：把原相容性见证应用于 defaultFin (suc m) k，
-    -- 并经由 restrictFin-defaultFin 重写受限参数
+    -- Compatibility of the sub-tower. The original witness c compares the
+    -- two unfold-nexts at the stage-(suc m) default A0; the embedding's
+    -- unfold-next at A0 is definitionally embedCosmos of the predecessor
+    -- cl m (toℕ A0), which equals the stage-m default A1 by
+    -- cl-embed-default. Congruence of embedCosmos closes the gap.
+    --
+    -- 子塔的相容性。原见证 c 在层 (suc m) 默认值 A0 处比较两个
+    -- unfold-next；嵌入在 A0 处的 unfold-next 定义性等于前驱
+    -- cl m (toℕ A0) 上的 embedCosmos，而该前驱由 cl-embed-default
+    -- 等于层 m 默认值 A1。embedCosmos 的同余闭合此差距。
     subtower-compat : ∀ tower k m
       → Unfolding.unfold-next (out (seq tower (suc m)))
           {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
         ≈C FinCatTowerCompat.embedCosmos m
               (Unfolding.unfold-next (out (seq tower m))
                 {A = FinCatNColimitProjection.defaultFin m k} (lift tt))
-    subtower-compat tower k m = subst
-        (λ z → Unfolding.unfold-next (out (seq tower (suc m)))
-                  {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
-                ≈C z)
-        goal
-        step
+    subtower-compat tower k m = ≈C-trans step resp
       where
-        open FinCatTowerCompat m
-          using (embedCosmos; restrictFin-defaultFin)
+        open FinCatTowerCompat m using (embedCosmos; cl-embed-default)
 
         c : seq tower (suc m) ≈C embedCosmos (seq tower m)
         c = compat tower m
 
+        A0 = FinCatNColimitProjection.defaultFin (suc m) k
+        A1 = FinCatNColimitProjection.defaultFin m k
+
         step
           : Unfolding.unfold-next (out (seq tower (suc m)))
-              {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
+              {A = A0} (lift tt)
             ≈C Unfolding.unfold-next (out (embedCosmos (seq tower m)))
-                  {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
-        step = c .unfold-next-eq
-                  {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
+                  {A = A0} (lift tt)
+        step = c .unfold-next-eq {A = A0} (lift tt)
 
+        -- The embedding's successor at A0 is embedCosmos of the stage-m
+        -- successor at cl m (toℕ A0) = defaultFin m k.
+        --
+        -- 嵌入在 A0 处的后继即 cl m (toℕ A0) = defaultFin m k 处层 m
+        -- 后继的 embedCosmos。
         goal
           : Unfolding.unfold-next (out (embedCosmos (seq tower m)))
-              {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
-            ≡ embedCosmos
+              {A = A0} (lift tt)
+          ≡ embedCosmos
+              (Unfolding.unfold-next (out (seq tower m))
+                {A = A1} (lift tt))
+        goal =
+          cong (λ B → embedCosmos
+                   (Unfolding.unfold-next (out (seq tower m))
+                     {A = B} (lift tt)))
+               (cl-embed-default k)
+
+        -- Propositional equality of the two successors gives a
+        -- bisimulation by reflexivity transported along goal.
+        --
+        -- 两个后继的命题相等经自反性沿 goal 传输给出互模拟。
+        resp
+          : Unfolding.unfold-next (out (embedCosmos (seq tower m)))
+              {A = A0} (lift tt)
+            ≈C embedCosmos
                 (Unfolding.unfold-next (out (seq tower m))
-                  {A = FinCatNColimitProjection.defaultFin m k} (lift tt))
-        goal = subst
-          (λ A' → Unfolding.unfold-next (out (embedCosmos (seq tower m)))
-                    {A = FinCatNColimitProjection.defaultFin (suc m) k} (lift tt)
-                  ≡ embedCosmos
-                      (Unfolding.unfold-next (out (seq tower m))
-                        {A = A'} (lift tt)))
-          (restrictFin-defaultFin k)
-          refl
+                  {A = A1} (lift tt))
+        resp rewrite goal = ≈C-refl
 
 -- Colimit of a compatible tower: coinductive construction whose F₀ at
 -- layer k reads projCosmos k (seq k) at k, and whose unfold-next is

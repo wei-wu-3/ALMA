@@ -14,6 +14,23 @@
 -- projN，以及余锥条件 projN (suc m) ∘ embedN m ≅ projN m；
 -- 并提供层 0 投影 projCosmos 及其忠实性（区分保持）与保守性（互模拟反映），
 -- 使投影在 FinCatN 与 FinCat∞ 之间既不擦除也不捏造互模拟信息
+--
+-- Zero-subst carried style: the old partial finFromℕ-maybe / fromMaybe /
+-- defaultFin (collapse to fzero out of range) machine and its two
+-- proof-level subst are replaced by (1) a structurally recursive,
+-- Cubical-safe strict dichotomy ≤-or-> (no Dec/Bool match), (2) the total
+-- clamp representative cl from Carried.LimitSystem. extendFin reads f in
+-- range and is the identity k out of range (the colimit-leg convention
+-- needed by projCosmos-id); defaultFin is the total clamp. The Fin 3
+-- swap witness is built directly at Fin n by rewrite m=1, deleting the
+-- eight subst (λ n' → Fin n' → Fin n') casts.
+-- 零 subst 携带式：旧的偏函数 finFromℕ-maybe / fromMaybe / defaultFin
+-- （越界塌成 fzero）机器及其两处证明级 subst，替换为 (1) 结构化递归、
+-- Cubical 安全的严格二分 ≤-or->（无 Dec/Bool 模式匹配），(2) 来自
+-- Carried.LimitSystem 的全函数 clamp 代表 cl。extendFin 范围内读 f、
+-- 范围外恒等于 k（projCosmos-id 所需的余极限腿约定）；defaultFin 为
+-- 全函数 clamp。Fin 3 swap 见证经 rewrite m=1 直接在 Fin n 上构造，
+-- 删除八处 subst (λ n' → Fin n' → Fin n') 搬移。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
@@ -23,17 +40,18 @@ open import Agda.Primitive using (_⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Level using (lift)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Nat using (ℕ; zero; suc; _∸_; _≤_; z≤n; s≤s; ≤-pred)
-open import Data.Nat.Properties using (≤-trans; <-irrefl; 1+n≢n)
+open import Data.Nat using (ℕ; zero; suc; _∸_; _≤_; _<_; z≤n; s≤s; ≤-pred)
+open import Data.Nat.Properties
+  using (≤-trans; 1+n≢n; 1+n≰n)
 open import Data.Fin.Base using (Fin; toℕ; inject₁)
   renaming (zero to fzero; suc to fsuc)
 open import Data.Fin.Properties using (toℕ-inject₁; toℕ-injective; toℕ<n)
 open import Data.Product.Base using (Σ; _,_; proj₁)
-open import Data.Maybe.Base using (Maybe; just; nothing; map)
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality.Core
-  using (cong; sym; trans; subst; _≢_)
+  using (cong; sym; trans; _≢_)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 open import Function.Base using (_∘_)
@@ -49,6 +67,7 @@ open import ALMA.Cosmos.Terminal using (_≈C_)
 open _≈C_
 open import ALMA.Cosmos.FinCatNWitness
 open import ALMA.Cosmos.FinCatInfinity
+open import ALMA.Cosmos.Carried.LimitSystem using (cl; cl-toℕ; ≤-or->)
 
 -- Tower-family embedding and colimit injection (functor level)
 -- 塔族嵌入与余极限注入（函子层面）
@@ -122,97 +141,58 @@ module FinCatInfinityEmbedding (m : ℕ) where
     ; iso = λ _ → record { isoˡ = refl ; isoʳ = refl }
     }
 
--- Layer-0 projection projCosmos and faithfulness
--- 层 0 投影 projCosmos 与忠实性
-
--- finFromℕ-maybe budget k: Fin (suc budget) from ℕ, nothing if out of range
--- finFromℕ-maybe budget k：由 ℕ 构造 Fin (suc budget)，越界返回 nothing
-finFromℕ-maybe : ∀ (budget : ℕ) (k : ℕ) → Maybe (Fin (suc budget))
-finFromℕ-maybe _       zero    = just fzero
-finFromℕ-maybe zero    (suc _) = nothing
-finFromℕ-maybe (suc b) (suc k) = map fsuc (finFromℕ-maybe b k)
-
-fromMaybe : ∀ {a} {A : Set a} → A → Maybe A → A
-fromMaybe d nothing = d
-fromMaybe d (just x) = x
-
-isNothing : ∀ {a} {A : Set a} → Maybe A → Set
-isNothing nothing = ⊤
-isNothing (just _) = ⊥
-
-toℕ-maybe₀ : ∀ {n} → Maybe (Fin n) → ℕ
-toℕ-maybe₀ nothing = 0
-toℕ-maybe₀ (just x) = toℕ x
-
-just-injective : ∀ {a} {A : Set a} {x y : A} → just x ≡ just y → x ≡ y
-just-injective {x = x} eq = cong (fromMaybe x) eq
-
-nothing-not-just : ∀ {a} {A : Set a} {x : A} → nothing ≢ just x
-nothing-not-just eq = subst isNothing eq tt
-
-private
-  record Reveal_·_is_ {a b} {A : Set a} {B : A → Set b}
-    (f : (x : A) → B x) (x : A) (y : B x) : Set (a ⊔ b) where
-    constructor [_]
-    field eq : f x ≡ y
-
-  inspect : ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) (x : A)
-          → Reveal f · x is (f x)
-  inspect f x = [ refl ]
-
-toℕ-finFromℕ-maybe : ∀ budget k (x : Fin (suc budget))
-  → finFromℕ-maybe budget k ≡ just x → toℕ x ≡ k
-toℕ-finFromℕ-maybe _       zero    x eq = sym (cong toℕ-maybe₀ eq)
-toℕ-finFromℕ-maybe zero    (suc _) x eq = ⊥-elim (nothing-not-just eq)
-toℕ-finFromℕ-maybe (suc b) (suc k) x eq
-  with finFromℕ-maybe b k | inspect (finFromℕ-maybe b) k
-... | nothing | [ eq' ] = ⊥-elim (nothing-not-just eq)
-... | just y  | [ eq' ] =
-  begin
-    toℕ x
-      ≡⟨ cong toℕ (sym (just-injective eq)) ⟩
-    suc (toℕ y)
-      ≡⟨ cong suc (toℕ-finFromℕ-maybe b k y eq') ⟩
-    suc k
-  ∎
-
-finFromℕ-maybe-just⇒≤ : ∀ budget k (x : Fin (suc budget))
-  → finFromℕ-maybe budget k ≡ just x → k ≤ budget
-finFromℕ-maybe-just⇒≤ budget k x eq =
-  subst (λ z → z ≤ budget) (toℕ-finFromℕ-maybe budget k x eq)
-    (≤-pred (toℕ<n x))
-
-finFromℕ-maybe-nothing⇒> : ∀ budget k
-  → finFromℕ-maybe budget k ≡ nothing → suc budget ≤ k
-finFromℕ-maybe-nothing⇒> zero    zero    ()
-finFromℕ-maybe-nothing⇒> zero    (suc k) _  = s≤s z≤n
-finFromℕ-maybe-nothing⇒> (suc b) zero    ()
-finFromℕ-maybe-nothing⇒> (suc b) (suc k) eq =
-  s≤s (finFromℕ-maybe-nothing⇒> b k (map-nothing eq))
-  where
-  map-nothing : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {mx : Maybe A}
-    → map f mx ≡ nothing → mx ≡ nothing
-  map-nothing {mx = nothing}  _  = refl
-  map-nothing {mx = just _}   eq = ⊥-elim (nothing-not-just (sym eq))
-
 module FinCatNColimitProjection (m : ℕ) where
   open FinCatN m
 
-  -- extendFin: f on the range, identity outside
-  -- extendFin：范围内用 f，范围外恒等
+  -- extendFin: read f on the in-range representative cl m k; out of range
+  -- (suc m < k) be the identity k, which is the colimit-leg convention so
+  -- that projecting the identity cosmos agrees with the colimit identity.
+  --
+  -- extendFin：在范围内的代表 cl m k 上读 f；越界（suc m < k）恒等于 k，
+  -- 这是余极限腿约定，使恒等宇宙的投影与余极限恒等一致。
   extendFin : (Fin n → Fin n) → ℕ → ℕ
-  extendFin f k = fromMaybe k (map (toℕ ∘ f) (finFromℕ-maybe (n ∸ 1) k))
+  extendFin f k with ≤-or-> (suc m) k
+  ... | inj₁ _  = toℕ (f (cl m k))
+  ... | inj₂ _  = k
 
-  -- defaultFin: finFromℕ-maybe result if in range, else fzero
-  -- defaultFin：范围内取 finFromℕ-maybe 结果，否则 fzero
+  -- defaultFin: total clamp representative (in range exact, out of range
+  -- the top element). Replaces the partial fromMaybe-fzero decoder.
+  --
+  -- defaultFin：全函数 clamp 代表（范围内精确，越界取末位元素）。替代
+  -- 偏函数 fromMaybe-fzero 解码器。
   defaultFin : ℕ → Fin n
-  defaultFin k = fromMaybe fzero (finFromℕ-maybe (n ∸ 1) k)
+  defaultFin k = cl m k
 
   extendFin-id : ∀ k → extendFin (λ x → x) k ≡ k
-  extendFin-id k
-    with finFromℕ-maybe (n ∸ 1) k | inspect (finFromℕ-maybe (n ∸ 1)) k
-  ... | nothing | [ _ ]  = refl
-  ... | just x  | [ eq ] = toℕ-finFromℕ-maybe (n ∸ 1) k x eq
+  extendFin-id k with ≤-or-> (suc m) k
+  ... | inj₁ le = cl-toℕ m k le
+  ... | inj₂ _  = refl
+
+  -- The clamp representative at the natural reading of a layer element is
+  -- that element itself.
+  --
+  -- 层元素按其自然读数所取的 clamp 代表即其自身。
+  cl-self : ∀ (A : Fin n) → cl m (toℕ A) ≡ A
+  cl-self A =
+    toℕ-injective (cl-toℕ m (toℕ A) (≤-pred (toℕ<n A)))
+
+  -- extendFin f (toℕ A) = toℕ (f A); the out-of-range branch is impossible
+  -- because toℕ A ≤ suc m for every A : Fin n.
+  --
+  -- extendFin f (toℕ A) = toℕ (f A)；越界分支不可能，因对任意
+  -- A : Fin n 都有 toℕ A ≤ suc m。
+  extendFin-at-toℕ : ∀ (f : Fin n → Fin n) (A : Fin n)
+    → extendFin f (toℕ A) ≡ toℕ (f A)
+  extendFin-at-toℕ f A with ≤-or-> (suc m) (toℕ A)
+  ... | inj₁ _ = cong (toℕ ∘ f) (cl-self A)
+  ... | inj₂ gt =
+    ⊥-elim (1+n≰n {n = suc m}
+              (≤-trans gt (≤-pred (toℕ<n A))))
+
+  -- defaultFin (toℕ A) = A
+  -- defaultFin (toℕ A) = A
+  defaultFin-toℕ-self : ∀ (A : Fin n) → defaultFin (toℕ A) ≡ A
+  defaultFin-toℕ-self A = cl-self A
 
   -- cosmos-id∞: F₀ = proj₁ on FinCat∞
   -- cosmos-id∞：FinCat∞ 上 F₀ = proj₁ 的宇宙
@@ -310,49 +290,6 @@ module FinCatNColimitProjection (m : ℕ) where
       specG : Fg ≡ extendFin g k
       specG = projCosmos-F₀-spec (cosmos-mapN g) k
 
-  -- finFromℕ-maybe returns just when k is in range
-  -- finFromℕ-maybe 在 k 处于范围内时返回 just
-  finFromℕ-maybe-in-range
-    : ∀ budget k → k ≤ budget
-    → Σ (Fin (suc budget)) (λ x → finFromℕ-maybe budget k ≡ just x)
-  finFromℕ-maybe-in-range budget k k≤budget
-      with finFromℕ-maybe budget k in eq0
-  ... | just x  = x , refl
-  ... | nothing = ⊥-elim (<-irrefl refl
-        (≤-trans (finFromℕ-maybe-nothing⇒> budget k eq0) k≤budget))
-
-  -- toℕ A is within range of finFromℕ-maybe (n ∸ 1)
-  -- toℕ A 在 finFromℕ-maybe (n ∸ 1) 的范围内
-  toℕ≤n∸1 : ∀ (A : Fin n) → toℕ A ≤ n ∸ 1
-  toℕ≤n∸1 A = ≤-pred (toℕ<n A)
-
-  -- In-range application returns the element itself
-  -- 范围内应用返回元素自身
-  finFromℕ-maybe-just-self
-    : ∀ (A : Fin n) → finFromℕ-maybe (n ∸ 1) (toℕ A) ≡ just A
-  finFromℕ-maybe-just-self A =
-    let (x , eq) = finFromℕ-maybe-in-range (n ∸ 1) (toℕ A) (toℕ≤n∸1 A)
-        x≡A : x ≡ A
-        x≡A = toℕ-injective (toℕ-finFromℕ-maybe (n ∸ 1) (toℕ A) x eq)
-    in begin
-        finFromℕ-maybe (n ∸ 1) (toℕ A)
-          ≡⟨ eq ⟩
-        just x
-          ≡⟨ cong just x≡A ⟩
-        just A
-      ∎
-
-  -- defaultFin (toℕ A) = A
-  -- defaultFin (toℕ A) = A
-  defaultFin-toℕ-self : ∀ (A : Fin n) → defaultFin (toℕ A) ≡ A
-  defaultFin-toℕ-self A = cong (fromMaybe fzero) (finFromℕ-maybe-just-self A)
-
-  -- extendFin f (toℕ A) = toℕ (f A)
-  -- extendFin f (toℕ A) = toℕ (f A)
-  extendFin-at-toℕ : ∀ (f : Fin n → Fin n) (A : Fin n)
-    → extendFin f (toℕ A) ≡ toℕ (f A)
-  extendFin-at-toℕ f A rewrite finFromℕ-maybe-just-self A = refl
-
   -- Conservativity: projCosmos reflects bisimulation
   -- 保守性：projCosmos 反映互模拟
   projCosmos-conservative
@@ -382,49 +319,43 @@ module FinCatNColimitProjection (m : ℕ) where
         (Unfolding.unfold-next (out y) {A = defaultFin (toℕ k)} (lift tt))
         (eq .unfold-next-eq {A = toℕ k} s)
 
-  -- Concrete witness: swap01 vs swap12 on Fin 3 differ at k = 1
-  -- 具体见证：Fin 3 上 swap01 与 swap12 在 k = 1 处不同
+  -- Concrete witness: swap01 vs swap12 on Fin 3 differ at k = 1.
+  -- The swaps are built directly at Fin n (rewrite m=1 turns n into 3),
+  -- so no subst (λ n' → Fin n' → Fin n') cast is needed.
+  --
+  -- 具体见证：Fin 3 上 swap01 与 swap12 在 k = 1 处不同。swap 直接在
+  -- Fin n 上构造（rewrite m=1 把 n 化为 3），无需任何
+  -- subst (λ n' → Fin n' → Fin n') 搬移。
   module _ (m=1 : m ≡ 1) where
     private
-      f0 : Fin 3
-      f0 = fzero
-      f1 : Fin 3
-      f1 = fsuc fzero
-      f2 : Fin 3
-      f2 = fsuc (fsuc fzero)
+      swap01 : Fin n → Fin n
+      swap01 x rewrite m=1 with toℕ x
+      ... | zero        = fsuc fzero
+      ... | suc zero    = fzero
+      ... | suc (suc _) = fsuc (fsuc fzero)
 
-      swap01 : Fin 3 → Fin 3
-      swap01 x with toℕ x
-      ... | zero        = f1
-      ... | suc zero    = f0
-      ... | suc (suc _) = f2
-
-      swap12 : Fin 3 → Fin 3
-      swap12 x with toℕ x
-      ... | zero        = f0
-      ... | suc zero    = f2
-      ... | suc (suc _) = f1
-
-      n=3 : n ≡ 3
-      n=3 = cong (suc ∘ suc) m=1
+      swap12 : Fin n → Fin n
+      swap12 x rewrite m=1 with toℕ x
+      ... | zero        = fzero
+      ... | suc zero    = fsuc (fsuc fzero)
+      ... | suc (suc _) = fsuc fzero
 
       -- Composition of the two swaps on Fin 3
       -- Fin 3 上两个对换的复合
-      swap01∘swap12 : Fin 3 → Fin 3
+      swap01∘swap12 : Fin n → Fin n
       swap01∘swap12 = swap01 ∘ swap12
 
-      swap12∘swap01 : Fin 3 → Fin 3
+      swap12∘swap01 : Fin n → Fin n
       swap12∘swap01 = swap12 ∘ swap01
 
     swap01≢swap12-at-1
-      : extendFin (subst (λ n' → Fin n' → Fin n') (sym n=3) swap01) 1
-        ≢ extendFin (subst (λ n' → Fin n' → Fin n') (sym n=3) swap12) 1
+      : extendFin swap01 1 ≢ extendFin swap12 1
     swap01≢swap12-at-1 rewrite m=1 = λ ()
 
     swap01∞≉swap12∞
-      : ¬ (projCosmos (cosmos-mapN (subst (λ n' → Fin n' → Fin n') (sym n=3) swap01))
+      : ¬ (projCosmos (cosmos-mapN swap01)
            ≈C
-           projCosmos (cosmos-mapN (subst (λ n' → Fin n' → Fin n') (sym n=3) swap12)))
+           projCosmos (cosmos-mapN swap12))
     swap01∞≉swap12∞ =
       faithfulness _ _ (1 , swap01≢swap12-at-1)
 
@@ -433,18 +364,15 @@ module FinCatNColimitProjection (m : ℕ) where
     -- 非交换性在 k = 0 处分离：
     --   extendFin (swap01 ∘ swap12) 0 = 1，extendFin (swap12 ∘ swap01) 0 = 2
     swap01∘swap12≠swap12∘swap01-at-0
-      : extendFin (subst (λ n' → Fin n' → Fin n') (sym n=3) swap01∘swap12) 0
-        ≢ extendFin (subst (λ n' → Fin n' → Fin n') (sym n=3) swap12∘swap01) 0
+      : extendFin swap01∘swap12 0 ≢ extendFin swap12∘swap01 0
     swap01∘swap12≠swap12∘swap01-at-0 rewrite m=1 =
       λ eq → 1+n≢n {1} (sym eq)
 
     -- The projected cosmoi of the two composition orders are non-bisimilar
     -- 两种复合顺序的投影宇宙不互模拟
     swap01∘swap12∞≉swap12∘swap01∞
-      : ¬ (projCosmos (cosmos-mapN
-             (subst (λ n' → Fin n' → Fin n') (sym n=3) swap01∘swap12))
+      : ¬ (projCosmos (cosmos-mapN swap01∘swap12)
            ≈C
-           projCosmos (cosmos-mapN
-             (subst (λ n' → Fin n' → Fin n') (sym n=3) swap12∘swap01)))
+           projCosmos (cosmos-mapN swap12∘swap01))
     swap01∘swap12∞≉swap12∘swap01∞ =
       faithfulness _ _ (0 , swap01∘swap12≠swap12∘swap01-at-0)

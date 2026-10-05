@@ -47,7 +47,7 @@
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 module ALMA.Cosmos.Carried.FinEmbed where
 
-open import Agda.Builtin.Equality using (_≡_)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat using (ℕ; suc; _<_)
 open import Data.Nat.Properties
   using (≤-pred; >⇒≢; m≤n⇒m<n∨m≡n)
@@ -125,3 +125,21 @@ toℕ-embedF-inject₁ : ∀ {m} (f : Fin (n-at m) → Fin (n-at m))
                     → toℕ (embedF f (inject₁ x)) ≡ toℕ (f x)
 toℕ-embedF-inject₁ {m} f x
   rewrite embedF-inject₁ f x = toℕ-inject₁ {n = n-at m} (f x)
+
+------------------------------------------------------------------------
+-- The new top (the stage-(suc m) element whose natural reading is
+-- n-at m) is fixed by embedF. Stated for an arbitrary element together
+-- with its top reading, so the with-abstraction stays abstract (no stuck
+-- clamp residual in the generated with function).
+--
+-- 新末位（自然读数为 n-at m 的层 (suc m) 元素）被 embedF 固定。对一般
+-- 元素连同其末位读数陈述，使 with 抽象保持抽象（生成的 with 函数中不
+-- 出现卡住的 clamp 残差）。
+------------------------------------------------------------------------
+embedF-newtop : ∀ {m} (f : Fin (n-at m) → Fin (n-at m))
+              (x' : Fin (n-at (suc m))) → toℕ x' ≡ n-at m
+              → embedF f x' ≡ x'
+embedF-newtop {m} f x' e
+  with m≤n⇒m<n∨m≡n (≤-pred (toℕ<n x'))
+... | inj₂ _   = refl
+... | inj₁ lt  = ⊥-elim (>⇒≢ lt (sym e))

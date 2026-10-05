@@ -7,6 +7,21 @@
 -- and the left-unit law for comp⇒ℱX-id-left
 -- 提供余极限余锥、跨范畴态射等价 _≈⇒ℱX_、迭代塔嵌入 embedCosmos^d /
 -- lift-subtower，以及 comp⇒ℱX-id-left 的左单位律
+--
+-- Zero-subst carried style: the d-fold Fin embedding is the carried
+-- embFin (re-exported as inject₁^d from FinCatInfinity, target size
+-- n-at (shift d m) reduces definitionally); the finFromℕ-maybe /
+-- restrictFin machine in embedCosmos congruence is replaced by the total
+-- clamp representative cl and the FinEmbed lemmas embedF-inject₁ /
+-- embedF-newtop split by the Cubical-safe ≤-or->; the single transport
+-- subst in transport-to-S-proj is replaced by a plain rewrite of the
+-- natural-number index equality. No subst, no cast, no Maybe, no Dec/Bool.
+-- 零 subst 携带式：d 次 Fin 嵌入即携带式 embFin（由 FinCatInfinity 再导出
+-- 为 inject₁^d，目标尺寸 n-at (shift d m) 定义性归约）；embedCosmos 同余
+-- 中的 finFromℕ-maybe / restrictFin 机器替换为全函数 clamp 代表 cl 与
+-- FinEmbed 引理 embedF-inject₁ / embedF-newtop，按 Cubical 安全的
+-- ≤-or-> 拆分；transport-to-S-proj 中唯一的传输 subst 改为对自然数索引
+-- 等式的普通 rewrite。无 subst、无 cast、无 Maybe、无 Dec/Bool。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
@@ -16,15 +31,15 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Level using (lift)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _≤_; z≤n; s≤s)
-open import Data.Nat.Properties using (+-identityʳ; +-suc; ≤-trans;1+n≰n)
+open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _≤_; _<_; z≤n; s≤s)
+open import Data.Nat.Properties
+  using ( +-identityʳ; +-suc; ≤-refl; ≤-trans; ≤-antisym; ≤-pred )
 open import Data.Fin.Base using (Fin; toℕ; inject₁)
-open import Data.Fin.Properties using (toℕ-inject₁)
+open import Data.Fin.Properties
+  using (toℕ-inject₁; toℕ-injective; toℕ<n)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
-open import Data.Maybe.Base using (just; nothing)
-open import Data.Empty using (⊥-elim)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 
@@ -42,10 +57,14 @@ open import ALMA.Cosmos.MorphismMorphism using (MorphismMorphism; compMorphismMo
 open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl; ≈C-sym; ≈C-trans)
 open import ALMA.Cosmos.MorphismCorrespondence using (≈C→⇒ℱ)
 open import ALMA.Cosmos.FinCatNWitness using (module FinCatN)
-open import ALMA.Cosmos.FinCatInfinity using (FinCat∞; TrivialFC∞; n-at)
+open import ALMA.Cosmos.FinCatInfinity
+  using (FinCat∞; TrivialFC∞; n-at)
 open import ALMA.Cosmos.FinCatInfinityProjection
-  using (finFromℕ-maybe; toℕ-finFromℕ-maybe; finFromℕ-maybe-nothing⇒>; module FinCatNColimitProjection)
+  using (module FinCatNColimitProjection)
 open import ALMA.Cosmos.FinCatInfinityTowerCompat using (module FinCatTowerCompat)
+open import ALMA.Cosmos.Carried.LimitSystem using (cl; cl-toℕ; ≤-or->)
+open import ALMA.Cosmos.Carried.FinEmbed
+  using (embedF-inject₁; embedF-newtop)
 open import ALMA.Cosmos.FinCatInfinityColimit
   using (CompatibleTower; subtower; towerColimit; towerColimit-spec
         ; _⇒ℱX[_]_; ⇒ℱXLayer[_]; comp⇒ℱX; id⇒ℱX; module TowerShapeFunctors
@@ -83,8 +102,9 @@ colimitCocone tower m =
     (⇒ℱ→⇒ℱX[id] (≈C→⇒ℱ (towerColimit-spec tower m)))
     (ProjCosmosMorphism.projCosmos-morphism m (CompatibleTower.seq tower m))
 
--- Decision: either m ≤ n or suc n ≤ m
--- 判定：要么 m ≤ n，要么 suc n ≤ m
+-- Decision: either m ≤ n or suc n ≤ m (structurally recursive,
+-- Cubical-safe sum view)
+-- 判定：要么 m ≤ n，要么 suc n ≤ m（结构化递归、Cubical 安全的和式视图）
 split≤ : ∀ m n → (m ≤ n) ⊎ (suc n ≤ m)
 split≤ zero    n       = inj₁ z≤n
 split≤ (suc m) zero    = inj₂ (s≤s z≤n)
@@ -92,8 +112,11 @@ split≤ (suc m) (suc n) with split≤ m n
 ... | inj₁ m≤n   = inj₁ (s≤s m≤n)
 ... | inj₂ sn≤m  = inj₂ (s≤s sn≤m)
 
--- Iterated inject₁: Fin (n-at m) → Fin (n-at (m + d))
--- inject₁ 的 d 次迭代：Fin (n-at m) → Fin (n-at (m + d))
+-- Iterated inject₁: Fin (n-at m) → Fin (n-at (m + d)). The only rewrites
+-- are natural-number arithmetic (+-identityʳ / +-suc); there is no subst
+-- over Fin indices and no cast.
+-- inject₁ 的 d 次迭代：Fin (n-at m) → Fin (n-at (m + d))。仅有的 rewrite
+-- 是自然数算术（+-identityʳ / +-suc），不存在沿 Fin 索引的 subst，也无 cast。
 inject₁^d : ∀ d {m} → Fin (n-at m) → Fin (n-at (m + d))
 inject₁^d zero    {m} x rewrite +-identityʳ m = x
 inject₁^d (suc d) {m} x rewrite +-suc m d     = inject₁ (inject₁^d d x)
@@ -129,19 +152,85 @@ embedCosmos^d zero    m x rewrite +-identityʳ m = x
 embedCosmos^d (suc d) m x rewrite +-suc m d =
   FinCatTowerCompat.embedCosmos (m + d) (embedCosmos^d d m x)
 
--- embedCosmos preserves _≈C_
--- embedCosmos 保持 _≈C_
+-- Congruence of the one-step embedding on endofunctions. Split the
+-- reading of the stage-(suc m) element by ≤-or->: on the inject₁ image
+-- use embedF-inject₁ and the pointwise equality; at the new top both
+-- embeddings fix the element by embedF-newtop. Total clamp throughout.
+--
+-- 一步嵌入对端函数的同余。按 ≤-or-> 拆分层 (suc m) 元素的读数：在
+-- inject₁ 像上用 embedF-inject₁ 与逐点相等；新末位处两个嵌入都由
+-- embedF-newtop 固定该元素。全程使用全函数 clamp。
+private
+  embedF₀ = FinCatTowerCompat.embedF₀
+
+  embedF₀-cong : ∀ m (f g : Fin (n-at m) → Fin (n-at m))
+    → (∀ (A : Fin (n-at m)) → f A ≡ g A)
+    → (A' : Fin (n-at (suc m)))
+    → embedF₀ m f A' ≡ embedF₀ m g A'
+  embedF₀-cong m f g feq A' with ≤-or-> (suc m) (toℕ A')
+  -- In range: A' is the inject₁ image of its clamp predecessor p.
+  -- 范围内：A' 是其 clamp 前驱 p 的 inject₁ 像。
+  ... | inj₁ le =
+      let p = cl m (toℕ A')
+          A'≡inj : A' ≡ inject₁ p
+          A'≡inj = toℕ-injective
+                     (trans (sym (cl-toℕ m (toℕ A') le))
+                            (sym (toℕ-inject₁ p)))
+      in begin
+        embedF₀ m f A'
+          ≡⟨ cong (embedF₀ m f) A'≡inj ⟩
+        embedF₀ m f (inject₁ p)
+          ≡⟨ embedF-inject₁ {m = m} f p ⟩
+        inject₁ (f p)
+          ≡⟨ cong inject₁ (feq p) ⟩
+        inject₁ (g p)
+          ≡˘⟨ embedF-inject₁ {m = m} g p ⟩
+        embedF₀ m g (inject₁ p)
+          ≡˘⟨ cong (embedF₀ m g) A'≡inj ⟩
+        embedF₀ m g A'
+      ∎
+  -- New top: toℕ A' is forced to n-at m, and embedF fixes it on both sides.
+  -- 新末位：toℕ A' 被迫等于 n-at m，两侧嵌入都固定它。
+  ... | inj₂ gt =
+      let etop : toℕ A' ≡ n-at m
+          etop = ≤-antisym (≤-pred (toℕ<n A')) gt
+          t = cl (suc m) (n-at m)
+          t-e : toℕ t ≡ n-at m
+          t-e = cl-toℕ (suc m) (n-at m) ≤-refl
+          A'≡t : A' ≡ t
+          A'≡t = toℕ-injective (trans etop (sym t-e))
+          ffix : embedF₀ m f A' ≡ A'
+          ffix = trans
+                   (trans (cong (embedF₀ m f) A'≡t)
+                          (embedF-newtop {m = m} f t t-e))
+                   (sym A'≡t)
+          gfix : embedF₀ m g A' ≡ A'
+          gfix = trans
+                   (trans (cong (embedF₀ m g) A'≡t)
+                          (embedF-newtop {m = m} g t t-e))
+                   (sym A'≡t)
+      in trans ffix (sym gfix)
+
+-- embedCosmos preserves _≈C_. The F₀ field is embedF₀-cong; the successor
+-- follows the total clamp predecessor cl m (toℕ A') (no restrictFin).
+--
+-- embedCosmos 保持 _≈C_。F₀ 字段为 embedF₀-cong；后继跟随全函数 clamp
+-- 前驱 cl m (toℕ A')（无 restrictFin）。
 embedCosmos-resp-≈C : ∀ m {x y}
   → x ≈C y
   → FinCatTowerCompat.embedCosmos m x ≈C FinCatTowerCompat.embedCosmos m y
-embedCosmos-resp-≈C m {x} {y} eq .unfoldFunctor₀-eq {A = A'} _
-  with finFromℕ-maybe (n-at m ∸ 1) (toℕ A')
-... | just z  = cong inject₁ (eq .unfoldFunctor₀-eq {A = z} (lift tt))
-... | nothing = refl
+embedCosmos-resp-≈C m {x} {y} eq .unfoldFunctor₀-eq {A = A'} _ =
+  embedF₀-cong m fx fy
+    (λ A₁ → eq .unfoldFunctor₀-eq {A = A₁} (lift tt))
+    A'
+  where
+    fx fy : Fin (n-at m) → Fin (n-at m)
+    fx A₁ = Functor.F₀ (Unfolding.unfoldFunctor (out x)) (A₁ , lift tt)
+    fy A₁ = Functor.F₀ (Unfolding.unfoldFunctor (out y)) (A₁ , lift tt)
 embedCosmos-resp-≈C m eq .pos-to-shape-eq _ _ = refl
-embedCosmos-resp-≈C m eq .unfold-next-eq {A = A'} _ =
+embedCosmos-resp-≈C m {x} {y} eq .unfold-next-eq {A = A'} _ =
   embedCosmos-resp-≈C m
-    (eq .unfold-next-eq {A = FinCatTowerCompat.restrictFin m A'} (lift tt))
+    (eq .unfold-next-eq {A = cl m (toℕ A')} (lift tt))
 
 -- Iterated compatibility: seq of subtower at layer m+d is the
 -- embedCosmos^d image of its value at layer m
@@ -231,8 +320,14 @@ S-embed^d-F₀-proj₁ (suc d) m A s rewrite +-suc m d =
   cong inject₁ (S-embed^d-F₀-proj₁ d m A s)
 
 -- Transport a cross-category morphism along S-proj (m+d) ∘ S-embed^d d m
--- to one along S-proj m
+-- to one along S-proj m. The two projected successor indices are equal as
+-- natural numbers (toℕ (inject₁^d d A) ≡ toℕ A), so a plain rewrite aligns
+-- the target cosmos without any subst.
+--
 -- 将沿 S-proj (m+d) ∘ S-embed^d d m 的跨范畴态射传输为沿 S-proj m 的
+-- 跨范畴态射。两个投影后继索引作为自然数相等
+-- （toℕ (inject₁^d d A) ≡ toℕ A），故一次普通 rewrite 即可对齐目标
+-- 宇宙，无需任何 subst。
 transport-to-S-proj : ∀ {m : ℕ} {d : ℕ}
     {F : Cosmos (FinCatN.FinCatN m) (FinCatN.TrivialFCN m)}
     {G : Cosmos FinCat∞ TrivialFC∞}
@@ -242,33 +337,24 @@ transport-to-S-proj {m} {d} {F} {G} h .out .shapeTrans {A} _ = lift tt
 transport-to-S-proj {m} {d} {F} {G} h .out .morphismObj .onPos {A} _ = lift tt
 transport-to-S-proj {m} {d} {F} {G} h .out .morphismObj .pts-compat {A} _ = refl
 transport-to-S-proj {m} {d} {F} {G} h .out .morphismMor .onActP {A} {B} _ _ _ = refl
-transport-to-S-proj {m} {d} {F} {G} h .out .onunfold-next {A} s =
-  transport-to-S-proj
-    (subst (λ Y' → uF.unfold-next {A = A} (lift tt)
-              ⇒ℱX[ TowerShapeFunctors.S-proj (m + d) ∘F S-embed^d d m ] Y')
-          (cong (λ k' → uG.unfold-next {A = k'} (lift tt))
-                (begin
-                    toℕ (Functor.F₀ (S-embed^d d m) (A , s) .proj₁)
-                      ≡⟨ cong toℕ (S-embed^d-F₀-proj₁ d m A s) ⟩
-                    toℕ (inject₁^d d A)
-                      ≡⟨ toℕ-inject₁^d d {m = m} A ⟩
-                    toℕ A
-                  ∎))
-          (h .out .onunfold-next {A = A} s))
-  where
-    uF = out F
-    module uF = Unfolding uF
-    uG = out G
-    module uG = Unfolding uG
+transport-to-S-proj {m} {d} {F} {G} h .out .onunfold-next {A} s
+  rewrite sym
+    (begin
+      toℕ (Functor.F₀ (S-embed^d d m) (A , s) .proj₁)
+        ≡⟨ cong toℕ (S-embed^d-F₀-proj₁ d m A s) ⟩
+      toℕ (inject₁^d d A)
+        ≡⟨ toℕ-inject₁^d d {m = m} A ⟩
+      toℕ A
+    ∎) =
+  transport-to-S-proj {m = m} {d = d} (h .out .onunfold-next {A = A} s)
 
--- defaultFin preserves toℕ when k is in range
--- 当 k 在范围内时，defaultFin 保持 toℕ
+-- defaultFin preserves toℕ when k is in range. The total clamp cl
+-- satisfies this directly by cl-toℕ (n-at m ∸ 1 = suc m).
+--
+-- 当 k 在范围内时 defaultFin 保持 toℕ。全函数 clamp cl 由 cl-toℕ
+-- 直接满足（n-at m ∸ 1 = suc m）。
 toℕ-defaultFin : ∀ m k → k ≤ n-at m ∸ 1 → toℕ (defaultFin m k) ≡ k
-toℕ-defaultFin m k k≤
-  with finFromℕ-maybe (n-at m ∸ 1) k in eq
-... | just x  = toℕ-finFromℕ-maybe (n-at m ∸ 1) k x eq
-... | nothing = ⊥-elim (1+n≰n
-      (≤-trans (finFromℕ-maybe-nothing⇒> (n-at m ∸ 1) k eq) k≤))
+toℕ-defaultFin m k k≤ = cl-toℕ m k k≤
 
 mutual
   -- Cross-category morphism equivalence: a coinductive bisimulation

@@ -61,13 +61,13 @@ open import Agda.Primitive using (Level; lzero; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
-open import Data.Nat using (ℕ; zero; suc; _≤_; _<_)
+open import Data.Nat using (ℕ; zero; suc; _≤_; _<_; z≤n; s≤s)
 open import Data.Nat.Properties
   using ( ≤-pred; ≤-refl; m≤n⇒m≤1+n; m≤n⇒m<n∨m≡n; n≤0⇒n≡0
         ; m≥n⇒m⊓n≡n )
 open import Data.Fin.Base using (Fin; zero; suc; toℕ; inject₁)
 open import Data.Fin.Properties using (toℕ-injective; toℕ-inject₁; toℕ<n)
-open import Data.Sum.Base using (inj₁; inj₂)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
 open import ALMA.Base.MCorr
@@ -82,6 +82,21 @@ open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
 -- FinCatN m 对象集的大小：n-at m = suc (suc m)。
 n-at : ℕ → ℕ
 n-at m = suc (suc m)
+
+-- Total, Cubical-safe strict dichotomy: k ≤ h or h < k, disjoint.
+-- Defined by structural recursion on h and k; it never matches on a
+-- decidable / Bool-backed predicate (which would trigger
+-- UnsupportedIndexedMatch under --cubical-compatible).
+--
+-- 全函数、Cubical 安全的严格二分：k ≤ h 或 h < k，二者不交。由 h、k 上的
+-- 结构化递归定义；绝不模式匹配可判定 / Bool 支撑的谓词（否则在
+-- --cubical-compatible 下会触发 UnsupportedIndexedMatch）。
+≤-or-> : ∀ (h k : ℕ) → (k ≤ h) ⊎ (h < k)
+≤-or-> h       zero    = inj₁ z≤n
+≤-or-> zero    (suc k) = inj₂ (s≤s z≤n)
+≤-or-> (suc h) (suc k) with ≤-or-> h k
+... | inj₁ p = inj₁ (s≤s p)
+... | inj₂ p = inj₂ (s≤s p)
 
 -- The canonical representative of natural position v in stage v.
 -- natToFin v : Fin (n-at v), and n-at v > v, so it is always in range.
