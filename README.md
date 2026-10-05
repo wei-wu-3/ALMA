@@ -50,11 +50,15 @@ The Equivalence/ sub-tree mirrors this convergence at the level of observation e
 
 The ontological root of subst: when A is essentially determined by B at parameter p₀, yet is expressed independently, the misalignment between A's self-contained appearance and its instance-position must manifest as subst at every point of connection between A and B.
 
+The resolution is carried rather than propositional. The edge-indexed coinductive correspondence MCorr (Base/MCorr.agda) replaces index equalities and their transports by carried data: children are indexed directly by edges, and the fibre-wise adjunction FiberAdj aligns dependent fibres with no J whatsoever. On this basis the Cosmos/Carried/ sub-tree reconstructs the finite-tower colimit—its existence, the mediating triangle, and uniqueness up to bisimulation—with zero subst/cast, together with machine-checked negative boundaries: the stage embedding is injective but not surjective, so no global projection FMap exists, and the colimit legs are forward edge-following push simulations rather than child-surjective maps.
+
 形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
 Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
 
 subst 的本体论根源：当 A 本质上由 B 在参数 p₀ 处决定，却被独立表达时，A 的自足外观与其实例位置之间的错位，必然在 A 与 B 的每个连接点上以 subst 的形式显露。
+
+subst 的消解是携带式的，而非命题式的。边索引化余归纳对应 MCorr（Base/MCorr.agda）以携带数据取代索引等式及其传输：子节点由边直接索引，纤维伴随 FiberAdj 无需 J 即对齐依赖纤维。在此之上，Cosmos/Carried/ 子树以零 subst/cast 重建有限塔余极限——存在性、中介三角律与互模拟意义下的唯一性——并附机检的否定性边界：层嵌入单射而非满射，故不存在全局投影 FMap；余极限的腿是沿边跟随的前向 push 互模拟，而非子节点满射映射。
 
 ## Dependencies & Build / 依赖与构建
 
@@ -81,6 +85,9 @@ src/
 ├── ALMA/
 │   ├── Base/
 │   │   ├── IndexedMType.agda
+│   │   ├── MCorr.agda
+│   │   ├── MCategory.agda
+│   │   ├── Container.agda
 │   │   ├── Equivalence.agda
 │   │   └── Equivalence/
 │   │       ├── Core.agda
@@ -104,7 +111,6 @@ src/
 │   │   ├── ContCatEquiv.agda
 │   │   ├── ContCatEquivFunctor.agda
 │   │   ├── Unfolding.agda
-│   │   ├── MorphismObject.agda
 │   │   ├── ContCatEquivLemmas.agda
 │   │   ├── MorphismMorphism.agda
 │   │   ├── Terminal.agda
@@ -144,7 +150,26 @@ src/
 │   │   ├── FinCatInfinityTowerCompat.agda
 │   │   ├── FinCatInfinityColimit.agda
 │   │   ├── FinCatInfinityColimitUniversal.agda
-│   │   └── Instances.agda
+│   │   ├── Instances.agda
+│   │   ├── CosmosMorphism.agda
+│   │   ├── MorphismObject.agda
+│   │   ├── MorphismObject/
+│   │   │   ├── Covariant.agda
+│   │   │   └── MorphismObject.agda
+│   │   ├── Carried/
+│   │   │   ├── SeqColimit.agda
+│   │   │   ├── DetSys.agda
+│   │   │   ├── TrivProj.agda
+│   │   │   ├── DecUIP.agda
+│   │   │   ├── FinNatUIP.agda
+│   │   │   ├── FinProj.agda
+│   │   │   ├── LimitSystem.agda
+│   │   │   ├── FinColimit.agda
+│   │   │   ├── FinTower.agda
+│   │   │   ├── FinEmbed.agda
+│   │   │   ├── DetColimit.agda
+│   │   │   └── Boundaries.agda
+│   │   └── WIP.agda  (archived; excluded from Everything.agda)
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda
