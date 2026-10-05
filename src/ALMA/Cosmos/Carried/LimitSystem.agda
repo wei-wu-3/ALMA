@@ -59,13 +59,15 @@ module ALMA.Cosmos.Carried.LimitSystem where
 
 open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong)
+open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; zero; suc; toℕ)
+open import Data.Fin.Base using (Fin; zero; suc; toℕ; inject₁)
+open import Data.Fin.Properties using (toℕ-inject₁)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
 open import ALMA.Base.MCorr using (here; below)
 open import ALMA.Cosmos.Carried.DetSys
+open import ALMA.Cosmos.Carried.SeqColimit using (shift)
 
 -- Size of the object set of FinCatN m: n-at m = suc (suc m).
 --
@@ -88,6 +90,35 @@ natToFin (suc v) = suc (natToFin v)
 toℕ-natToFin : (v : ℕ) → toℕ (natToFin v) ≡ v
 toℕ-natToFin zero    = refl
 toℕ-natToFin (suc v) = cong suc (toℕ-natToFin v)
+
+-- d-fold finite embedding Fin (n-at m) → Fin (n-at (shift d m)), by
+-- iterating inject₁. The target size is computed by the same `shift`
+-- recursion as the carried chain (SeqColimit), so
+-- n-at (shift d m) reduces DEFINITIONALLY to the d-times-enlarged Fin
+-- size. There is no subst Fin (+-suc) / castCosmos / ShiftedTower: the
+-- old inject₁^d packaged every result in
+--   subst Fin (cong n-at (sym (+-suc m d))) ...,
+-- which is exactly the layer-arithmetic transport axis, now baked into
+-- the recursion.
+--
+-- d 次有限嵌入 Fin (n-at m) → Fin (n-at (shift d m))，迭代 inject₁ 而
+-- 成。目标尺寸由携带链（SeqColimit）的同一 shift 递归计算，故
+-- n-at (shift d m) 定义性归约为放大 d 次的 Fin 尺寸。不存在
+-- subst Fin (+-suc) / castCosmos / ShiftedTower：旧 inject₁^d 把每个结
+-- 果包一层 subst Fin (cong n-at (sym (+-suc m d)))，那正是层算术传输
+-- 轴，现已烤进递归。
+embFin : (d m : ℕ) → Fin (n-at m) → Fin (n-at (shift d m))
+embFin zero    m x = x
+embFin (suc d) m x = embFin d (suc m) (inject₁ x)
+
+-- The iterated embedding preserves the natural-number position.
+--
+-- 迭代嵌入保持自然数位置。
+toℕ-embFin : ∀ d m (x : Fin (n-at m))
+           → toℕ (embFin d m x) ≡ toℕ x
+toℕ-embFin zero    m x = refl
+toℕ-embFin (suc d) m x =
+  trans (toℕ-embFin d (suc m) (inject₁ x)) (toℕ-inject₁ x)
 
 ------------------------------------------------------------------------
 -- The limit system, parameterised by the per-stage deterministic
