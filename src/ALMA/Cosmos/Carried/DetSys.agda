@@ -41,9 +41,10 @@
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 module ALMA.Cosmos.Carried.DetSys where
 
-open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Primitive using (Level; _⊔_; lzero)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
 open import ALMA.Base.MCorr using (Sys; M)
 
@@ -80,3 +81,45 @@ module DetSys {i a b : Level}
   -- 该系统上的余归纳确定性树。
   DetM : (x : I) → Set (a ⊔ i ⊔ b)
   DetM x = M A E x
+
+------------------------------------------------------------------------
+-- Trivial-fibre deterministic system over an index type I.
+--
+-- Every node carries one trivial label (⊤) and one trivial position
+-- (⊤), hence exactly ONE successor step x : I. This is the shared shape
+-- of the FinCat tower stages (I = Fin (n-at m)) and of the limit system
+-- L∞ (I = ℕ) under TrivialFC∞: the only real data is the deterministic
+-- transition step on indices. The edge fibre
+--
+--   E x tt y = y ≡ step x
+--
+-- is a singleton at the unique successor and empty elsewhere, so it
+-- lives at the index level i and there is never any nontrivial position
+-- or label transport (the K-sensitive general-fibre case is out of
+-- scope, matching the live tower's Lift ⊤ fibres).
+--
+-- 索引类型 I 上的平凡纤维确定性系统。
+-- 每个节点携带一个平凡标签（⊤）与一个平凡位置（⊤），故恰有一个后继
+-- step x。这正是 FinCat 塔各层（I = Fin (n-at m)）与极限系统 L∞
+-- （I = ℕ）在 TrivialFC∞ 下的共同形状：唯一的真实数据是索引上的确定
+-- 性转移 step。边纤维
+--
+--   E x tt y = y ≡ step x
+--
+-- 在唯一后继处为单点、其余为空，故位于索引层 i，不存在任何非平凡的
+-- 位置或标签传输（需 K 的一般纤维情形不在范围内，与真实塔的 Lift ⊤
+-- 纤维一致）。
+------------------------------------------------------------------------
+module TrivDet {i : Level} (I : Set i) (step : I → I) where
+
+  private
+    Aᵗ : I → Set lzero
+    Aᵗ _ = ⊤
+
+    Bᵗ : (x : I) → Aᵗ x → Set lzero
+    Bᵗ _ _ = ⊤
+
+    nextᵗ : (x : I) (a : Aᵗ x) (p : Bᵗ x a) → I
+    nextᵗ x _ _ = step x
+
+  open DetSys I Aᵗ Bᵗ nextᵗ public
