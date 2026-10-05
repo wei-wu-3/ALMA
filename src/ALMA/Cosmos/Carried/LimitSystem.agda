@@ -59,15 +59,20 @@ module ALMA.Cosmos.Carried.LimitSystem where
 
 open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
-open import Data.Nat using (ℕ; zero; suc)
+open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
+open import Data.Nat using (ℕ; zero; suc; _≤_; _<_)
+open import Data.Nat.Properties
+  using ( ≤-pred; ≤-refl; m≤n⇒m≤1+n; m≤n⇒m<n∨m≡n; n≤0⇒n≡0
+        ; m≥n⇒m⊓n≡n )
 open import Data.Fin.Base using (Fin; zero; suc; toℕ; inject₁)
-open import Data.Fin.Properties using (toℕ-inject₁)
+open import Data.Fin.Properties using (toℕ-injective; toℕ-inject₁; toℕ<n)
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
 open import ALMA.Base.MCorr using (here; below)
 open import ALMA.Cosmos.Carried.DetSys
 open import ALMA.Cosmos.Carried.SeqColimit using (shift)
+open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
 
 -- Size of the object set of FinCatN m: n-at m = suc (suc m).
 --
@@ -120,6 +125,27 @@ toℕ-embFin zero    m x = refl
 toℕ-embFin (suc d) m x =
   trans (toℕ-embFin d (suc m) (inject₁ x)) (toℕ-inject₁ x)
 
+-- Stage-m representative of a natural position k, as the TOTAL clamp
+-- into Fin (n-at m). For in-range k ≤ suc m its toℕ reading is exactly k
+-- (clamp saturates only beyond the stage). clamp is total and defined by
+-- ℕ recursion, so there is NO Fin indexed pattern match and NO Cubical
+-- absurd pattern on ≤ proofs (which carry hcomp and are not empty for
+-- unification): the position axis is represented by a total function.
+--
+-- 自然位置 k 在第 m 层的代表，即向 Fin (n-at m) 的全函数 clamp。范围
+-- 内 k ≤ suc m 时其 toℕ 读数恰为 k（clamp 仅在超出该层时饱和）。clamp
+-- 全函数且由 ℕ 递归定义，故无 Fin 索引模式匹配，也无对 ≤ 证明的
+-- Cubical 空模式（≤ 带 hcomp，统一时不为空）：位置轴由全函数表示。
+cl : (m k : ℕ) → Fin (n-at m)
+cl m k = clamp {k = suc m} k
+
+-- In-range reading of the stage-m representative: toℕ (cl m k) ≡ k.
+--
+-- 第 m 层代表的范围内读数：toℕ (cl m k) ≡ k。
+cl-toℕ : ∀ m k (le : k ≤ suc m) → toℕ (cl m k) ≡ k
+cl-toℕ m k le =
+  trans (clamp-val {k = suc m} k) (m≥n⇒m⊓n≡n le)
+
 ------------------------------------------------------------------------
 -- The limit system, parameterised by the per-stage deterministic
 -- position transition t m : Fin (n-at m) → Fin (n-at m).
@@ -129,6 +155,16 @@ toℕ-embFin (suc d) m x =
 ------------------------------------------------------------------------
 module LimitSystem
   (t : (m : ℕ) → Fin (n-at m) → Fin (n-at m))
+  -- One-step embedding compatibility: advancing one stage commutes with
+  -- the transition on the inherited (non-new-top) positions. This is the
+  -- carried form of the live tower's embedF₀ / compat; it is a bare
+  -- homogeneous equation on Fin, never a transport.
+  --
+  -- 一步嵌入相容：推进一层与继承位置（非新末位）上的转移交换。这是真实
+  -- 塔 embedF₀ / compat 的携带形式；它是 Fin 上的裸同质等式，绝非传输。
+  (embed-compat :
+     (m : ℕ) (x : Fin (n-at m))
+   → t (suc m) (inject₁ x) ≡ inject₁ (t m x))
   where
 
   -- Limit position transition: read at the stage that always contains v.
@@ -156,3 +192,94 @@ module LimitSystem
   orbit∞ : (x : ℕ) → DetM x
   orbit∞ x .here      = tt
   orbit∞ x .below y _ = orbit∞ y
+
+  ----------------------------------------------------------------------
+  -- In-range reading coherence: every position present at stage m is
+  -- read by the limit transition s∞. The split "inherited position vs
+  -- new top" is the BOUNDED disjunction k ≤ suc m → k < suc m ⊎ k ≡ suc m
+  -- (one layer), NOT the unbounded ≤-total threshold of WIP.agda. Fin
+  -- constructors are never pattern-matched (no Cubical absurd pattern,
+  -- no UnsupportedIndexedMatch): arbitrary positions are normalised to
+  -- the total `cl` representative via toℕ-injective, and every step is a
+  -- homogeneous equation. There is no subst / cast.
+  --
+  -- 范围内读数相干性：第 m 层存在的每个位置都被极限转移 s∞ 正确读取。
+  -- "继承位置 vs 新末位"的拆分是有界析取 k ≤ suc m → k < suc m ⊎
+  -- k ≡ suc m（只跨一层），不是 WIP.agda 里的无界 ≤-total 阈值。全程不
+  -- 对 Fin 构造子模式匹配（无 Cubical 空模式、无 UnsupportedIndexed
+  -- Match）：任意位置经 toℕ-injective 归一为全函数代表 cl，每一步都是
+  -- 同质等式。没有 subst / cast。
+  ----------------------------------------------------------------------
+  private
+    -- One upward embedding step, read at natural-number level.
+    --
+    -- 一次上行嵌入，在自然数层读取。
+    up-toℕ : ∀ m x → toℕ (t (suc m) (inject₁ x)) ≡ toℕ (t m x)
+    up-toℕ m x =
+      trans (cong toℕ (embed-compat m x)) (toℕ-inject₁ (t m x))
+
+    -- At an inherited (non-new-top) position, the stage (suc p)
+    -- representative equals inject₁ of the stage-p representative.
+    --
+    -- 在继承位置（非新末位）上，第 suc p 层代表等于第 p 层代表的
+    -- inject₁。
+    inj-clamp : ∀ p k (le : k ≤ suc p)
+              → cl (suc p) k ≡ inject₁ (cl p k)
+    inj-clamp p k le =
+      toℕ-injective
+        (trans (cl-toℕ (suc p) k (m≤n⇒m≤1+n le))
+          (sym (trans (toℕ-inject₁ (cl p k))
+                      (cl-toℕ p k le))))
+
+    -- inject₁ of stage s's top is the canonical representative of s+1.
+    --
+    -- 第 s 层末位的 inject₁ 即 s+1 的典范代表。
+    inj-top : ∀ s → inject₁ (cl s (suc s)) ≡ natToFin (suc s)
+    inj-top s =
+      toℕ-injective
+        (trans (trans (toℕ-inject₁ (cl s (suc s)))
+                      (cl-toℕ s (suc s) ≤-refl))
+               (sym (toℕ-natToFin (suc s))))
+
+  -- Reading at stage s's top agrees with the limit transition at s+1
+  -- (a single upward embedding step).
+  --
+  -- 第 s 层末位的读数与 s+1 处的极限转移一致（一次上行嵌入）。
+  top-read : ∀ s → toℕ (t s (cl s (suc s))) ≡ s∞ (suc s)
+  top-read s =
+    sym
+      (trans (cong toℕ (cong (t (suc s)) (sym (inj-top s))))
+        (trans (cong toℕ (embed-compat s (cl s (suc s))))
+               (toℕ-inject₁ (t s (cl s (suc s))))))
+
+  -- In-range reading for a natural position k at stage m.
+  --
+  -- 第 m 层自然位置 k 的范围内读数。
+  read-cl : ∀ m k (le : k ≤ suc m)
+          → toℕ (t m (cl m k)) ≡ s∞ k
+  read-cl zero k le
+    with m≤n⇒m<n∨m≡n le
+  ... | inj₂ eq rewrite eq = top-read zero
+  ... | inj₁ lt rewrite n≤0⇒n≡0 (≤-pred lt) = refl
+  read-cl (suc p) k le
+    with m≤n⇒m<n∨m≡n le
+  ... | inj₂ eq rewrite eq = top-read (suc p)
+  ... | inj₁ lt =
+    let le' : k ≤ suc p
+        le' = ≤-pred lt
+    in trans (cong toℕ (cong (t (suc p)) (inj-clamp p k le')))
+             (trans (up-toℕ p (cl p k))
+                    (read-cl p k le'))
+
+  -- In-range reading for EVERY position x present at stage m.
+  --
+  -- 第 m 层存在的每个位置 x 的范围内读数。
+  read-coh : ∀ m (x : Fin (n-at m))
+           → toℕ (t m x) ≡ s∞ (toℕ x)
+  read-coh m x =
+    let le : toℕ x ≤ suc m
+        le = ≤-pred (toℕ<n x)
+        eqx : x ≡ cl m (toℕ x)
+        eqx = toℕ-injective (sym (cl-toℕ m (toℕ x) le))
+    in trans (cong toℕ (cong (t m) eqx))
+             (read-cl m (toℕ x) le)
