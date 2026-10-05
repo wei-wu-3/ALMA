@@ -5,7 +5,15 @@ module Everything where
 ------------------------------------------------------------------------
 -- Active main line
 -- 活跃主线
+
 import ALMA.Base.IndexedMType
+import ALMA.Base.Container
+import ALMA.Base.MCategory
+import ALMA.Base.MCorr  -- Carried correspondence kernel (zero subst / cast)
+                        -- 携带式对应内核（零 subst / cast）
+import ALMA.Base.MCorrSetoid  -- Setoid-parameterised carried correspondence pilot
+                             -- setoid 参数化携带式对应（试点切片）
+
 import ALMA.Base.Equivalence
 import ALMA.Base.Equivalence.Core
 import ALMA.Base.Equivalence.SubstTransport
@@ -21,15 +29,6 @@ import ALMA.Base.Equivalence.ManifoldEq
 import ALMA.Base.Equivalence.Lattice
 import ALMA.Base.Equivalence.StrongEquiv
 
--- Carried correspondence kernel (zero subst / cast)
--- 携带式对应内核（零 subst / cast）
-import ALMA.Base.MCorr
--- Category of indexed M-types, and its trivial-index (I = ⊤) container
--- specialisation
--- 索引 M 型构成的范畴，及其平凡索引（I = ⊤）容器特化
-import ALMA.Base.MCategory
-import ALMA.Base.Container
-
 import ALMA.Cosmos.ContCategory
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
@@ -39,13 +38,6 @@ import ALMA.Cosmos.Unfolding
 import ALMA.Cosmos.MorphismObject
 import ALMA.Cosmos.MorphismObject.Covariant
 import ALMA.Cosmos.MorphismObject.MorphismObject
--- CosmosMorphism.agda is a superseded subst-based draft: comp⇒ℱ .onActP
--- remains a hole (a subst coherence obstruction). The live generalised
--- homomorphism _⇒ℱ[_]_ lives in ALMA.Cosmos above; excluded from CI.
--- CosmosMorphism.agda 为已被取代的 subst 草稿：comp⇒ℱ .onActP 仍留洞
--- （subst 相干性障碍）。在用的广义同态 _⇒ℱ[_]_ 位于上方 ALMA.Cosmos；
--- 从 CI 排除。
--- import ALMA.Cosmos.CosmosMorphism
 import ALMA.Cosmos.ContCatEquivLemmas
 import ALMA.Cosmos.MorphismMorphism
 import ALMA.Cosmos
@@ -87,16 +79,13 @@ import ALMA.Cosmos.FinCatInfinityTowerCompat
 import ALMA.Cosmos.FinCatInfinityColimit
 import ALMA.Cosmos.FinCatInfinityColimitUniversal
 import ALMA.Cosmos.Instances
--- import ALMA.Cosmos.WIP  -- archived: uniqueness proof redone carried-style below
-                           -- 已归档：唯一性证明改由下方携带式模块重做
+-- import ALMA.Cosmos.WIP  -- uniqueness blocked at FMap/⇒ℱX layer;
+                           -- retrying carried-style below
+                           -- 唯一性在 FMap/⇒ℱX 层受阻；改为携带式重新尝试
 
-------------------------------------------------------------------------
--- Carried colimit reconstruction (zero subst / cast)
--- 携带式余极限重构（零 subst / cast）
 import ALMA.Cosmos.Carried.SeqColimit
 import ALMA.Cosmos.Carried.DetSys
 import ALMA.Cosmos.Carried.TrivProj
-import ALMA.Cosmos.Carried.DecUIP
 import ALMA.Cosmos.Carried.FinNatUIP
 import ALMA.Cosmos.Carried.FinProj
 import ALMA.Cosmos.Carried.LimitSystem
@@ -109,6 +98,7 @@ import ALMA.Cosmos.Carried.FinEmbed
 ------------------------------------------------------------------------
 -- Frozen archives
 -- 冻结存档
+
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
 import ALMA.InitialPass.ContCategory
@@ -127,7 +117,8 @@ import ALMA.Prototype.Indestructibility
 import ALMA.Prototype.Beings
 import ALMA.Prototype.Universe
 import ALMA.Prototype.StandardModel
--- import ALMA.Prototype.Properties
-
--- comp-cong-≃⇒ℱ hit a subst coherence obstruction and was left as a hole, excluded from CI
--- comp-cong-≃⇒ℱ 撞上 subst 相干性障碍，留为洞，从 CI 排除
+-- import ALMA.Prototype.Properties  -- comp-cong-≃⇒ℱ hit a subst coherence
+                                     -- obstruction and was left as a hole,
+                                     -- excluded from CI
+                                     -- comp-cong-≃⇒ℱ 撞上 subst 相干性障碍，
+                                     -- 留为洞，从 CI 排除
