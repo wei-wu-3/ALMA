@@ -41,6 +41,7 @@ import ALMA.Cosmos.MorphismObject.MorphismObject
 import ALMA.Cosmos.ContCatEquivLemmas
 import ALMA.Cosmos.MorphismMorphism
 import ALMA.Cosmos
+import ALMA.Cosmos.M.Object  -- M-Cosmos object layer on the setoid M base (setoid 参数化 M 底座上的 M-Cosmos 对象层)
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
