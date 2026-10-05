@@ -70,7 +70,8 @@ open import Data.Fin.Properties using (toℕ-injective; toℕ-inject₁; toℕ<n
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
-open import ALMA.Base.MCorr using (Sys; M; here; below)
+open import ALMA.Base.MCorr
+  using (Sys; M; here; below; _≈M_; idAdj)
 open Sys
 open import ALMA.Cosmos.Carried.DetSys
 open import ALMA.Cosmos.Carried.SeqColimit using (shift)
@@ -403,3 +404,30 @@ module LimitSystem
         r' : toℕ y ≡ s∞ v
         r' = trans (cong toℕ eq)
                    (trans (read-coh m x) (cong s∞ r))
+
+  ----------------------------------------------------------------------
+  -- Uniqueness of the deterministic limit up to bisimulation.
+  --
+  -- The trivial deterministic fibre has a unique label (⊤, unit η) and a
+  -- unique successor edge at every node. Hence any two limit trees at the
+  -- same index are edge-indexed bisimilar: labels agree by refl, and along
+  -- every actually-present edge the children are bisimilar (idAdj on the
+  -- edge fibre). Fibres carrying no edge are never inspected (no
+  -- emptiness decision, no Cubical absurd pattern). The two directions
+  -- below-eq are BARE guarded corecursive calls with the two trees given
+  -- in opposite argument order, so no ≈M-sym / ≈M-trans combinator hides
+  -- the guard.
+  --
+  -- 确定性极限在互模拟意义下的唯一性。
+  -- 平凡确定性纤维在每个节点有唯一标签（⊤，单位 η）与唯一后继边。故同一
+  -- 索引的任意两棵极限树边索引互模拟：标签由 refl 一致；沿每条实际存在
+  -- 的边，子树互模拟（边纤维上的 idAdj）。不带边的纤维永不被检查（不判
+  -- 空、不写 Cubical 空模式）。below-eq 两个方向均为裸受保护余归纳调用，
+  -- 两棵树以相反参数顺序给出，故无需 ≈M-sym / ≈M-trans 组合子遮蔽守卫。
+  ----------------------------------------------------------------------
+  det-unique : ∀ (x : ℕ) (t u : DetM x) → t ≈M u
+  det-unique x t u ._≈M_.here-eq = refl
+  det-unique x t u ._≈M_.below-eq y =
+    idAdj (Sys.E L∞ x (here u) y) ,
+      ( (λ e₁ → det-unique y (below t y e₁) (below u y e₁))
+      , (λ e₂ → det-unique y (below u y e₂) (below t y e₂)) )
