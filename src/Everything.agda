@@ -21,6 +21,10 @@ import ALMA.Base.Equivalence.ManifoldEq
 import ALMA.Base.Equivalence.Lattice
 import ALMA.Base.Equivalence.StrongEquiv
 
+-- Carried correspondence kernel (zero subst / cast)
+-- 携带式对应内核（零 subst / cast）
+import ALMA.Base.MCorr
+
 import ALMA.Cosmos.ContCategory
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
@@ -69,7 +73,20 @@ import ALMA.Cosmos.FinCatInfinityTowerCompat
 import ALMA.Cosmos.FinCatInfinityColimit
 import ALMA.Cosmos.FinCatInfinityColimitUniversal
 import ALMA.Cosmos.Instances
--- import ALMA.Cosmos.WIP
+-- import ALMA.Cosmos.WIP  -- archived: uniqueness proof redone carried-style below
+                           -- 已归档：唯一性证明改由下方携带式模块重做
+
+------------------------------------------------------------------------
+-- Carried colimit reconstruction (zero subst / cast)
+-- 携带式余极限重构（零 subst / cast）
+import ALMA.Cosmos.Carried.SeqColimit
+import ALMA.Cosmos.Carried.DetSys
+import ALMA.Cosmos.Carried.TrivProj
+import ALMA.Cosmos.Carried.DecUIP
+import ALMA.Cosmos.Carried.FinNatUIP
+import ALMA.Cosmos.Carried.FinProj
+import ALMA.Cosmos.Carried.LimitSystem
+import ALMA.Cosmos.Carried.FinColimit
 
 ------------------------------------------------------------------------
 -- Frozen archives
