@@ -57,7 +57,8 @@
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 module ALMA.Cosmos.Carried.LimitSystem where
 
-open import Agda.Primitive using (lzero)
+open import Agda.Primitive using (Level; lzero; _⊔_)
+open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 open import Data.Nat using (ℕ; zero; suc; _≤_; _<_)
@@ -69,7 +70,8 @@ open import Data.Fin.Properties using (toℕ-injective; toℕ-inject₁; toℕ<n
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 
-open import ALMA.Base.MCorr using (here; below)
+open import ALMA.Base.MCorr using (Sys; M; here; below)
+open Sys
 open import ALMA.Cosmos.Carried.DetSys
 open import ALMA.Cosmos.Carried.SeqColimit using (shift)
 open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
@@ -147,6 +149,68 @@ cl-toℕ m k le =
   trans (clamp-val {k = suc m} k) (m≥n⇒m⊓n≡n le)
 
 ------------------------------------------------------------------------
+-- Push (forward / embedding) edge-following simulation.
+--
+-- MCorr's Step / FMap are PULL notions: for every TARGET index v they
+-- ask for a source preimage (Step.child is total over v), so they only
+-- cover surjective maps. A colimit leg points the other way — from a
+-- finite stage (small) into the limit (large) — and the limit has extra
+-- nodes with no stage preimage. PushSim is the forward dual:
+--
+--   * for every SOURCE edge (y , e) it carries a target edge (w , e'),
+--     a fresh index correspondence r' : R y w, and the child
+--     simulation;
+--   * there is NO totality over target indices (a target node without a
+--     source counterpart is simply never asked about).
+--
+-- Labels are related by a carried correspondence H (for the trivial
+-- fibre H is the unit type). Everything is carried data; there is no
+-- subst / cast.
+--
+-- 前向（push / 嵌入）边跟随互模拟。
+-- MCorr 的 Step / FMap 是 pull 概念：对每个目标索引 v 都要求一个源原像
+-- （Step.child 对 v 满），故只覆盖满射。余极限腿方向相反 —— 从有限层
+-- （小）指向极限（大）—— 极限含有无层原像的额外节点。PushSim 是其前向
+-- 对偶：
+--
+--   * 对每条源边 (y , e)，携带一条目标边 (w , e')、一条新的索引对应
+--     r' : R y w，以及子互模拟；
+--   * 不对目标索引要求满（没有源对应的目标节点永不被问及）。
+--
+-- 标签由携带对应 H 联系（平凡纤维下 H 为单位类型）。一切皆携带数据；
+-- 无 subst / cast。
+------------------------------------------------------------------------
+record PushSim {i j a b c d ℓr ℓh : Level}
+              {X : Sys i a b} {Y : Sys j c d}
+              (R : I X → I Y → Set ℓr)
+              (H : (x : I X) (v : I Y)
+                 → R x v → A X x → A Y v → Set ℓh)
+              {x : I X} {v : I Y} (r : R x v)
+              (t : M (A X) (E X) x)
+              (u : M (A Y) (E Y) v)
+              : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓr ⊔ ℓh)
+              where
+  coinductive
+  field
+    -- Carried label correspondence at the node.
+    --
+    -- 节点处携带的标签对应。
+    here-eq : H x v r (here t) (here u)
+    -- For each source edge, carry the target edge, the next index
+    -- correspondence and the child simulation.
+    --
+    -- 对每条源边，携带目标边、下一索引对应与子互模拟。
+    push : (y : I X) (e : E X x (here t) y)
+         → Σ (I Y) λ w
+           → Σ (E Y v (here u) w) λ e'
+           → Σ (R y w) λ r'
+           → PushSim {i = i} {j = j} {a = a} {b = b}
+                     {c = c} {d = d} {ℓr = ℓr} {ℓh = ℓh}
+                     {X = X} {Y = Y}
+                     R H r' (below t y e) (below u w e')
+open PushSim public
+
+------------------------------------------------------------------------
 -- The limit system, parameterised by the per-stage deterministic
 -- position transition t m : Fin (n-at m) → Fin (n-at m).
 --
@@ -176,7 +240,7 @@ module LimitSystem
   -- L∞ is the trivial-fibre deterministic system on ℕ with transition s∞.
   --
   -- L∞ 是 ℕ 上以 s∞ 为转移的平凡纤维确定性系统。
-  open TrivDet ℕ s∞
+  open TrivDet {i = lzero} ℕ s∞
     using (sys; E; DetM)
 
   L∞ = sys
@@ -283,3 +347,59 @@ module LimitSystem
         eqx = toℕ-injective (sym (cl-toℕ m (toℕ x) le))
     in trans (cong toℕ (cong (t m) eqx))
              (read-cl m (toℕ x) le)
+
+  ----------------------------------------------------------------------
+  -- Colimit legs as push edge-following simulations.
+  --
+  -- For each stage m, its deterministic orbit pushes to the limit orbit
+  -- along the graph of toℕ. The single source edge (y ≡ t m x) is matched
+  -- by the single limit edge (w ≡ s∞ v), and read-coh carries exactly the
+  -- required index correspondence. There is no target-totality (the
+  -- limit's extra nodes are not probed) and no subst / cast.
+  --
+  -- 余极限腿：前向边跟随互模拟。
+  -- 对每层 m，其确定性轨道沿 toℕ 的图前推到极限轨道。唯一源边
+  -- (y ≡ t m x) 对应唯一极限边 (w ≡ s∞ v)，read-coh 恰好携带所需索引
+  -- 对应。无目标满射（不探测极限的额外节点），无 subst / cast。
+  ----------------------------------------------------------------------
+  module Leg (m : ℕ) where
+    open TrivDet {i = lzero} (Fin (n-at m)) (t m)
+      renaming (sys to sysₘ; DetM to DetMₘ)
+
+    -- Coinductive orbit inside finite stage m.
+    --
+    -- 有限层 m 内的余归纳轨道。
+    orbit-fin : (x : Fin (n-at m)) → DetMₘ x
+    orbit-fin x .here      = tt
+    orbit-fin x .below y _ = orbit-fin y
+
+    -- Index correspondence: stage position x sits at natural index v.
+    --
+    -- 索引对应：层位置 x 位于自然索引 v。
+    Rₘ : Fin (n-at m) → ℕ → Set lzero
+    Rₘ x v = toℕ x ≡ v
+
+    -- Trivial label correspondence (both fibres are ⊤).
+    --
+    -- 平凡标签对应（两侧纤维均为 ⊤）。
+    Hₘ : (x : Fin (n-at m)) (v : ℕ)
+       → Rₘ x v → ⊤ {lzero} → ⊤ {lzero} → Set lzero
+    Hₘ _ _ _ _ _ = ⊤ {lzero}
+
+    -- The leg at stage m, general over the limit index v and the carried
+    -- graph witness r : toℕ x ≡ v.
+    --
+    -- 第 m 层的腿，对极限索引 v 与携带的图见证 r : toℕ x ≡ v 一般化。
+    leg : ∀ (x : Fin (n-at m)) (v : ℕ) (r : Rₘ x v)
+        → PushSim {i = lzero} {j = lzero}
+                  {a = lzero} {b = lzero}
+                  {c = lzero} {d = lzero}
+                  {ℓr = lzero} {ℓh = lzero}
+                  Rₘ Hₘ r (orbit-fin x) (orbit∞ v)
+    leg x v r .here-eq = tt
+    leg x v r .push y (_ , eq) =
+      s∞ v , ((tt , refl) , (r' , leg y (s∞ v) r'))
+      where
+        r' : toℕ y ≡ s∞ v
+        r' = trans (cong toℕ eq)
+                   (trans (read-coh m x) (cong s∞ r))
