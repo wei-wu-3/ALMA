@@ -18,7 +18,7 @@
 -- restrictFin (defaultFin' k) ≡ defaultFin k 一致
 -- 这是余极限余锥在宇宙层面的相容性
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatInfinityTowerCompat where
 

@@ -15,7 +15,7 @@
 -- 并提供层 0 投影 projCosmos 及其忠实性（区分保持）与保守性（互模拟反映），
 -- 使投影在 FinCatN 与 FinCat∞ 之间既不擦除也不捏造互模拟信息
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatInfinityProjection where
 

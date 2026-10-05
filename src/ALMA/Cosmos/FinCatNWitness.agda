@@ -13,7 +13,7 @@
 -- 这是 cosmos-idN≉cosmos-const0N 所必需的，因 n = 1 时 Fin 1 为单点集，
 -- 两个宇宙重合
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatNWitness where
 

@@ -10,7 +10,7 @@
 -- 将 cosmosCoalg 封装为互模拟 _≈C_ 意义下的终对象（无需函数外延性与证明无关性；
 -- 强化到 _≡_ 需要二者）
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.CoalgCat where
 

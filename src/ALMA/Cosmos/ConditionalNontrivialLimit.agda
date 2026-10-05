@@ -19,7 +19,7 @@
 -- EnrichedTower outer-rule i 泛型陈述。非平凡见证的构造以
 -- FinCatN m 为参数，位于嵌套模块 FinCatNVariants 中
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ConditionalNontrivialLimit where
 

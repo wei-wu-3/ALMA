@@ -16,7 +16,7 @@
 --   ColimitCone X：相容族 {g_m}，满足 g_{suc m} ∘ inject₁ ≡ g_m
 --   colimitUniv：每个锥有唯一扩展 g∞ : ℕ → X，g∞ ∘ toℕ ≡ g_m
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatInfinity where
 

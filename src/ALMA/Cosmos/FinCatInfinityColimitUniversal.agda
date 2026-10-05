@@ -8,7 +8,7 @@
 -- 提供余极限余锥、跨范畴态射等价 _≈⇒ℱX_、迭代塔嵌入 embedCosmos^d /
 -- lift-subtower，以及 comp⇒ℱX-id-left 的左单位律
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatInfinityColimitUniversal where
 

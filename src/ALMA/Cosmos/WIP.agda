@@ -10,7 +10,7 @@
 -- mediate-unique、候选自同态 C-1 至 C-4，以及所有仅服务于这些陈述
 -- 的桥接引理
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.WIP where
 
@@ -78,126 +78,6 @@ open _≈⇒ℱX_
 open ≈⇒ℱXLayer
 open MorphismObject
 open MorphismMorphism
-
-sub-cocone-k≤m
-  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-    (g : ∀ m' → CompatibleTower.seq tower m'
-             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-    (k m : ℕ) (k≤m : k ≤ m)
-  → CompatibleTower.seq (subtower tower k) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = k} (lift tt)
-sub-cocone-k≤m tower Y g k m k≤m =
-  subst (λ Y' → CompatibleTower.seq (subtower tower k) m
-              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y')
-        (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
-              (toℕ-defaultFin m k
-                (≤-trans k≤m (m≤n⇒m≤1+n ≤-refl))))
-        (g m .out .onunfold-next {A = defaultFin m k} (lift tt))
-
-sub-cocone-m≤k≤sucm
-  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-    (g : ∀ m' → CompatibleTower.seq tower m'
-             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-    (k m : ℕ) (m≤k : m ≤ k) (k≤sucm : k ≤ suc m)
-  → CompatibleTower.seq (subtower tower k) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = k} (lift tt)
-sub-cocone-m≤k≤sucm tower Y g k m m≤k k≤sucm =
-  subst (λ Y' → CompatibleTower.seq (subtower tower k) m
-              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y')
-        (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
-              (toℕ-defaultFin m k k≤sucm))
-        (g m .out .onunfold-next {A = defaultFin m k} (lift tt))
-
-sub-cocone-far
-  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-    (g : ∀ m' → CompatibleTower.seq tower m'
-             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-    (k m : ℕ) (m≤k : m ≤ k) (ssucm≤k : suc (suc m) ≤ k)
-  → CompatibleTower.seq (subtower tower k) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = k} (lift tt)
-sub-cocone-far tower Y g k m m≤k ssucm≤k =
-  let d          = k ∸ m
-      k≡m+d      = sym (m+[n∸m]≡n m≤k)
-      k≤m+d      : k ≤ m + d
-      k≤m+d      = subst (λ x → k ≤ x) k≡m+d ≤-refl
-      k≤suc-m+d  : k ≤ suc (m + d)
-      k≤suc-m+d  = m≤n⇒m≤1+n k≤m+d
-      emb        = lift-subtower tower k m d
-      gk         = subst (λ Y' → CompatibleTower.seq (subtower tower k) (m + d)
-                             ⇒ℱX[ TowerShapeFunctors.S-proj (m + d) ] Y')
-                         (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
-                               (toℕ-defaultFin (m + d) k k≤suc-m+d))
-                         (g (m + d) .out .onunfold-next
-                            {A = defaultFin (m + d) k} (lift tt))
-      comp       = comp⇒ℱX gk emb
-  in transport-to-S-proj comp
-
-sub-cocone-with-dec
-  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-    (g : ∀ m' → CompatibleTower.seq tower m'
-             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-    (k m : ℕ)
-    (d₁ : m ≤ k ⊎ k ≤ m)
-    (d₂ : k ≤ suc m ⊎ suc (suc m) ≤ k)
-  → CompatibleTower.seq (subtower tower k) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = k} (lift tt)
-sub-cocone-with-dec tower Y g k m (inj₂ k≤m) _ =
-  sub-cocone-k≤m tower Y g k m k≤m
-sub-cocone-with-dec tower Y g k m (inj₁ m≤k) (inj₁ k≤sucm) =
-  sub-cocone-m≤k≤sucm tower Y g k m m≤k k≤sucm
-sub-cocone-with-dec tower Y g k m (inj₁ m≤k) (inj₂ ssucm≤k) =
-  sub-cocone-far tower Y g k m m≤k ssucm≤k
-
-sub-cocone-zero
-  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-    (g : ∀ m' → CompatibleTower.seq tower m'
-              ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-    (m : ℕ)
-  → CompatibleTower.seq (subtower tower 0) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = 0} (lift tt)
-sub-cocone-zero tower Y g m =
-  g m .out .onunfold-next {A = defaultFin m 0} (lift tt)
-
--- Sub-cocone: the layer-k component of a cocone, restricted to a
--- subtower. This is the local data out of which mediate is built
--- 子余锥：余锥的第 k 层分量限制到子塔。这是构造 mediate 的局部数据
-sub-cocone
-  : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-  → (g : ∀ m' → CompatibleTower.seq tower m'
-             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
-  → ∀ k m
-  → CompatibleTower.seq (subtower tower k) m
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-      Unfolding.unfold-next (out Y) {A = k} (lift tt)
-sub-cocone tower Y g k m =
-  sub-cocone-with-dec tower Y g k m
-    (≤-total m k) (split≤ k (suc m))
-
--- Mediating morphism from the colimit to Y, given a cocone g
--- Coinductively defined; its onunfold-next recurses into the sub-tower
--- The triangle and uniqueness statements below concern this morphism
--- 给定余锥 g，从余极限到 Y 的中介态射
--- 余归纳定义；其 onunfold-next 递归进入子塔
--- 下方的三角等式与唯一性陈述均关于该态射
-mediate : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-  → (g : ∀ m → CompatibleTower.seq tower m
-        ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
-  → towerColimit tower ⇒ℱX[ id ] Y
-mediate tower Y g .out .shapeTrans _ = lift tt
-mediate tower Y g .out .morphismObj .MorphismObject.onPos _ = lift tt
-mediate tower Y g .out .morphismObj .MorphismObject.pts-compat _ = refl
-mediate tower Y g .out .morphismMor .MorphismMorphism.onActP _ _ _ = refl
-mediate tower Y g .out .onunfold-next {A = k} (lift tt) =
-  mediate (subtower tower k)
-          (YU.unfold-next {A = k} (lift tt))
-          (sub-cocone tower Y g k)
-  where
-    module YU = Unfolding (out Y)
 
 -- Source substitution: transport a cross-category morphism along an
 -- equality of the source cosmos
@@ -372,24 +252,61 @@ subst-src-projCosmos-eq-onunfold tower m A
      | FinCatNColimitProjection.defaultFin-toℕ-self m A
 ... | .A | refl = refl
 
--- Unfold-next of colimitCocone, related to the subtower's colimitCocone
--- by source substitution
--- colimitCocone 的 unfold-next，通过源端替换与子塔的 colimitCocone 关联
-colimitCocone-onunfold-next : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
-  → let k = toℕ A
-        Y = towerColimit (subtower tower k)
-    in  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
-          (colimitCocone (subtower tower k) m)
-        ≈⇒ℱX
-        (colimitCocone tower m .out .onunfold-next {A = A} (lift tt))
-colimitCocone-onunfold-next tower m A =
-  let k  = toℕ A
-      eq = defaultFin-src-eq tower A
-  in ≈⇒ℱX-trans
-       (≡-to-≈⇒ℱX (comp⇒ℱX-subst-src (sym eq)))
-       (comp⇒ℱX-cong-≈⇒ℱX
-          (≡-to-≈⇒ℱX (subst-src-projCosmos-eq-onunfold tower m A))
-          ≈⇒ℱX-refl)
+-- Symmetric form of projCosmos-morphism's unfold-next equality
+-- projCosmos-morphism 的 unfold-next 等式的对称形式
+projCosmos-morphism-unfold-sym : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
+  → let src-A = Unfolding.unfold-next (out (seq tower m)) {A = A} (lift tt)
+        x'    = Unfolding.unfold-next (out (seq tower m)) {A = defaultFin m (toℕ A)} (lift tt)
+        eq    = defaultFin-src-eq tower A
+        S     = TowerShapeFunctors.S-proj m
+    in  ProjCosmosMorphism.projCosmos-morphism m (seq tower m)
+          .out .onunfold-next {A = A} (lift tt)
+        ≡ subst-src-FinCatN (sym eq)
+            (ProjCosmosMorphism.projCosmos-morphism m x')
+projCosmos-morphism-unfold-sym tower m A =
+  trans (f-onunfold-next-eq tower m A)
+        (J {x = src-A}
+           (λ x' eq →
+             subst (λ z → src-A ⇒ℱX[ S ] projCosmos m z) eq
+                   (ProjCosmosMorphism.projCosmos-morphism m src-A)
+             ≡ subst-src-FinCatN (sym eq)
+                   (ProjCosmosMorphism.projCosmos-morphism m x'))
+           eq
+           refl)
+  where
+    src-A = Unfolding.unfold-next (out (seq tower m)) {A = A} (lift tt)
+    eq    = defaultFin-src-eq tower A
+    S     = TowerShapeFunctors.S-proj m
+
+-- colimitCocone's unfold-next at A, packaged with source substitution
+-- colimitCocone 在 A 处的 unfold-next，配合源端替换打包
+colimitCocone-unfold : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
+  → Unfolding.unfold-next (out (CompatibleTower.seq tower m)) {A = A} (lift tt)
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+    towerColimit (subtower tower (toℕ A))
+colimitCocone-unfold tower m A =
+  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
+    (colimitCocone (subtower tower (toℕ A)) m)
+
+-- colimitCocone-unfold agrees with colimitCocone's onunfold-next
+-- colimitCocone-unfold 与 colimitCocone 的 onunfold-next 一致
+colimitCocone-unfold-eq' : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
+  → colimitCocone-unfold tower m A
+    ≡ colimitCocone tower m .out .onunfold-next {A = A} (lift tt)
+colimitCocone-unfold-eq' tower m A =
+  trans (comp⇒ℱX-subst-src (sym eq))
+        (cong₂ comp⇒ℱX
+          refl
+          (sym (projCosmos-morphism-unfold-sym tower m A)))
+  where
+    eq = defaultFin-src-eq tower A
+
+-- Unfolding to cosmos conversion
+-- 展开到宇宙的转换
+cosmos-from-unfolding :
+  Unfolding TrivialFC∞ (Cosmos FinCat∞ TrivialFC∞)
+  → Cosmos FinCat∞ TrivialFC∞
+cosmos-from-unfolding u .out = u
 
 -- Target substitution distributes over onunfold-next
 -- 目标端替换关于 onunfold-next 分配
@@ -430,6 +347,246 @@ subst-cong′ :
   → subst (λ z → P (f z)) e u ≡ subst P (cong f e) u
 subst-cong′ {x = x} {y = y} f e with y | e
 ... | .x | refl = refl
+
+-- Target substitution on shapeTrans
+-- 目标端替换在 shapeTrans 上
+subst-⇒ℱX-dst-shapeTrans :
+  ∀ {o h e o′ h′ e′ s p}
+    {C : Category o h e} {D : Category o′ h′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {x : Cosmos C FC} {y y′ : Cosmos D FD}
+  (eq : y ≡ y′) (f : x ⇒ℱX[ S ] y)
+  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
+  → ⇒ℱXLayer[_].shapeTrans
+      ((subst (λ z → x ⇒ℱX[ S ] z) eq f) .out) p
+    ≡ subst
+        (λ z → ShapeOf FD
+          (Functor.F₀ (Unfolding.unfoldFunctor (out z))
+                      (Functor.F₀ S (A , s))))
+        eq
+        (⇒ℱXLayer[_].shapeTrans (f .out) p)
+subst-⇒ℱX-dst-shapeTrans {y = y} {y′ = y′} eq f {A = A} {s = s} p with y′ | eq
+... | .y | refl = refl
+
+-- Target substitution on onPos
+-- 目标端替换在 onPos 上
+subst-⇒ℱX-dst-onPos :
+  ∀ {o h e o′ h′ e′ s p}
+    {C : Category o h e} {D : Category o′ h′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {x : Cosmos C FC} {y y′ : Cosmos D FD}
+  (eq : y ≡ y′) (f : x ⇒ℱX[ S ] y)
+  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
+  → MorphismObject.onPos
+      (⇒ℱXLayer[_].morphismObj
+         ((subst (λ z → x ⇒ℱX[ S ] z) eq f) .out)) p
+    ≡ MorphismObject.onPos
+        (⇒ℱXLayer[_].morphismObj (f .out)) p
+subst-⇒ℱX-dst-onPos {y = y} {y′ = y′} eq f {A = A} {s = s} p with y′ | eq
+... | .y | refl = refl
+
+subst-dst-general-≈⇒ℱX
+  : ∀ {o h e o′ h′ e′ s p}
+    {C : Category o h e} {D : Category o′ h′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {x : Cosmos C FC} {Y Y' : Cosmos D FD}     -- ← Y 和 Y' 分开声明
+    (eq : Y ≡ Y')
+    {f : x ⇒ℱX[ S ] Y} {g : x ⇒ℱX[ S ] Y'}
+  → subst (λ Z → x ⇒ℱX[ S ] Z) eq f ≈⇒ℱX g
+  → subst (λ Z → x ⇒ℱX[ S ] Z) (sym eq) g ≈⇒ℱX f
+subst-dst-general-≈⇒ℱX refl p = ≈⇒ℱX-sym p
+
+subst-sym-subst-≈⇒ℱX
+  : ∀ {o h e o′ h′ e′ s p}
+    {C : Category o h e} {D : Category o′ h′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {x : Cosmos C FC} {Y Y' : Cosmos D FD}
+    (eq : Y ≡ Y')
+    {f : x ⇒ℱX[ S ] Y}
+  → subst (λ Z → x ⇒ℱX[ S ] Z) (sym eq)
+      (subst (λ Z → x ⇒ℱX[ S ] Z) eq f)
+    ≈⇒ℱX f
+subst-sym-subst-≈⇒ℱX refl = ≈⇒ℱX-refl
+
+-- Triangle equation: mediate composed with the cocone is the cocone
+-- 三角等式：mediate 与余锥的复合等于余锥
+subst-⇒ℱX-src-shapeTrans : ∀ {o h e o′ h′ e′ s p}
+  {C : Category o h e} {D : Category o′ h′ e′}
+  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+  {x x' : Cosmos C FC} {Y : Cosmos D FD}
+  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
+  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
+  → ⇒ℱXLayer[_].shapeTrans ((subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out) p
+    ≡ ⇒ℱXLayer[_].shapeTrans (f .out) p
+subst-⇒ℱX-src-shapeTrans refl f p = refl
+
+subst-⇒ℱX-src-onPos : ∀ {o h e o′ h′ e′ s p}
+  {C : Category o h e} {D : Category o′ h′ e′}
+  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+  {x x' : Cosmos C FC} {Y : Cosmos D FD}
+  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
+  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
+  → MorphismObject.onPos (⇒ℱXLayer[_].morphismObj ((subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out)) p
+    ≡ MorphismObject.onPos (⇒ℱXLayer[_].morphismObj (f .out)) p
+subst-⇒ℱX-src-onPos refl f p = refl
+
+subst-⇒ℱX-src-onunfold-next : ∀ {o h e o′ h′ e′ s p}
+  {C : Category o h e} {D : Category o′ h′ e′}
+  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+  {x x' : Cosmos C FC} {Y : Cosmos D FD}
+  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
+  {A : Category.Obj C} (s : ShapeOf FC A)
+  → (subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out .onunfold-next {A = A} s
+    ≡ subst (λ z → z ⇒ℱX[ S ]
+              Unfolding.unfold-next (out Y)
+                {A = proj₁ (Functor.F₀ S (A , s))}
+                (proj₂ (Functor.F₀ S (A , s))))
+            (cong (λ z → Unfolding.unfold-next (out z) {A = A} s) eq)
+            (f .out .onunfold-next {A = A} s)
+subst-⇒ℱX-src-onunfold-next refl f p = refl
+
+subst-src-≈-coind : ∀ {o h e o′ h′ e′ s p}
+  {C : Category o h e} {D : Category o′ h′ e′}
+  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+  {x x' : Cosmos C FC} {Y : Cosmos D FD}
+  (eq : x ≡ x')
+  {f g : x ⇒ℱX[ S ] Y}
+  → f ≈⇒ℱX g
+  → subst (λ z → z ⇒ℱX[ S ] Y) eq f ≈⇒ℱX subst (λ z → z ⇒ℱX[ S ] Y) eq g
+subst-src-≈-coind eq {f} {g} p .out .shapeTrans-eq {A} {s} p' =
+  trans (subst-⇒ℱX-src-shapeTrans eq f p')
+        (trans (p .out .shapeTrans-eq {A} {s} p')
+               (sym (subst-⇒ℱX-src-shapeTrans eq g p')))
+subst-src-≈-coind eq {f} {g} p .out .onPos-eq {A} {s} p' =
+  trans (subst-⇒ℱX-src-onPos eq f p')
+        (trans (p .out .onPos-eq {A} {s} p')
+               (sym (subst-⇒ℱX-src-onPos eq g p')))
+subst-src-≈-coind eq {f} {g} p .out .onunfold-next-eq {A = A} s
+  rewrite subst-⇒ℱX-src-onunfold-next eq f {A} s
+        | subst-⇒ℱX-src-onunfold-next eq g {A} s
+  = subst-src-≈-coind
+      (cong (λ z → Unfolding.unfold-next (out z) {A = A} s) eq)
+      (p .out .onunfold-next-eq {A = A} s)
+
+sub-cocone-k≤m
+  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+    (g : ∀ m' → CompatibleTower.seq tower m'
+             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+    (k m : ℕ) (k≤m : k ≤ m)
+  → CompatibleTower.seq (subtower tower k) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = k} (lift tt)
+sub-cocone-k≤m tower Y g k m k≤m =
+  subst (λ Y' → CompatibleTower.seq (subtower tower k) m
+              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y')
+        (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
+              (toℕ-defaultFin m k
+                (≤-trans k≤m (m≤n⇒m≤1+n ≤-refl))))
+        (g m .out .onunfold-next {A = defaultFin m k} (lift tt))
+
+sub-cocone-m≤k≤sucm
+  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+    (g : ∀ m' → CompatibleTower.seq tower m'
+             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+    (k m : ℕ) (m≤k : m ≤ k) (k≤sucm : k ≤ suc m)
+  → CompatibleTower.seq (subtower tower k) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = k} (lift tt)
+sub-cocone-m≤k≤sucm tower Y g k m m≤k k≤sucm =
+  subst (λ Y' → CompatibleTower.seq (subtower tower k) m
+              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y')
+        (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
+              (toℕ-defaultFin m k k≤sucm))
+        (g m .out .onunfold-next {A = defaultFin m k} (lift tt))
+
+sub-cocone-far
+  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+    (g : ∀ m' → CompatibleTower.seq tower m'
+             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+    (k m : ℕ) (m≤k : m ≤ k) (ssucm≤k : suc (suc m) ≤ k)
+  → CompatibleTower.seq (subtower tower k) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = k} (lift tt)
+sub-cocone-far tower Y g k m m≤k ssucm≤k =
+  let d          = k ∸ m
+      k≡m+d      = sym (m+[n∸m]≡n m≤k)
+      k≤m+d      : k ≤ m + d
+      k≤m+d      = subst (λ x → k ≤ x) k≡m+d ≤-refl
+      k≤suc-m+d  : k ≤ suc (m + d)
+      k≤suc-m+d  = m≤n⇒m≤1+n k≤m+d
+      emb        = lift-subtower tower k m d
+      gk         = subst (λ Y' → CompatibleTower.seq (subtower tower k) (m + d)
+                             ⇒ℱX[ TowerShapeFunctors.S-proj (m + d) ] Y')
+                         (cong (λ k' → Unfolding.unfold-next (out Y) {A = k'} (lift tt))
+                               (toℕ-defaultFin (m + d) k k≤suc-m+d))
+                         (g (m + d) .out .onunfold-next
+                            {A = defaultFin (m + d) k} (lift tt))
+      comp       = comp⇒ℱX gk emb
+  in transport-to-S-proj comp
+
+sub-cocone-with-dec
+  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+    (g : ∀ m' → CompatibleTower.seq tower m'
+             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+    (k m : ℕ)
+    (d₁ : m ≤ k ⊎ k ≤ m)
+    (d₂ : k ≤ suc m ⊎ suc (suc m) ≤ k)
+  → CompatibleTower.seq (subtower tower k) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = k} (lift tt)
+sub-cocone-with-dec tower Y g k m (inj₂ k≤m) _ =
+  sub-cocone-k≤m tower Y g k m k≤m
+sub-cocone-with-dec tower Y g k m (inj₁ m≤k) (inj₁ k≤sucm) =
+  sub-cocone-m≤k≤sucm tower Y g k m m≤k k≤sucm
+sub-cocone-with-dec tower Y g k m (inj₁ m≤k) (inj₂ ssucm≤k) =
+  sub-cocone-far tower Y g k m m≤k ssucm≤k
+
+sub-cocone-zero
+  : (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+    (g : ∀ m' → CompatibleTower.seq tower m'
+              ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+    (m : ℕ)
+  → CompatibleTower.seq (subtower tower 0) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = 0} (lift tt)
+sub-cocone-zero tower Y g m =
+  g m .out .onunfold-next {A = defaultFin m 0} (lift tt)
+
+-- Sub-cocone: the layer-k component of a cocone, restricted to a
+-- subtower. This is the local data out of which mediate is built
+-- 子余锥：余锥的第 k 层分量限制到子塔。这是构造 mediate 的局部数据
+sub-cocone
+  : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+  → (g : ∀ m' → CompatibleTower.seq tower m'
+             ⇒ℱX[ TowerShapeFunctors.S-proj m' ] Y)
+  → ∀ k m
+  → CompatibleTower.seq (subtower tower k) m
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+      Unfolding.unfold-next (out Y) {A = k} (lift tt)
+sub-cocone tower Y g k m =
+  sub-cocone-with-dec tower Y g k m
+    (≤-total m k) (split≤ k (suc m))
+
+-- g's unfold-next at A, packaged with source substitution
+-- g 在 A 处的 unfold-next，配合源端替换打包
+g-unfold : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+  (g : ∀ m → CompatibleTower.seq tower m
+         ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
+  m (A : Fin (n-at m))
+  → Unfolding.unfold-next (out (CompatibleTower.seq tower m)) {A = A} (lift tt)
+    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
+    Unfolding.unfold-next (out Y) {A = toℕ A} (lift tt)
+g-unfold tower Y g m A =
+  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
+    (sub-cocone tower Y g (toℕ A) m)
 
 -- Correctness of sub-cocone when k = toℕ A is in range
 -- 当 k = toℕ A 在范围内时，sub-cocone 的正确性
@@ -531,323 +688,45 @@ sub-cocone-correct tower Y g m A
 ... | inj₁ m≤k | inj₂ ssucm≤k =
       ⊥-elim (1+n≰n (≤-trans ssucm≤k (toℕ≤n∸1 m A)))
 
--- Target substitution on shapeTrans
--- 目标端替换在 shapeTrans 上
-subst-⇒ℱX-dst-shapeTrans :
-  ∀ {o h e o′ h′ e′ s p}
-    {C : Category o h e} {D : Category o′ h′ e′}
-    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-    {x : Cosmos C FC} {y y′ : Cosmos D FD}
-  (eq : y ≡ y′) (f : x ⇒ℱX[ S ] y)
-  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
-  → ⇒ℱXLayer[_].shapeTrans
-      ((subst (λ z → x ⇒ℱX[ S ] z) eq f) .out) p
-    ≡ subst
-        (λ z → ShapeOf FD
-          (Functor.F₀ (Unfolding.unfoldFunctor (out z))
-                      (Functor.F₀ S (A , s))))
-        eq
-        (⇒ℱXLayer[_].shapeTrans (f .out) p)
-subst-⇒ℱX-dst-shapeTrans {y = y} {y′ = y′} eq f {A = A} {s = s} p with y′ | eq
-... | .y | refl = refl
+-- Unfold-next of colimitCocone, related to the subtower's colimitCocone
+-- by source substitution
+-- colimitCocone 的 unfold-next，通过源端替换与子塔的 colimitCocone 关联
+colimitCocone-onunfold-next : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
+  → let k = toℕ A
+        Y = towerColimit (subtower tower k)
+    in  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
+          (colimitCocone (subtower tower k) m)
+        ≈⇒ℱX
+        (colimitCocone tower m .out .onunfold-next {A = A} (lift tt))
+colimitCocone-onunfold-next tower m A =
+  let k  = toℕ A
+      eq = defaultFin-src-eq tower A
+  in ≈⇒ℱX-trans
+       (≡-to-≈⇒ℱX (comp⇒ℱX-subst-src (sym eq)))
+       (comp⇒ℱX-cong-≈⇒ℱX
+          (≡-to-≈⇒ℱX (subst-src-projCosmos-eq-onunfold tower m A))
+          ≈⇒ℱX-refl)
 
--- Target substitution on onPos
--- 目标端替换在 onPos 上
-subst-⇒ℱX-dst-onPos :
-  ∀ {o h e o′ h′ e′ s p}
-    {C : Category o h e} {D : Category o′ h′ e′}
-    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-    {x : Cosmos C FC} {y y′ : Cosmos D FD}
-  (eq : y ≡ y′) (f : x ⇒ℱX[ S ] y)
-  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
-  → MorphismObject.onPos
-      (⇒ℱXLayer[_].morphismObj
-         ((subst (λ z → x ⇒ℱX[ S ] z) eq f) .out)) p
-    ≡ MorphismObject.onPos
-        (⇒ℱXLayer[_].morphismObj (f .out)) p
-subst-⇒ℱX-dst-onPos {y = y} {y′ = y′} eq f {A = A} {s = s} p with y′ | eq
-... | .y | refl = refl
-
-subst-dst-general-≈⇒ℱX
-  : ∀ {o h e o′ h′ e′ s p}
-    {C : Category o h e} {D : Category o′ h′ e′}
-    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-    {x : Cosmos C FC} {Y Y' : Cosmos D FD}     -- ← Y 和 Y' 分开声明
-    (eq : Y ≡ Y')
-    {f : x ⇒ℱX[ S ] Y} {g : x ⇒ℱX[ S ] Y'}
-  → subst (λ Z → x ⇒ℱX[ S ] Z) eq f ≈⇒ℱX g
-  → subst (λ Z → x ⇒ℱX[ S ] Z) (sym eq) g ≈⇒ℱX f
-subst-dst-general-≈⇒ℱX refl p = ≈⇒ℱX-sym p
-
-subst-sym-subst-≈⇒ℱX
-  : ∀ {o h e o′ h′ e′ s p}
-    {C : Category o h e} {D : Category o′ h′ e′}
-    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-    {x : Cosmos C FC} {Y Y' : Cosmos D FD}
-    (eq : Y ≡ Y')
-    {f : x ⇒ℱX[ S ] Y}
-  → subst (λ Z → x ⇒ℱX[ S ] Z) (sym eq)
-      (subst (λ Z → x ⇒ℱX[ S ] Z) eq f)
-    ≈⇒ℱX f
-subst-sym-subst-≈⇒ℱX refl = ≈⇒ℱX-refl
-
--- Target substitution by a self-equality is _≈⇒ℱX_-trivial
--- 沿自等式的目标端替换在 _≈⇒ℱX_ 下平凡
-subst-dst-self-≈⇒ℱX
-  : ∀ {o h e o′ h′ e′ s p}
-    {C : Category o h e} {D : Category o′ h′ e′}
-    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-    {x : Cosmos C FC} {Y : Cosmos D FD}
-    {eq : Y ≡ Y}
-    {f : x ⇒ℱX[ S ] Y}
-  → subst (λ Z → x ⇒ℱX[ S ] Z) eq f ≈⇒ℱX f
-subst-dst-self-≈⇒ℱX
-  {C = C} {D = D} {FC = FC} {FD = FD} {S = S}
-  {x = x} {Y = Y} {eq = eq} {f = f} =
-  go x Y f eq
-  where
-    subst-∘' : ∀ {a b c} {A : Set a} {B : Set b} {x y : A}
-               (P : B → Set c) (f : A → B) (e : x ≡ y)
-               (p : P (f x))
-             → subst (P ∘ f) e p ≡ subst P (cong f e) p
-    subst-∘' P f refl p = refl
-
-    go : (x′ : Cosmos C FC) (Y′ : Cosmos D FD)
-         (g : x′ ⇒ℱX[ S ] Y′) (e : Y′ ≡ Y′)
-       → subst (λ Z → x′ ⇒ℱX[ S ] Z) e g ≈⇒ℱX g
-    go x′ Y′ g e .out .shapeTrans-eq {A} {s} p = {!   !}
-    go x′ Y′ g e .out .onPos-eq {A} {s} p =
-      subst-⇒ℱX-dst-onPos e g p
-    go x′ Y′ g e .out .onunfold-next-eq {A = A} s
-      rewrite subst-⇒ℱX-dst-onunfold-next e g s
-            | subst-∘' (λ W → Unfolding.unfold-next (out x′) {A = A} s
-                                 ⇒ℱX[ S ] W)
-                       (λ z → Unfolding.unfold-next (out z)
-                                {A = proj₁ (Functor.F₀ S (A , s))}
-                                (proj₂ (Functor.F₀ S (A , s))))
-                       e
-                       (g .out .onunfold-next {A = A} s)
-      = go (Unfolding.unfold-next (out x′) {A = A} s)
-           (Unfolding.unfold-next (out Y′)
-              {A = proj₁ (Functor.F₀ S (A , s))}
-              (proj₂ (Functor.F₀ S (A , s))))
-           (g .out .onunfold-next {A = A} s)
-           (cong (λ z → Unfolding.unfold-next (out z)
-                          {A = proj₁ (Functor.F₀ S (A , s))}
-                          (proj₂ (Functor.F₀ S (A , s))))
-                 e)
-
--- Symmetric form of projCosmos-morphism's unfold-next equality
--- projCosmos-morphism 的 unfold-next 等式的对称形式
-projCosmos-morphism-unfold-sym : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
-  → let src-A = Unfolding.unfold-next (out (seq tower m)) {A = A} (lift tt)
-        x'    = Unfolding.unfold-next (out (seq tower m)) {A = defaultFin m (toℕ A)} (lift tt)
-        eq    = defaultFin-src-eq tower A
-        S     = TowerShapeFunctors.S-proj m
-    in  ProjCosmosMorphism.projCosmos-morphism m (seq tower m)
-          .out .onunfold-next {A = A} (lift tt)
-        ≡ subst-src-FinCatN (sym eq)
-            (ProjCosmosMorphism.projCosmos-morphism m x')
-projCosmos-morphism-unfold-sym tower m A =
-  trans (f-onunfold-next-eq tower m A)
-        (J {x = src-A}
-           (λ x' eq →
-             subst (λ z → src-A ⇒ℱX[ S ] projCosmos m z) eq
-                   (ProjCosmosMorphism.projCosmos-morphism m src-A)
-             ≡ subst-src-FinCatN (sym eq)
-                   (ProjCosmosMorphism.projCosmos-morphism m x'))
-           eq
-           refl)
-  where
-    src-A = Unfolding.unfold-next (out (seq tower m)) {A = A} (lift tt)
-    eq    = defaultFin-src-eq tower A
-    S     = TowerShapeFunctors.S-proj m
-
--- colimitCocone's unfold-next at A, packaged with source substitution
--- colimitCocone 在 A 处的 unfold-next，配合源端替换打包
-colimitCocone-unfold : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
-  → Unfolding.unfold-next (out (CompatibleTower.seq tower m)) {A = A} (lift tt)
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-    towerColimit (subtower tower (toℕ A))
-colimitCocone-unfold tower m A =
-  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
-    (colimitCocone (subtower tower (toℕ A)) m)
-
--- g's unfold-next at A, packaged with source substitution
--- g 在 A 处的 unfold-next，配合源端替换打包
-g-unfold : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
-  (g : ∀ m → CompatibleTower.seq tower m
-         ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
-  m (A : Fin (n-at m))
-  → Unfolding.unfold-next (out (CompatibleTower.seq tower m)) {A = A} (lift tt)
-    ⇒ℱX[ TowerShapeFunctors.S-proj m ]
-    Unfolding.unfold-next (out Y) {A = toℕ A} (lift tt)
-g-unfold tower Y g m A =
-  subst-src-FinCatN (sym (defaultFin-src-eq tower A))
-    (sub-cocone tower Y g (toℕ A) m)
-
--- colimitCocone-unfold agrees with colimitCocone's onunfold-next
--- colimitCocone-unfold 与 colimitCocone 的 onunfold-next 一致
-colimitCocone-unfold-eq' : ∀ (tower : CompatibleTower) m (A : Fin (n-at m))
-  → colimitCocone-unfold tower m A
-    ≡ colimitCocone tower m .out .onunfold-next {A = A} (lift tt)
-colimitCocone-unfold-eq' tower m A =
-  trans (comp⇒ℱX-subst-src (sym eq))
-        (cong₂ comp⇒ℱX
-          refl
-          (sym (projCosmos-morphism-unfold-sym tower m A)))
-  where
-    eq = defaultFin-src-eq tower A
-
--- Unfolding to cosmos conversion
--- 展开到宇宙的转换
-cosmos-from-unfolding :
-  Unfolding TrivialFC∞ (Cosmos FinCat∞ TrivialFC∞)
-  → Cosmos FinCat∞ TrivialFC∞
-cosmos-from-unfolding u .out = u
-
--- Triangle equation: mediate composed with the cocone is the cocone
--- 三角等式：mediate 与余锥的复合等于余锥
-subst-⇒ℱX-src-shapeTrans : ∀ {o h e o′ h′ e′ s p}
-  {C : Category o h e} {D : Category o′ h′ e′}
-  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-  {x x' : Cosmos C FC} {Y : Cosmos D FD}
-  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
-  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
-  → ⇒ℱXLayer[_].shapeTrans ((subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out) p
-    ≡ ⇒ℱXLayer[_].shapeTrans (f .out) p
-subst-⇒ℱX-src-shapeTrans refl f p = refl
-
-subst-⇒ℱX-src-onPos : ∀ {o h e o′ h′ e′ s p}
-  {C : Category o h e} {D : Category o′ h′ e′}
-  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-  {x x' : Cosmos C FC} {Y : Cosmos D FD}
-  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
-  {A : Category.Obj C} {s : ShapeOf FC A} (p : PosOf FC s)
-  → MorphismObject.onPos (⇒ℱXLayer[_].morphismObj ((subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out)) p
-    ≡ MorphismObject.onPos (⇒ℱXLayer[_].morphismObj (f .out)) p
-subst-⇒ℱX-src-onPos refl f p = refl
-
-subst-⇒ℱX-src-onunfold-next : ∀ {o h e o′ h′ e′ s p}
-  {C : Category o h e} {D : Category o′ h′ e′}
-  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-  {x x' : Cosmos C FC} {Y : Cosmos D FD}
-  (eq : x ≡ x') (f : x ⇒ℱX[ S ] Y)
-  {A : Category.Obj C} (s : ShapeOf FC A)
-  → (subst (λ z → z ⇒ℱX[ S ] Y) eq f) .out .onunfold-next {A = A} s
-    ≡ subst (λ z → z ⇒ℱX[ S ]
-              Unfolding.unfold-next (out Y)
-                {A = proj₁ (Functor.F₀ S (A , s))}
-                (proj₂ (Functor.F₀ S (A , s))))
-            (cong (λ z → Unfolding.unfold-next (out z) {A = A} s) eq)
-            (f .out .onunfold-next {A = A} s)
-subst-⇒ℱX-src-onunfold-next refl f p = refl
-
-subst-src-≈-coind : ∀ {o h e o′ h′ e′ s p}
-  {C : Category o h e} {D : Category o′ h′ e′}
-  {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
-  {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
-  {x x' : Cosmos C FC} {Y : Cosmos D FD}
-  (eq : x ≡ x')
-  {f g : x ⇒ℱX[ S ] Y}
-  → f ≈⇒ℱX g
-  → subst (λ z → z ⇒ℱX[ S ] Y) eq f ≈⇒ℱX subst (λ z → z ⇒ℱX[ S ] Y) eq g
-subst-src-≈-coind eq {f} {g} p .out .shapeTrans-eq {A} {s} p' =
-  trans (subst-⇒ℱX-src-shapeTrans eq f p')
-        (trans (p .out .shapeTrans-eq {A} {s} p')
-               (sym (subst-⇒ℱX-src-shapeTrans eq g p')))
-subst-src-≈-coind eq {f} {g} p .out .onPos-eq {A} {s} p' =
-  trans (subst-⇒ℱX-src-onPos eq f p')
-        (trans (p .out .onPos-eq {A} {s} p')
-               (sym (subst-⇒ℱX-src-onPos eq g p')))
-subst-src-≈-coind eq {f} {g} p .out .onunfold-next-eq {A = A} s
-  rewrite subst-⇒ℱX-src-onunfold-next eq f {A} s
-        | subst-⇒ℱX-src-onunfold-next eq g {A} s
-  = subst-src-≈-coind
-      (cong (λ z → Unfolding.unfold-next (out z) {A = A} s) eq)
-      (p .out .onunfold-next-eq {A = A} s)
-
-mt-go : (tower : CompatibleTower)
-      → (Y : Cosmos FinCat∞ TrivialFC∞)
-      → (g : ∀ m → CompatibleTower.seq tower m
-              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
-      → (m : ℕ)
-      → comp⇒ℱX (mediate tower Y g) (colimitCocone tower m) ≈⇒ℱX g m
-mt-go tower Y g m .out .shapeTrans-eq _ = ≡-Lift-⊤ _ _
-mt-go tower Y g m .out .onPos-eq _     = ≡-Lift-⊤ _ _
-mt-go tower Y g m .out .onunfold-next-eq {A = A} (lift tt) =
-  let
-    k      = toℕ A
-    eq-src = defaultFin-src-eq tower A
-    Yk     = Unfolding.unfold-next (out Y) {A = k} (lift tt)
-    sub-g  = sub-cocone tower Y g k
-
-    -- 1. 复合的展开 = 展开后的复合（定义性等价）
-    step₁ : comp⇒ℱX (mediate tower Y g) (colimitCocone tower m) .out .onunfold-next {A = A} (lift tt)
-            ≡ comp⇒ℱX (mediate tower Y g .out .onunfold-next {A = k} (lift tt))
-                                   (colimitCocone tower m .out .onunfold-next {A = A} (lift tt))
-    step₁ = refl
-
-    -- 2. 余锥展开等价于「源替换后的子塔余锥」
-    cocone-unfold : colimitCocone tower m .out .onunfold-next {A = A} (lift tt)
-                   ≈⇒ℱX subst-src-FinCatN (sym eq-src) (colimitCocone (subtower tower k) m)
-    cocone-unfold = ≈⇒ℱX-sym (colimitCocone-onunfold-next tower m A)
-
-    -- 3. 复合的同余性：替换第二个分量
-    step₃ : comp⇒ℱX (mediate tower Y g .out .onunfold-next {A = k} (lift tt))
-                                (colimitCocone tower m .out .onunfold-next {A = A} (lift tt))
-             ≈⇒ℱX comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
-                                   (subst-src-FinCatN (sym eq-src) (colimitCocone (subtower tower k) m))
-    step₃ = {!   !}
-
-    -- 4. 源替换与复合交换顺序
-    step₄ : comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
-                                (subst-src-FinCatN (sym eq-src) (colimitCocone (subtower tower k) m))
-             ≡ subst-src-FinCatN (sym eq-src)
-                 (comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
-                           (colimitCocone (subtower tower k) m))
-    step₄ = sym (comp⇒ℱX-subst-src (sym eq-src))
-
-    -- 5. 归纳假设：子塔上三角等式成立
-    ih : comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
-                 (colimitCocone (subtower tower k) m)
-          ≈⇒ℱX sub-g m
-    ih = mt-go (subtower tower k) Yk sub-g m
-
-    -- 6. 源替换保持等价关系
-    step₆ : subst-src-FinCatN (sym eq-src)
-                    (comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
-                              (colimitCocone (subtower tower k) m))
-             ≈⇒ℱX subst-src-FinCatN (sym eq-src) (sub-g m)
-    step₆ = subst-src-≈ (sym eq-src) ih
-
-    -- 7. 子余锥正确性：匹配右边 g 的展开
-    step₇ : subst-src-FinCatN (sym eq-src) (sub-g m)
-            ≈⇒ℱX g m .out .onunfold-next {A = A} (lift tt)
-    step₇ = sub-cocone-correct tower Y g m A
-  in
-    ≈⇒ℱX-trans (≡-to-≈⇒ℱX step₁)
-      (≈⇒ℱX-trans step₃
-        (≈⇒ℱX-trans (≡-to-≈⇒ℱX step₄)
-          (≈⇒ℱX-trans step₆ step₇)))
-
-
-
-
-mediate-triangle : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+-- Mediating morphism from the colimit to Y, given a cocone g
+-- Coinductively defined; its onunfold-next recurses into the sub-tower
+-- The triangle and uniqueness statements below concern this morphism
+-- 给定余锥 g，从余极限到 Y 的中介态射
+-- 余归纳定义；其 onunfold-next 递归进入子塔
+-- 下方的三角等式与唯一性陈述均关于该态射
+mediate : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
   → (g : ∀ m → CompatibleTower.seq tower m
         ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
-  → ∀ m
-  → comp⇒ℱX (mediate tower Y g) (colimitCocone tower m) ≈⇒ℱX g m
-mediate-triangle tower Y g m = mt-go tower Y g m
+  → towerColimit tower ⇒ℱX[ id ] Y
+mediate tower Y g .out .shapeTrans _ = lift tt
+mediate tower Y g .out .morphismObj .MorphismObject.onPos _ = lift tt
+mediate tower Y g .out .morphismObj .MorphismObject.pts-compat _ = refl
+mediate tower Y g .out .morphismMor .MorphismMorphism.onActP _ _ _ = refl
+mediate tower Y g .out .onunfold-next {A = k} (lift tt) =
+  mediate (subtower tower k)
+          (YU.unfold-next {A = k} (lift tt))
+          (sub-cocone tower Y g k)
+  where
+    module YU = Unfolding (out Y)
 
 -- Candidate endomorphisms on towerColimit. C-1 and C-2 place id⇒ℱX at
 -- the head, C-3 and C-4 recurse into subtower without mediation
@@ -895,7 +774,6 @@ C-4 tower .out .onunfold-next {A = k} (lift tt) .out .morphismObj .MorphismObjec
 C-4 tower .out .onunfold-next {A = k} (lift tt) .out .morphismMor .MorphismMorphism.onActP _ _ _ = refl
 C-4 tower .out .onunfold-next {A = k} (lift tt) .out .onunfold-next {A = j} (lift tt) =
   C-4 (subtower (subtower tower k) j)
-
 
 open FinCatN
 -- Level transport on Cosmos: substitute along an equality of layer indices
@@ -960,6 +838,38 @@ toShifted T = record
   ; compat = λ m → CompatibleTower.compat T m
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 shift : ∀ {m₀} → ShiftedTower m₀ → (k : ℕ) → ShiftedTower (m₀ + k)
 shift {m₀} T k = record
   { seq    = λ m → castCosmos (sym (+-assoc m₀ k m)) (seq T (k + m))
@@ -973,10 +883,139 @@ shift {m₀} T k = record
              (castCosmos (sym (+-assoc m₀ k m)) (seq T (k + m)))
     shift-compat m = {!!}
 
+-- Target substitution by a self-equality is _≈⇒ℱX_-trivial
+-- 沿自等式的目标端替换在 _≈⇒ℱX_ 下平凡
+subst-dst-self-≈⇒ℱX
+  : ∀ {o h e o′ h′ e′ s p}
+    {C : Category o h e} {D : Category o′ h′ e′}
+    {FC : Functor C (ContCat s p)} {FD : Functor D (ContCat s p)}
+    {S : Functor (ShapeCat C FC) (ShapeCat D FD)}
+    {x : Cosmos C FC} {Y : Cosmos D FD}
+    {eq : Y ≡ Y}
+    {f : x ⇒ℱX[ S ] Y}
+  → subst (λ Z → x ⇒ℱX[ S ] Z) eq f ≈⇒ℱX f
+subst-dst-self-≈⇒ℱX
+  {C = C} {D = D} {FC = FC} {FD = FD} {S = S}
+  {x = x} {Y = Y} {eq = eq} {f = f} =
+  go x Y f eq
+  where
+    subst-∘' : ∀ {a b c} {A : Set a} {B : Set b} {x y : A}
+               (P : B → Set c) (f : A → B) (e : x ≡ y)
+               (p : P (f x))
+             → subst (P ∘ f) e p ≡ subst P (cong f e) p
+    subst-∘' P f refl p = refl
+
+    go : (x′ : Cosmos C FC) (Y′ : Cosmos D FD)
+         (g : x′ ⇒ℱX[ S ] Y′) (e : Y′ ≡ Y′)
+       → subst (λ Z → x′ ⇒ℱX[ S ] Z) e g ≈⇒ℱX g
+    go x′ Y′ g e .out .shapeTrans-eq {A} {s} p = {!   !}
+    go x′ Y′ g e .out .onPos-eq {A} {s} p =
+      subst-⇒ℱX-dst-onPos e g p
+    go x′ Y′ g e .out .onunfold-next-eq {A = A} s
+      rewrite subst-⇒ℱX-dst-onunfold-next e g s
+            | subst-∘' (λ W → Unfolding.unfold-next (out x′) {A = A} s
+                                 ⇒ℱX[ S ] W)
+                       (λ z → Unfolding.unfold-next (out z)
+                                {A = proj₁ (Functor.F₀ S (A , s))}
+                                (proj₂ (Functor.F₀ S (A , s))))
+                       e
+                       (g .out .onunfold-next {A = A} s)
+      = go (Unfolding.unfold-next (out x′) {A = A} s)
+           (Unfolding.unfold-next (out Y′)
+              {A = proj₁ (Functor.F₀ S (A , s))}
+              (proj₂ (Functor.F₀ S (A , s))))
+           (g .out .onunfold-next {A = A} s)
+           (cong (λ z → Unfolding.unfold-next (out z)
+                          {A = proj₁ (Functor.F₀ S (A , s))}
+                          (proj₂ (Functor.F₀ S (A , s))))
+                 e)
+
+mt-go : (tower : CompatibleTower)
+      → (Y : Cosmos FinCat∞ TrivialFC∞)
+      → (g : ∀ m → CompatibleTower.seq tower m
+              ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
+      → (m : ℕ)
+      → comp⇒ℱX (mediate tower Y g) (colimitCocone tower m) ≈⇒ℱX g m
+mt-go tower Y g m .out .shapeTrans-eq _ = ≡-Lift-⊤ _ _
+mt-go tower Y g m .out .onPos-eq _     = ≡-Lift-⊤ _ _
+mt-go tower Y g m .out .onunfold-next-eq {A = A} (lift tt)
+  with mt-go (subtower tower (toℕ A))
+             (Unfolding.unfold-next (out Y) {A = toℕ A} (lift tt))
+             (sub-cocone tower Y g (toℕ A))
+             m
+... | ih =
+    ≈⇒ℱX-trans (≡-to-≈⇒ℱX step₁)
+      (≈⇒ℱX-trans step₃
+        (≈⇒ℱX-trans (≡-to-≈⇒ℱX step₄)
+          (≈⇒ℱX-trans step₆ step₇)))
+  where
+    k      = toℕ A
+    eq-src = defaultFin-src-eq tower A
+    Yk     = Unfolding.unfold-next (out Y) {A = k} (lift tt)
+    sub-g  = sub-cocone tower Y g k
+
+    -- 1. 复合的 onunfold-next 展开 = 展开后的复合
+    step₁ : comp⇒ℱX (mediate tower Y g) (colimitCocone tower m)
+              .out .onunfold-next {A = A} (lift tt)
+            ≡ comp⇒ℱX (mediate tower Y g .out .onunfold-next {A = k} (lift tt))
+                      (colimitCocone tower m .out .onunfold-next
+                         {A = A} (lift tt))
+    step₁ = refl
+
+    -- 3. 替换第二个分量为源替换后的子塔余锥
+    step₃ : comp⇒ℱX (mediate tower Y g .out .onunfold-next
+                       {A = k} (lift tt))
+                    (colimitCocone tower m .out .onunfold-next
+                       {A = A} (lift tt))
+            ≈⇒ℱX
+            comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
+                    (subst-src-FinCatN (sym eq-src)
+                       (colimitCocone (subtower tower k) m))
+    step₃ = comp⇒ℱX-cong-≈⇒ℱX
+              {S₁ = TowerShapeFunctors.S-proj m}
+              {S₂ = id}
+              {f  = colimitCocone tower m .out .onunfold-next
+                      {A = A} (lift tt)}
+              {f′ = subst-src-FinCatN (sym eq-src)
+                      (colimitCocone (subtower tower k) m)}
+              {g  = mediate tower Y g .out .onunfold-next
+                      {A = k} (lift tt)}
+              {g′ = mediate (subtower tower k) Yk sub-g}
+              (≈⇒ℱX-sym (colimitCocone-onunfold-next tower m A))
+              ≈⇒ℱX-refl
+
+    -- 4. 源替换与复合交换顺序
+    step₄ : comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
+                    (subst-src-FinCatN (sym eq-src)
+                       (colimitCocone (subtower tower k) m))
+            ≡ subst-src-FinCatN (sym eq-src)
+                (comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
+                         (colimitCocone (subtower tower k) m))
+    step₄ = sym (comp⇒ℱX-subst-src (sym eq-src))
+
+    -- 6. 归纳假设经源替换作用
+    step₆ : subst-src-FinCatN (sym eq-src)
+              (comp⇒ℱX (mediate (subtower tower k) Yk sub-g)
+                       (colimitCocone (subtower tower k) m))
+            ≈⇒ℱX subst-src-FinCatN (sym eq-src) (sub-g m)
+    step₆ = subst-src-≈ (sym eq-src) ih
+
+    -- 7. 子余锥正确性
+    step₇ : subst-src-FinCatN (sym eq-src) (sub-g m)
+            ≈⇒ℱX g m .out .onunfold-next {A = A} (lift tt)
+    step₇ = sub-cocone-correct tower Y g m A
+
+mediate-triangle : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+  → (g : ∀ m → CompatibleTower.seq tower m
+        ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
+  → ∀ m
+  → comp⇒ℱX (mediate tower Y g) (colimitCocone tower m) ≈⇒ℱX g m
+mediate-triangle tower Y g m = mt-go tower Y g m
+
 -- Uniqueness: any h satisfying the triangle equation is _≈⇒ℱX_-equivalent
 -- to mediate
 -- 唯一性：任何满足三角等式的 h 都 _≈⇒ℱX_-等价于 mediate
-mediate-unique : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
+mediate-unique1 : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC∞)
   → (g : ∀ m → CompatibleTower.seq tower m
         ⇒ℱX[ TowerShapeFunctors.S-proj m ] Y)
   → (h : towerColimit tower ⇒ℱX[ id ] Y)
@@ -984,4 +1023,6 @@ mediate-unique : ∀ (tower : CompatibleTower) (Y : Cosmos FinCat∞ TrivialFC�
   → _≈⇒ℱX_ {C = FinCat∞} {D = FinCat∞}
             {FC = TrivialFC∞} {FD = TrivialFC∞} {S = id}
             h (mediate tower Y g)
-mediate-unique tower Y g h h-tri = {!   !}
+mediate-unique1 tower Y g h h-tri .out .shapeTrans-eq _ = ≡-Lift-⊤ _ _
+mediate-unique1 tower Y g h h-tri .out .onPos-eq _ = ≡-Lift-⊤ _ _
+mediate-unique1 tower Y g h h-tri .out .onunfold-next-eq {A = k} (lift tt) = {!   !}

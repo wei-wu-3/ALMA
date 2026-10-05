@@ -13,7 +13,7 @@
 -- 所有构造对任意 StrictLayer 泛型，且独立于具体塔；
 -- FinCatN 塔实例在 FinCatNInnerObstruction 中实例化
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatNInnerSewing where
 

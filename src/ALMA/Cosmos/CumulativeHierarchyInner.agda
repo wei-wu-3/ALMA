@@ -14,7 +14,7 @@
 -- 恒等，EmbeddingData 对任意形状类型无条件成立；这与 CumulativeHierarchy
 -- 中外层方向的障碍（要求 s₁ ≡ s₀）形成对比
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.CumulativeHierarchyInner where
 

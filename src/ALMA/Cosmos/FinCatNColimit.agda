@@ -12,7 +12,7 @@
 -- 以及条件性框架 WithSurjectivity（以 R、fams、embed-eq、surj 为参数）
 -- 参数 m 编码 n = suc (suc m)，使 n ≥ 2 定义性成立
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatNColimit where
 

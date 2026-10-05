@@ -14,7 +14,7 @@
 -- 跨范畴态射。相容塔 {x_m} 满足 x_{suc m} ≈C embedCosmos m x_m；
 -- 其余极限 towerColimit 满足对所有 m，projCosmos m x_m ≈C towerColimit，且唯一
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatInfinityColimit where
 

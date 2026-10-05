@@ -1,13 +1,13 @@
 ------------------------------------------------------------------------
 -- Morphisms between ContCat-valued functors
--- ContCat 值函子之间的态射
---
 -- A natural transformation α : FC ⟹ FD ∘ H
 -- where FC, FD : ContCat-valued functors, H : C → D
+--
+-- ContCat 值函子之间的态射
 -- 自然变换 α : FC ⟹ FD ∘ H，
 -- 其中 FC、FD 为取值于 ContCat 的函子，H : C → D 为基函子
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCatEquivFunctor where
 
@@ -26,11 +26,12 @@ open import Categories.NaturalTransformation.NaturalIsomorphism
   using (NaturalIsomorphism; unitorʳ; associator)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M)
+open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈sr)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 
 -- Pairs a base functor H : C → D with a natural transformation α : FC ⟹ FD ∘ H
 -- between ContCat-valued functors
+--
 -- 将基函子 H : C → D 与 ContCat 值函子间的自然变换 α : FC ⟹ FD ∘ H 配对
 module _ {o h e o′ ℓ′ e′ s p : Level}
     {C : Category o h e}
@@ -43,12 +44,14 @@ module _ {o h e o′ ℓ′ e′ s p : Level}
   -- Parameterised record: packages two ContCat-valued functors FC, FD,
   -- a base functor C → D, and a natural transformation FC ⟹ FD ∘F baseFunctor
   -- as module context; has no fields, so instantiation is trivial (record {})
+  --
   -- 参数化 record：将两个取值于 ContCat 的函子 FC、FD，
   -- 一个基函子 C → D，以及自然变换 FC ⟹ FD ∘F baseFunctor
   -- 封装为模块上下文；无字段，故实例化是平凡的（record {}）
   record ContCatEquivFunctor : Set where
 
 -- Identity ContCatEquivFunctor: FC ⟹ FC ∘ id, via the right unitor
+--
 -- 恒等 ContCatEquivFunctor：FC ⟹ FC ∘ id，由右单位同构给出
 idContCatEquivFunctor : ∀ {o h e s p} {C : Category o h e}
   (FC : Functor C (ContCat s p))
@@ -57,6 +60,7 @@ idContCatEquivFunctor FC = record {}
 
 -- Composition of ContCatEquivFunctors:
 -- using the associator to rebracket (FE ∘ bg) ∘ bf ≅ FE ∘ (bg ∘ bf)
+--
 -- ContCatEquivFunctor 的复合：
 -- 利用结合同构将 (FE ∘ bg) ∘ bf 重括号为 FE ∘ (bg ∘ bf)
 compContCatEquivFunctor : ∀ {o h e o′ ℓ′ e′ o″ ℓ″ e″ s p}
@@ -79,6 +83,7 @@ compContCatEquivFunctor : ∀ {o h e o′ ℓ′ e′ o″ ℓ″ e″ s p}
 compContCatEquivFunctor _ _ _ _ _ = record {}
 
 -- Trivial constructor assembling a base functor and a natural transformation
+--
 -- 将基函子与自然变换组装为 ContCatEquivFunctor 的平凡构造子
 mkContCatEquivFunctor : ∀ {o h e o′ ℓ′ e′ s p}
     {C : Category o h e} {D : Category o′ ℓ′ e′}
@@ -93,6 +98,7 @@ mkContCatEquivFunctor _ _ _ _ = record {}
 -- ShapeCat(C, FC) → ShapeCat(D, FD)
 -- Objects (A, s) map to (H A, shape(η_A)(s));
 -- morphisms use the shape component of the naturality square
+--
 -- 由 ContCatEquivFunctor 诱导的形状范畴间的函子：
 -- ShapeCat(C, FC) → ShapeCat(D, FD)
 -- 对象 (A, s) 映至 (H A, shape(η_A)(s))；
@@ -115,16 +121,21 @@ module ShapeCatMorphism {o h e o′ ℓ′ e′ s p}
     ; F₁ = λ { {(A , s)} {(B , t)} (f , p) →
         let
           -- Shape-level equation extracted from the naturality square
+          --
           -- 从自然性方格中提取的形状层等式
           comm-shape : shape (η B) (shape (FC.F₁ f) s) ≡ shape (FD.F₁ (H.F₁ f)) (shape (η A) s)
-          comm-shape = shape-eq-from-≈M (commute f) s
+          comm-shape = shape-eq-from-≈sr (commute f) s
+
           -- Reindexing proof: transport the target shape along comm-shape and p
+          --
           -- 重索引证明：沿 comm-shape 与 p 传输目标形状
           q : shape (FD.F₁ (H.F₁ f)) (shape (η A) s) ≡ shape (η B) t
           q = trans (sym comm-shape) (cong (shape (η B)) p)
         in (H.F₁ f , q) }
+
     -- Identity, composition, and equivalence preservation
     -- are inherited from the base functor H
+    --
     -- 恒等、复合及等价保持性均继承自基函子 H
     ; identity     = λ { {A , s} → H.identity }
     ; homomorphism = λ { {f = _} {g = _} → H.homomorphism }

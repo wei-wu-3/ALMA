@@ -1,10 +1,11 @@
 ------------------------------------------------------------------------
 -- Proves substitution–commutation for position maps, and naturality
 -- of shape components for ContCat-valued natural transformations
+--
 -- 证明位置映射与替换的交换性，以及取值于 ContCat 的自然变换
 -- 其形状分量的自然性
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCatEquivLemmas where
 
@@ -19,7 +20,7 @@ open import Categories.Functor.Core using (Functor)
 open import Categories.NaturalTransformation.Core using (NaturalTransformation)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈M; ShapeOf; PosOf)
+open import ALMA.Cosmos.ContCategoryLemmas using (shape-eq-from-≈sr; ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject)
@@ -28,6 +29,7 @@ open import ALMA.Cosmos.MorphismObject using (MorphismObject)
 -- applying onPos after substituting along a shape equality in the source
 -- equals substituting along the induced shape equality in the target
 -- after applying onPos
+--
 -- 替换与 MorphismObject 的位置映射交换：
 -- 在源端沿形状等式替换后再施加 onPos，
 -- 等于先施加 onPos 再在目标端沿诱导的形状等式替换
@@ -56,10 +58,11 @@ onPos-subst-comm MO refl p = refl
 -- Naturality of the shape component: for any ContCat-valued natural
 -- transformation η : F ⟹ G, the shape map of η commutes with the
 -- shape action of F and G. Extracted from η's commute law via
--- shape-eq-from-≈M (setoid equivalence → propositional equality)
+-- shape-eq-from-≈sr (setoid equivalence → propositional equality)
+--
 -- 形状分量的自然性：对任意取值于 ContCat 的自然变换 η : F ⟹ G，
 -- η 的形状映射与 F、G 的形状作用交换。由 η 的 commute 定律经
--- shape-eq-from-≈M（setoid 等价 → 命题相等）提取得到
+-- shape-eq-from-≈sr（setoid 等价 → 命题相等）提取得到
 nat-shape-eq : ∀ {o h e s p}
   {C : Category o h e}
   {F G : Functor C (ContCat s p)}
@@ -67,4 +70,4 @@ nat-shape-eq : ∀ {o h e s p}
   {A B : Category.Obj C} (f : Category._⇒_ C A B) (s : ShapeOf F A)
   → shape (NaturalTransformation.η η B) (shape (Functor.F₁ F f) s)
     ≡ shape (Functor.F₁ G f) (shape (NaturalTransformation.η η A) s)
-nat-shape-eq {η = η} f s = shape-eq-from-≈M (NaturalTransformation.commute η f) s
+nat-shape-eq {η = η} f s = shape-eq-from-≈sr (NaturalTransformation.commute η f) s

@@ -16,7 +16,7 @@
 --     故迭代 F₀ 投影周期为 3 而非 2
 -- 阈值在 n = 3；n = 2 时群为 ℤ₂，交换
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatNNonCommutative where
 

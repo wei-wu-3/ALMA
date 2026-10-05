@@ -6,25 +6,29 @@
 
 ## Introduction / 简介
 
-ALMA is a formal framework grounded in type theory, category theory, containers, and coalgebras. Its modular, parameterized architecture decouples categorical infrastructures (object-equivalence categories and container functors) from unfolding systems (polynomial coalgebras), thereby supporting composable universe constructions. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
+ALMA is a formal framework grounded in type theory, category theory, containers (dependent pairs of shapes and positions), and coalgebras. Its modular, parameterised architecture decouples categorical infrastructures (containers and container functors) from unfolding systems (polynomial coalgebras), thereby supporting composable universe constructions. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
 
-ALMA 是基于类型论、范畴论、容器及余代数的形式化框架。其模块化参数化架构将对象等价范畴与容器函子等范畴基础设施，与多项式余代数等展开系统解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
+The project is organised into four source sub-trees: an active main line Cosmos/, its foundation Base/, and two frozen stages InitialPass/ and Prototype/.
 
-The project is structured into three layers, each corresponding to a distinct stage in the formalization's evolutionary process:
+Base/ — Fundamental structure. When the uniqueness proof in Cosmos/ stalled, a backtracking analysis of the cause revealed that all equivalence relations share a single indexed coinductive skeleton Mᵢ (with M as its trivial-index special case), organised into a two-axis degeneration lattice Equivalence/.
 
-项目结构划分为三个层级，每一层分别对应形式化在演进过程中的特定阶段：
+Cosmos/ — The active main line of development. Building on the structural decomposition of InitialPass and now drawing on Base's Mᵢ skeleton, it achieves full modularisation and categorical reconstruction atop the standard library's containers and agda-categories.
 
-src/ALMA/Prototype/ — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalization of the paper's philosophical ideas, it preserves the genesis of the conceptual framework.
+InitialPass/ — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Superseded by Cosmos/. Frozen for archival purposes.
 
-src/ALMA/Prototype/ —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的“subst hell”问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档，保留了概念框架的生成脉络。
+Prototype/ — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
 
-src/ALMA/InitialPass/ — An intermediate refactoring that decomposes the monolithic prototype into separate modules. It represents the first structural reorganization following community feedback.
+ALMA 是基于类型论、范畴论、容器（形状与位置的依赖对）及余代数的形式化框架。其模块化参数化架构将容器与容器函子等范畴基础设施，与多项式余代数等展开系统解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
-src/ALMA/InitialPass/ —— 介于原型与最新架构之间的中间重构层，旨在将单体原型拆分为独立模块。它是吸纳社区反馈后的首次结构性重组。
+项目结构划分为四个源码子树：一条活跃主线 Cosmos/，其基础结构 Base/，以及两个冻结的历史阶段 InitialPass/ 与 Prototype/。
 
-src/ALMA/Cosmos/ — The active main line of development. Building on the structural decomposition of InitialPass, it achieves full modularization and categorical reconstruction atop the standard library's containers and agda-categories, with unified bilingual Chinese–English comments throughout.
+Base/ —— 基础结构。在 Cosmos/ 唯一性证明出现障碍回溯原因时，发现所有等价关系共享一个索引余归纳骨架 Mᵢ（M 为其平凡索引特例），并组织为两轴退化格 Equivalence/。
 
-src/ALMA/Cosmos/ —— 当前活跃开发的主线架构。它在 InitialPass 结构性拆分的基础上，依托标准库容器与 agda-categories 实现模块化及范畴论重建，并统一采用中英文双语注释。
+Cosmos/ —— 当前活跃开发的主线。它在 InitialPass 结构性拆分的基础上，并借助 Base 的 Mᵢ 骨架，依托标准库容器与 agda-categories 实现模块化及范畴论重建。
+
+InitialPass/ —— 吸纳社区反馈后的结构性重组：将单体原型拆分为独立模块。已被 Cosmos/ 取代。冻结存档。
+
+Prototype/ —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的“subst hell”问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
 
 ## Motivation / 动机
 
@@ -40,11 +44,17 @@ The formalization has undergone three migrations across tools, each rooted in a 
 
 ## Key Contribution / 核心贡献
 
-### A Novel Mathematical Structure / 一种新的数学结构
-
 The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
 
+The Equivalence/ sub-tree mirrors this convergence at the level of observation equivalence. All degenerations—ScaleInvariant, DiscreteEq, and their specialisations to group actions, linear dynamics, topological and manifold equivalences—are instances of a single indexed coinductive skeleton Mᵢ, whose central instance LayeredEqGen organises them into a two-axis lattice. This aligns the code structure with the paper's three fundamental features of the stable world-structure (distinguishability, continuous variation, transformation invariance).
+
+The ontological root of subst: when A is essentially determined by B at parameter p₀, yet is expressed independently, the misalignment between A's self-contained appearance and its instance-position must manifest as subst at every point of connection between A and B.
+
 形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
+
+Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
+
+subst 的本体论根源：当 A 本质上由 B 在参数 p₀ 处决定，却被独立表达时，A 的自足外观与其实例位置之间的错位，必然在 A 与 B 的每个连接点上以 subst 的形式显露。
 
 ## Dependencies & Build / 依赖与构建
 
@@ -69,10 +79,26 @@ agda -i src src/Everything.agda
 ```text
 src/
 ├── ALMA/
+│   ├── Base/
+│   │   ├── IndexedMType.agda
+│   │   ├── Equivalence.agda
+│   │   └── Equivalence/
+│   │       ├── Core.agda
+│   │       ├── SubstTransport.agda
+│   │       ├── Properties.agda
+│   │       ├── LayeredEqGenDepth.agda
+│   │       ├── Map.agda
+│   │       ├── ScaleInvariant.agda
+│   │       ├── DiscreteEq.agda
+│   │       ├── GroupInvariant.agda
+│   │       ├── LinearDynamics.agda
+│   │       ├── TopologicalEq.agda
+│   │       ├── ManifoldEq.agda
+│   │       ├── Lattice.agda
+│   │       └── StrongEquiv.agda
 │   ├── Cosmos.agda
 │   ├── Cosmos/
 │   │   ├── ContCategory.agda
-│   │   ├── Equivalence.agda
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContFunctor.agda
 │   │   ├── ContCatEquiv.agda
@@ -117,7 +143,8 @@ src/
 │   │   ├── FinCatInfinityProjection.agda
 │   │   ├── FinCatInfinityTowerCompat.agda
 │   │   ├── FinCatInfinityColimit.agda
-│   │   └── FinCatInfinityColimitUniversal.agda
+│   │   ├── FinCatInfinityColimitUniversal.agda
+│   │   └── Instances.agda
 │   ├── InitialPass/
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda
@@ -215,33 +242,33 @@ Wittgenstein, Ludwig. 1922/1981. *Tractatus Logico-Philosophicus*. Translated by
 
 Funding: This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
 
-基金支持：本研究未获得任何公共、商业或非营利部门的专项资助。
-
 Conflict of Interest: The author declares no financial or non-financial conflicts of interest relevant to this study.
-
-利益冲突：作者声明不存在任何与本研究相关的财务或非财务利益冲突。
 
 Ethics Approval: This study is a purely philosophical and theoretical inquiry involving no human or animal experimentation; ethical approval is not applicable.
 
-伦理审批：本研究为纯哲学理论探讨，不涉及人类或动物实验，无需伦理审批。
-
 Informed Consent (Participation): No human participants were involved; informed consent is not applicable.
-
-知情同意（参与）：本研究不涉及人类参与者，无知情同意适用对象。
 
 Informed Consent (Publication): This manuscript contains no individually identifiable information; consent for publication is not applicable.
 
-知情同意（发表）：本研究不包含任何可识别个人身份的信息，无需发表同意。
-
 Data Availability: This study is a theoretical analysis and did not generate empirical data; a data availability statement is not applicable.
-
-数据可用性：本研究为理论分析，未生成实证数据，数据可用性声明不适用。
 
 Author Contributions: The author independently completed the research conception, logical analysis, and manuscript writing.
 
-作者贡献：作者独立完成研究构思、逻辑分析与论文撰写。
-
 Use of AI Tools: Generative AI tools were employed solely in auxiliary capacities during the preparation of this manuscript. AI-generated content was used exclusively as a reference for constructing counterarguments and for preliminary code drafting. All translated passages were verified through back-translation and finalized following sentence-by-sentence review by the author. The author assumes full academic responsibility for the entirety of this manuscript, including text, code, data, citations, and conclusions.
+
+基金支持：本研究未获得任何公共、商业或非营利部门的专项资助。
+
+利益冲突：作者声明不存在任何与本研究相关的财务或非财务利益冲突。
+
+伦理审批：本研究为纯哲学理论探讨，不涉及人类或动物实验，无需伦理审批。
+
+知情同意（参与）：本研究不涉及人类参与者，无知情同意适用对象。
+
+知情同意（发表）：本研究不包含任何可识别个人身份的信息，无需发表同意。
+
+数据可用性：本研究为理论分析，未生成实证数据，数据可用性声明不适用。
+
+作者贡献：作者独立完成研究构思、逻辑分析与论文撰写。
 
 AI工具使用：本研究在辅助性环节使用了生成式人工智能工具。AI生成内容仅用于构建反驳论证的参考及代码草稿；相关翻译文稿均通过回译校验，经作者逐句审核定稿。作者对论文的全部内容（包括文字、代码、数据、引用及结论）承担完整的学术责任。
 

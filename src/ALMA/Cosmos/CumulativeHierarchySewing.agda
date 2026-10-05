@@ -1,17 +1,17 @@
 ------------------------------------------------------------------------
 -- CumulativeHierarchySewing — stitching, obstruction, and direction dichotomy
--- 累积层级缝合 —— 缝合、障碍与方向二分
---
 -- UnitSewing: unit tower stitches; unit limit is terminal
 -- FinCatSewing: outer-rule obstruction at layer 1
 -- DirectionDichotomy: for a rigid strict layer, outer-rule propagates
 -- EmbeddingData iff every shape type is a singleton
+--
+-- 累积层级缝合 —— 缝合、障碍与方向二分
 -- UnitSewing：单位塔缝合；单位极限终余代数
 -- FinCatSewing：outer-rule 在第 1 层的障碍
 -- DirectionDichotomy：对刚性严格层，outer-rule 传播 EmbeddingData
 -- 当且仅当每个形状类型单元素
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.CumulativeHierarchySewing where
 
@@ -32,11 +32,11 @@ open import Function.Bundles using (_⇔_; mk⇔)
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
-open import ALMA.Cosmos.ContCategory using (_≈M_)
+open import ALMA.Cosmos.ContCategory using (_≈sr_)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; actSOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
-open import ALMA.Cosmos using (Cosmos; out; UnitCosmos; UnitCat; UnitContainerFunctor)
+open import ALMA.Cosmos using (Cosmos; out; UnitCosmos)
 open import ALMA.Cosmos.Terminal using (_≈C_; ≈C-refl)
 open import ALMA.Cosmos.CoalgCat using (IsTerminalUpToBisim)
 open import ALMA.Cosmos.CumulativeHierarchy
@@ -54,10 +54,12 @@ open import ALMA.Cosmos.CumulativeHierarchyLimit
 -- The unit tower stitches successfully not because it uses a different
 -- direction, but because UnitCat's shape type is ⊤ (a singleton), which
 -- makes the outer direction's obstruction vacuous
+--
 -- 单位塔缝合成功并非因为使用了不同方向，而是因为 UnitCat 的形状类型
 -- 是 ⊤（单元素），使外层方向的障碍空洞化
 module UnitSewing {ℓ : Level} where
   -- Shapes at every layer of the unit tower are singletons
+  --
   -- 单位塔每一层的形状是单元素
   shape-unique
     : (n : ℕ)
@@ -69,6 +71,7 @@ module UnitSewing {ℓ : Level} where
     cong lift (shape-unique n A u v)
 
   -- Objects at every layer of the unit tower are singletons
+  --
   -- 单位塔每一层的对象是单元素
   obj-unique
     : (n : ℕ)
@@ -87,6 +90,7 @@ module UnitSewing {ℓ : Level} where
       B-eq = shape-unique n A₂ _ s₂
 
   -- Every layer of the unit tower is collapsible
+  --
   -- 单位塔的每一层都是可坍缩的
   collapse
     : (n : ℕ)
@@ -99,6 +103,7 @@ module UnitSewing {ℓ : Level} where
       (collapse n)
 
   -- Uniform embedding family at each layer
+  --
   -- 每一层的一致嵌入族
   uniformAt : (n : ℕ)
     → UniformEmbeddingFamily
@@ -112,6 +117,7 @@ module UnitSewing {ℓ : Level} where
       (collapse n)
 
   -- strictEmbed preserves _≈C_ at every layer
+  --
   -- strictEmbed 在每一层保持 _≈C_
   resp
     : (n : ℕ)
@@ -134,6 +140,7 @@ module UnitSewing {ℓ : Level} where
       (eq ._≈C_.unfold-next-eq (lower s))
 
   -- Specialisation to the canonical uniform family
+  --
   -- 特化到典范一致族
   resp-specialized
     : (n : ℕ)
@@ -158,6 +165,7 @@ module UnitSewing {ℓ : Level} where
       eq
 
   -- EmbedFamily outer-rule at every layer
+  --
   -- 每一层上沿保外层规则的嵌入族
   unitFam
     : (n : ℕ)
@@ -168,6 +176,7 @@ module UnitSewing {ℓ : Level} where
     }
 
   -- The concrete enriched unit tower, along the outer-preserving rule
+  --
   -- 沿保外层规则的具体丰富单位塔
   unitEnrichedTower : EnrichedTower outer-rule (unitIdx ℓ)
   unitEnrichedTower = record
@@ -176,6 +185,7 @@ module UnitSewing {ℓ : Level} where
     }
 
   -- The concrete lifted limit structure
+  --
   -- 具体提升极限结构
   unitLiftedStructure
     : LiftedLimitStructure outer-rule (unitIdx ℓ) unitEnrichedTower
@@ -187,6 +197,7 @@ module UnitSewing {ℓ : Level} where
     }
 
   -- Stitching theorem for the unit tower
+  --
   -- 单位塔的缝合定理
   unitSewing
     : ∀ n
@@ -202,6 +213,7 @@ module UnitSewing {ℓ : Level} where
     liftAt-iterEmbed outer-rule (unitIdx ℓ) unitEnrichedTower unitLiftedStructure
 
   -- Corollary: the unit limit is terminal
+  --
   -- 推论：单位极限是终余代数
   unit-limit-terminal
     : IsTerminalUpToBisim
@@ -212,10 +224,12 @@ module UnitSewing {ℓ : Level} where
                           unitEnrichedTower unitLiftedStructure
 
 -- FinCat 2 tower — single-step stitching and obstruction
+--
 -- FinCat 2 塔 —— 单步缝合与障碍
 module FinCatSewing where
 
   -- Zeroth and first layers of the FinCat 2 tower
+  --
   -- FinCat 2 塔的第零层与第一层
   Cosmos₀ : Set lzero
   Cosmos₀ = Cosmos (FinCat 2) (FinFC 2)
@@ -224,16 +238,17 @@ module FinCatSewing where
   Cosmos₁ = Cosmos (ShapeCat (FinCat 2) (FinFC 2)) (FC∘π (FinFC 2))
 
   -- Single-step embedding and its bisimulation preservation
+  --
   -- 单步嵌入及其互模拟保持性
   embed-step : Cosmos₀ → Cosmos₁
   embed-step = embedFin 2
 
   -- Obstruction theorem: multi-step stitching fails at layer 1
-  -- 障碍定理：多步缝合在第 1 层失败
-
   -- A concrete cosmos at layer 0. Since FinCat 2 has _⇒_ = ⊤, the
   -- unfoldFunctor can be defined by first-component projection and
   -- all structural fields are trivial
+  --
+  -- 障碍定理：多步缝合在第 1 层失败
   -- 第 0 层的一个具体宇宙。因 FinCat 2 的 _⇒_ = ⊤，
   -- unfoldFunctor 可取第一分量投影，所有结构字段均为平凡值
   fin-cosmos₀ : Cosmos (FinCat 2) (FinFC 2)
@@ -251,6 +266,7 @@ module FinCatSewing where
     }
 
   -- The counterexample cosmos at layer 1
+  --
   -- 第 1 层的反例宇宙
   x₁ : Cosmos₁
   x₁ = embed-step fin-cosmos₀
@@ -262,6 +278,7 @@ module FinCatSewing where
 
   -- Obstruction: if x changes some shape s₀ to s' ≢ s₀, EmbeddingData x
   -- is impossible (ShapeCat morphisms carry a proof s' ≡ s₀)
+  --
   -- 若 x 的展开函子在某处把形状 s₀ 改成 s' ≢ s₀，则 EmbeddingData x
   -- 不可构造（因 ShapeCat 的态射携带 s' ≡ s₀ 的证明）
   obstruction-from-shape-change
@@ -275,6 +292,7 @@ module FinCatSewing where
   -- x₁ is an instance: for x₁ = embed-step fin-cosmos₀, the outer
   -- unfold functor has F₀ ((A, s₀), s₁) = (A, s₁), so its second
   -- component at (fzero, fzero, fsuc fzero) is fsuc fzero ≢ fzero
+  --
   -- x₁ 是一般定理的实例：x₁ = embed-step fin-cosmos₀ 的外层展开函子
   -- 满足 F₀ ((A, s₀), s₁) = (A, s₁)，故在 (fzero, fzero, fsuc fzero)
   -- 处第二分量为 fsuc fzero ≢ fzero
@@ -289,11 +307,13 @@ module FinCatSewing where
 
   -- Multi-step stitching is obstructed: there exists x : Cosmos₁
   -- such that EmbeddingData x is unconstructible
+  --
   -- 多步缝合受阻：存在 x : Cosmos₁ 使 EmbeddingData x 不可构造
   stitching-obstructed : ∃ (λ (x : Cosmos₁) → ¬ (EmbeddingData x))
   stitching-obstructed = x₁ , embedding-blocked
 
-  -- if x changes the shape component somewhere, x is obstructed
+  -- If x changes the shape component somewhere, x is obstructed
+  --
   -- 若 x 在某处改变了形状分量，则 x 受阻
   obstructed-if-shape-not-preserved
     : ∀ (x : Cosmos₁)
@@ -305,6 +325,7 @@ module FinCatSewing where
     obstruction-from-shape-change x A s₀ s₁ s'≢s₀
 
 -- DirectionDichotomy — outer-rule propagation boundary
+--
 -- 方向二分 —— outer-rule 传播边界
 module DirectionDichotomy
   {o h e s p : Level} (L : StrictLayer o h e s p) where
@@ -318,6 +339,7 @@ module DirectionDichotomy
   -- Rigidity: an endomorphism carries s to t only when s ≡ t.
   -- Equivalent to shape-constancy, but stated without referring to the
   -- action of a specific endomorphism
+  --
   -- 刚性：自态射把 s 送到 t 仅当 s ≡ t。
   -- 等价于形状作用平凡，但表述不依赖于某个特定自态射的作用
   Rigid : Set (o ⊔ h ⊔ s)
@@ -327,18 +349,20 @@ module DirectionDichotomy
     → s ≡ t
 
   -- Identity acts trivially on shapes, by the functor identity law
+  --
   -- 恒等态射在形状上作用平凡，由函子恒等律给出
   actSOf-id
     : ∀ {A : Category.Obj C_L} (s : ShapeOf FC_L A)
     → actSOf FC_L (Category.id C_L) s ≡ s
   actSOf-id {A} s =
-    _≈M_.shape-eq identity s
+    _≈sr_.shape-eq identity s
     where
       open Functor FC_L using (identity)
 
   private
     -- The canonical cosmos on the projection π: unfoldFunctor = π,
     -- pos-to-shape = id
+    --
     -- 投影 π 上的典范宇宙：unfoldFunctor = π，pos-to-shape = id
     trivial-cosmos : Cosmos C_L FC_L
     trivial-cosmos .out = record
@@ -349,6 +373,7 @@ module DirectionDichotomy
       }
 
     -- Its canonical EmbeddingData: retract = id, naturality from unit laws
+    --
     -- 其典范 EmbeddingData：retract = id，自然性由单位律给出
     trivial-ed : EmbeddingData trivial-cosmos
     trivial-ed .EmbeddingData.retract {A} s =
@@ -360,6 +385,7 @@ module DirectionDichotomy
     trivial-ed .EmbeddingData.next s = trivial-ed
 
   -- Sufficiency: singletons make outer propagate unconditionally
+  --
   -- 充分性：形状单元素使外层无条件传播
   outer-propagates-of-singleton
     : (singleton : ∀ (A : Category.Obj C_L)
@@ -383,6 +409,7 @@ module DirectionDichotomy
         (EmbeddingData.next ed {A = proj₁ A} (lower s-lift))
 
   -- Dichotomy (under rigidity): outer propagates iff shapes are singletons
+  --
   -- 二分定理（在刚性假设下）：外层传播当且仅当形状单元素
   outer-propagates-iff-singleton
       : (rigid : Rigid)

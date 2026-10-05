@@ -1,16 +1,16 @@
 ------------------------------------------------------------------------
 -- Cumulative Hierarchy of Cosmoi — Concrete Instances
--- 宇宙的累积层级 —— 具体实例
---
 -- Provides concrete instances of EmbeddingData, UniformEmbeddingFamily,
 -- FunctorialEmbeddingFamily, and LambekConsistency for the terminal
 -- category UnitCat and for FinCat n, together with the hierarchy
 -- constructions based on them
+--
+-- 宇宙的累积层级 —— 具体实例
 -- 为终范畴 UnitCat 及 FinCat n 提供 EmbeddingData、UniformEmbeddingFamily、
 -- FunctorialEmbeddingFamily 与 LambekConsistency 的具体实例，
 -- 并给出基于这些实例的层级构造
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.CumulativeHierarchyInstances where
 
@@ -31,7 +31,7 @@ open import Categories.Category.Core using (Category)
 open import Categories.Category.Indiscrete using (Indiscrete)
 open import Categories.Functor.Core using (Functor)
 
-open import ALMA.Cosmos.ContCategory using (ContCat; ≈M-refl)
+open import ALMA.Cosmos.ContCategory using (ContCat; ≈sr-refl)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
@@ -44,11 +44,11 @@ open import ALMA.Cosmos.StrictLift
         ; EmbedFamily; outer-rule)
 
 -- Shared uniform family builder
--- 公共一致族构造子
-
 -- Abstract out the common logic of UnitHierarchy and StrictUnitHierarchy
 -- Given a degenerate category (unique object, collapsible morphisms),
 -- one obtains a UniformEmbeddingFamily
+--
+-- 公共一致族构造子
 -- 抽象出 UnitHierarchy 与 StrictUnitHierarchy 的公共逻辑
 -- 给定一个退化范畴（对象唯一、态射可坍缩），即可构造 UniformEmbeddingFamily
 module BuildUniformFrom {o h e s p : Level}
@@ -73,6 +73,7 @@ module BuildUniformFrom {o h e s p : Level}
     }
 
 -- Unit hierarchy (stagnating levels)
+--
 -- 单位层级（层级保持不变）
 module UnitHierarchy {ℓ : Level} where
   private
@@ -99,6 +100,7 @@ module UnitHierarchy {ℓ : Level} where
   obj-unique₀ _ _ = refl
 
   -- Objects of Layer₁ are of the form (tt, tt), hence unique
+  --
   -- Layer₁ 的对象形如 (tt, tt)，唯一
   obj-unique₁ : ∀ (X Y : Category.Obj (C Layer₁)) → X ≡ Y
   obj-unique₁ _ _ = refl
@@ -138,6 +140,7 @@ module UnitHierarchy {ℓ : Level} where
 
   -- refl holds: embed₀₂ = embed₁₂ ∘ embed₀₁, so embed₀₂ unit₀ is
   -- definitionally equal to unit₂
+  --
   -- refl 成立：embed₀₂ = embed₁₂ ∘ embed₀₁，
   -- 故 embed₀₂ unit₀ 在定义上等于 unit₂
   embed₀₂-unit : embed₀₂ unit₀ ≡ unit₂
@@ -161,6 +164,7 @@ module UnitHierarchy {ℓ : Level} where
   functorial₁ = record { uniform = uniform₁ ; embed′-resp-≈C = resp-≈C₁ }
 
   -- Lambek consistency: corresponds to StrictUnitHierarchy.lambek₀/₁/₂
+  --
   -- Lambek 一致性：与 StrictUnitHierarchy.lambek₀/₁/₂ 相对应
   lambek₀ : LambekConsistency uniform₀
   lambek₀ = mkLambekConsistency uniform₀
@@ -172,30 +176,34 @@ module UnitHierarchy {ℓ : Level} where
   lambek₂ = mkLambekConsistency uniform₂
 
 -- FinCat hierarchy
+--
 -- FinCat 层级
 module FinCatHierarchy where
   open import Data.Container.Core using (Container)
 
   -- FinCat n: the category with exactly n objects, and exactly one morphism
   -- between any two objects
+  --
   -- FinCat n：恰有 n 个对象、任意两对象间恰有一个态射的范畴
   FinCat : (n : ℕ) → Category lzero lzero lzero
   FinCat n = Indiscrete (Fin n)
 
   -- Container whose shape and position are both Fin 2
+  --
   -- 形状与位置均为 Fin 2 的容器
   FinContainer : Container lzero lzero
   FinContainer = record { Shape = Fin 2 ; Position = λ _ → Fin 2 }
 
   -- Constant functor from FinCat n to ContCat, taking the value FinContainer
+  --
   -- 从 FinCat n 到 ContCat 的常值函子，取值恒为 FinContainer
   FinFC : (n : ℕ) → Functor (FinCat n) (ContCat lzero lzero)
   FinFC n = record
     { F₀ = λ _ → FinContainer
     ; F₁ = λ _ → Category.id (ContCat lzero lzero)
-    ; identity = ≈M-refl
-    ; homomorphism = ≈M-refl
-    ; F-resp-≈ = λ _ → ≈M-refl
+    ; identity = ≈sr-refl
+    ; homomorphism = ≈sr-refl
+    ; F-resp-≈ = λ _ → ≈sr-refl
     }
 
   Fin-EmbeddingData : (n : ℕ) (x : Cosmos (FinCat n) (FinFC n)) → EmbeddingData x
@@ -285,13 +293,13 @@ module FinCatHierarchy where
   Fin-LambekConsistency n = mkLambekConsistency (Fin-UniformEmbeddingFamily n)
 
 -- Strict Unit Hierarchy: strictly-growing counterpart of UnitHierarchy
--- 严格单位层级：UnitHierarchy 的严格增长对应物
-
 -- Contrast with UnitHierarchy:
 --   UnitHierarchy uses `step`, which keeps container levels fixed:
 --     Layer ℓ ℓ ℓ ℓ ℓ  →  Layer ℓ ℓ ℓ ℓ ℓ     (stagnation)
 --   StrictUnitHierarchy uses `strictStep-suc`, which strictly raises them:
 --     StrictLayer ℓ ℓ ℓ ℓ ℓ  →  StrictLayer ℓ ℓ ℓ (lsuc ℓ) (lsuc ℓ)  →  ...
+--
+-- 严格单位层级：UnitHierarchy 的严格增长对应物
 -- 与 UnitHierarchy 的对比：
 --   UnitHierarchy 使用 step，容器层级保持不变（停滞）；
 --   StrictUnitHierarchy 使用 strictStep-suc，容器层级严格增长
@@ -304,6 +312,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   -- Type correctness relies on Agda's level normalisation:
   --   ℓ ⊔ lsuc ℓ = lsuc ℓ, and lsuc ℓ ⊔ lsuc ℓ = lsuc ℓ,
   -- i.e. in general s ⊔ lsuc (s ⊔ p) = lsuc (s ⊔ p) (since s ≤ s ⊔ p)
+  --
   -- 三个连续严格层级，容器层级每步严格增长
   -- 类型正确性依赖 Agda 的层级归一化：
   --   ℓ ⊔ lsuc ℓ = lsuc ℓ，且 lsuc ℓ ⊔ lsuc ℓ = lsuc ℓ，
@@ -318,6 +327,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   SL₂ = strictStep-suc SL₁
 
   -- Cosmos types at each layer
+  --
   -- 各层的宇宙类型
   SU₀ = Cosmos (StrictLayer.C SL₀) (StrictLayer.FC SL₀)
   SU₁ = Cosmos (StrictLayer.C SL₁) (StrictLayer.FC SL₁)
@@ -325,6 +335,7 @@ module StrictUnitHierarchy {ℓ : Level} where
 
   -- Collapsibility: each layer has a single object, and morphism equivalence
   -- is trivial
+  --
   -- 可坍缩性：三层都只有一个对象，态射等价平凡
   collapse₀ : Collapsible (StrictLayer.C SL₀)
   collapse₀ _ _ = tt
@@ -339,6 +350,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   -- C of SL₁ is ShapeCat UnitCat UFC, whose objects have the form (tt, s)
   -- with s : ⊤, so there is again only one object (tt, tt); refl holds.
   -- SL₂ is analogous
+  --
   -- 对象唯一性：SL₀ 的 C 是 UnitCat（单对象）
   -- SL₁ 的 C = ShapeCat UnitCat UFC，对象形如 (tt, s)，其中 s : ⊤，
   -- 因此也只有一个对象 (tt, tt)，refl 成立；SL₂ 同理
@@ -359,6 +371,7 @@ module StrictUnitHierarchy {ℓ : Level} where
                                       obj-unique₂ collapse₂
 
   -- Lambek consistency at each strict layer
+  --
   -- 每个严格层级的 Lambek 一致性
   lambek₀ : LambekConsistency uniform₀
   lambek₀ = mkLambekConsistency uniform₀
@@ -370,6 +383,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   lambek₂ = mkLambekConsistency uniform₂
 
   -- EmbeddingData at each strict layer
+  --
   -- 各层的嵌入数据（退化情形：对象唯一、态射唯一）
   ed₀ : (x : SU₀) → EmbeddingData x
   ed₀ = UniformEmbeddingFamily.getData uniform₀
@@ -381,6 +395,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   ed₂ = UniformEmbeddingFamily.getData uniform₂
 
   -- Cross-layer embeddings via strictEmbed
+  --
   -- 经 strictEmbed 的跨层嵌入
   se₀₁ : SU₀ → SU₁
   se₀₁ x = strictEmbed SL₀ x (ed₀ x)
@@ -392,6 +407,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   se₀₂ = se₁₂ ∘ se₀₁
 
   -- Unit elements at each layer
+  --
   -- 每层的单位元
   su₀ : SU₀
   su₀ = UnitCosmos {ℓ}
@@ -403,11 +419,13 @@ module StrictUnitHierarchy {ℓ : Level} where
   su₂ = se₁₂ su₁
 
   -- Composition law: definitionally refl
+  --
   -- 复合律：由定义即可得（因为 se₀₂ = se₁₂ ∘ se₀₁）
   se₀₂-su : se₀₂ su₀ ≡ su₂
   se₀₂-su = refl
 
   -- se preserves _≈C_ (cross-layer embeddings are functors between Setoids)
+  --
   -- se 保持 _≈C_（跨层嵌入是 Setoid 间的函子）
   private
     se₀₁-resp-≈C : ∀ {x y : SU₀} → x ≈C y → se₀₁ x ≈C se₀₁ y
@@ -425,6 +443,7 @@ module StrictUnitHierarchy {ℓ : Level} where
       se₁₂-resp-≈C (x≈y ._≈C_.unfold-next-eq (lower s))
 
   -- Embedding family SL₀ → SL₁: uniform₀ together with se₀₁'s preservation
+  --
   -- SL₀ → SL₁ 的嵌入族：一致族 uniform₀ 加上 se₀₁ 的 _≈C_-保持性
   strictFunctorial₀ : EmbedFamily outer-rule SL₀
   strictFunctorial₀ = record { uniform = uniform₀ ; resp-≈C = se₀₁-resp-≈C }
@@ -433,6 +452,7 @@ module StrictUnitHierarchy {ℓ : Level} where
   strictFunctorial₁ = record { uniform = uniform₁ ; resp-≈C = se₁₂-resp-≈C }
 
   -- StrictLambekConsistency for SL₀, SL₁
+  --
   -- SL₀、SL₁ 的 StrictLambekConsistency
   strictLambek₀ : StrictLambekConsistency SL₀ uniform₀
   strictLambek₀ = record

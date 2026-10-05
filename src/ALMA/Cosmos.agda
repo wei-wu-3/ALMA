@@ -1,13 +1,13 @@
 ------------------------------------------------------------------------
 -- ALMA — Infinite, Unbounded, Self-Referential Dynamic Cosmos
--- ALMA —— 无穷、无界、自指的动态宇宙
---
 -- Built with type theory, category theory, containers, and coalgebraic unfolding
 -- Cosmos is the terminal coalgebra of a polynomial functor internalized in type theory
+--
+-- ALMA —— 无穷、无界、自指的动态宇宙
 -- 基于类型论、范畴论、容器与余代数展开构建；
 -- Cosmos 是内化于类型论中的多项式函子的终余代数
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos where
 
@@ -16,7 +16,6 @@ open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (sym; trans; cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (setoid)
-open import Function.Base using (_∘_)
 open import Function.Bundles using (Func)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Product.Base using (proj₁; proj₂)
@@ -28,11 +27,10 @@ open import Categories.Category.Instance.One using (One)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (id; _∘F_)
 
-open import ALMA.Cosmos.ContCategory using (≈M-refl; ContCat)
+open import ALMA.Cosmos.ContCategory using (≈sr-refl; ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
-open import ALMA.Cosmos.Unfolding
-  using (Unfolding; mapUnfolding; mapUnfolding-id; mapUnfolding-∘; module UnfoldingSetoid)
+open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
 open import ALMA.Cosmos.MorphismObject using (MorphismObject; idMorphismObject; compMorphismObject)
 open import ALMA.Cosmos.MorphismMorphism
   using (MorphismMorphism; idMorphismMorphism; actP-from-S; compMorphismMorphism)
@@ -42,6 +40,7 @@ open import ALMA.Cosmos.MorphismMorphism
 -- over a parameter X
 -- Cosmos: the terminal coalgebra of the polynomial functor Unfolding
 -- Defined coinductively: out : Cosmos → Unfolding (Cosmos)
+--
 -- 核心定义：Cosmos 作为终余代数
 -- Cosmos 的单层展开：参数 X 上的容器形状函子结构
 -- Cosmos：多项式函子 Unfolding 的终余代数
@@ -59,6 +58,7 @@ open Cosmos public
 -- Generalized homomorphism _⇒ℱ[_]_ parameterized by a shape functor S
 -- S : Functor (ShapeCat C FC) (ShapeCat C FC) controls how shape indices
 -- are transported from source to target
+--
 -- 宇宙态射：余代数同态
 -- 广义同态 _⇒ℱ[_]_ 以形状函子 S 为参数
 -- S 控制形状索引从源到目标的传输
@@ -83,18 +83,26 @@ mutual
       UF = out F
       UG = out G
     field
+
       -- Shape translation: maps positions of source to shapes of target
+      --
       -- 形状翻译：将源的位置映射为目标宇宙的形状
       shapeTrans  : ∀ {A} {s : ShapeOf FC A}
                   → PosOf FC s
                   → ShapeOf FC (Functor.₀ (Unfolding.unfoldFunctor UG) (S.₀ (A , s)))
+
       -- Morphism object compatibility
+      --
       -- 态射对象相容性
       morphismObj : MorphismObject UF UG S shapeTrans
+
       -- Morphism morphism compatibility
+      --
       -- 态射间态射相容性
       morphismMor : MorphismMorphism UF UG S shapeTrans morphismObj
+
       -- Recursive universe morphism on next seeds
+      --
       -- 下一层种子上的递归宇宙态射
       onunfold-next : ∀ {A} (s : ShapeOf FC A)
                     → Unfolding.unfold-next UF s ⇒ℱ[ S ]
@@ -104,6 +112,7 @@ open _⇒ℱ[_]_ public
 open ⇒ℱLayer[_] public
 
 -- S = id specialization
+--
 -- S = id 特化
 _⇒ℱ_ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
      → Cosmos C FC → Cosmos C FC → Set (o ⊔ h ⊔ s ⊔ p)
@@ -112,6 +121,7 @@ _⇒ℱ_ {C = C} {FC = FC} F G = F ⇒ℱ[ id ] G
 -- Identity homomorphism exists only at S = id:
 -- onunfold-next target = unfold-next UF (proj₂ (id.₀ (A,s))) = unfold-next UF s,
 -- so id⇒ℱ applies recursively. For S ≠ id source and target differ, no canonical map
+--
 -- 恒等同态仅在 S = id 存在：
 -- onunfold-next 目标 = unfold-next UF s，与源相同，可递归应用 id⇒ℱ
 id⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
@@ -126,6 +136,7 @@ id⇒ℱ {F = F} .out = record
 
 -- Generalized composition: S₂ ∘F S₁, morphismMor via compMorphismMorphism
 -- Non-mixfix name because composite S is determined by argument types
+--
 -- 广义复合：S 按 S₂ ∘F S₁ 封闭，morphismMor 由 compMorphismMorphism 自动导出
 -- 使用非 mixfix 名称，因为复合 S 由参数类型决定
 comp⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
@@ -156,6 +167,7 @@ comp⇒ℱ {S₁ = S₁} {S₂ = S₂} {F = F} {G = G} {H = H} g f .out = record
     mmG = morphismMor (g .out)
 
 -- S = id specialization of composition
+--
 -- S = id 特化的复合
 _∘⇒ℱ_ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
        {F G H : Cosmos C FC}
@@ -187,22 +199,25 @@ _∘⇒ℱ_ {C = C} {FC = FC} {F = F} {G = G} {H = H} g f .out = record
                        (onActP mmG f′ p (onPos moF q))
 
 -- The terminal category with one object and one morphism
+--
 -- 只有一个对象和一个态射的终范畴
 UnitCat : ∀ {ℓ} → Category ℓ ℓ ℓ
 UnitCat {ℓ} = One
 
 -- The constant functor picking the unit container (⊤, λ _ → ⊤)
+--
 -- 选取单位容器 (⊤, λ _ → ⊤) 的常值函子
 UnitContainerFunctor : ∀ {ℓ} → Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)
 UnitContainerFunctor = record
   { F₀ = λ _ → record { Shape = ⊤; Position = λ _ → ⊤ }
   ; F₁ = λ _ → record { shape = λ _ → tt; position = λ _ → tt }
-  ; identity = ≈M-refl
-  ; homomorphism = ≈M-refl
-  ; F-resp-≈ = λ _ → ≈M-refl
+  ; identity = ≈sr-refl
+  ; homomorphism = ≈sr-refl
+  ; F-resp-≈ = λ _ → ≈sr-refl
   }
 
 -- The trivial Cosmos: a single point unfolding into itself forever
+--
 -- 平凡宇宙：一个永远展开为自身的单点
 UnitCosmos : ∀ {ℓ} → Cosmos (UnitCat {ℓ}) UnitContainerFunctor
 UnitCosmos .out = record
@@ -219,17 +234,21 @@ UnitCosmos .out = record
   }
 
 -- Unfolding Functor: Sets → Setoids
+--
 -- Unfolding 函子：Sets → Setoids
 module CosmosFFunctor {o h e s p : Level}
                       {C : Category o h e}
                       {FC : Functor C (ContCat s p)} where
   private
+
     -- Instantiate the unfolding setoid module for the current container functor
+    --
     -- 为当前容器函子实例化展开集合模块
     module US = UnfoldingSetoid
       {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
 
   -- The Unfolding functor: Sets u → Setoids
+  --
   -- Unfolding 函子：Sets u → Setoids
   toStdFunc : {u : Level} {X Y : Set u} → (X → Y) → Func (setoid X) (setoid Y)
   toStdFunc f = record { to = f ; cong = cong f }

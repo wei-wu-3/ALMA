@@ -9,7 +9,7 @@
 -- 映射闭包：任意 Setoid 自映射可提升为宇宙变换
 -- UnitCosmos 在 UnitLike 宇宙中的唯一性
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.Closure where
 

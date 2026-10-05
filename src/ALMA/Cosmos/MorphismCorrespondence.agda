@@ -10,7 +10,7 @@
 -- 见证（忘却函子）；StandardConditions 刻画忘却函子的像；非满性依赖于
 -- 非平凡 Cosmos 实例的存在
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.MorphismCorrespondence where
 

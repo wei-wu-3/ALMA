@@ -1,9 +1,27 @@
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module Everything where
 
+------------------------------------------------------------------------
+-- Active main line
+-- 活跃主线
+import ALMA.Base.IndexedMType
+import ALMA.Base.Equivalence
+import ALMA.Base.Equivalence.Core
+import ALMA.Base.Equivalence.SubstTransport
+import ALMA.Base.Equivalence.Properties
+import ALMA.Base.Equivalence.LayeredEqGenDepth
+import ALMA.Base.Equivalence.Map
+import ALMA.Base.Equivalence.ScaleInvariant
+import ALMA.Base.Equivalence.DiscreteEq
+import ALMA.Base.Equivalence.GroupInvariant
+import ALMA.Base.Equivalence.LinearDynamics
+import ALMA.Base.Equivalence.TopologicalEq
+import ALMA.Base.Equivalence.ManifoldEq
+import ALMA.Base.Equivalence.Lattice
+import ALMA.Base.Equivalence.StrongEquiv
+
 import ALMA.Cosmos.ContCategory
-import ALMA.Cosmos.Equivalence
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
 import ALMA.Cosmos.ContCatEquiv
@@ -50,8 +68,12 @@ import ALMA.Cosmos.FinCatInfinityProjection
 import ALMA.Cosmos.FinCatInfinityTowerCompat
 import ALMA.Cosmos.FinCatInfinityColimit
 import ALMA.Cosmos.FinCatInfinityColimitUniversal
+import ALMA.Cosmos.Instances
 -- import ALMA.Cosmos.WIP
 
+------------------------------------------------------------------------
+-- Frozen archives
+-- 冻结存档
 import ALMA.InitialPass.ObjEquivCat
 import ALMA.InitialPass.ObjEquivFunctor
 import ALMA.InitialPass.ContCategory
@@ -71,5 +93,6 @@ import ALMA.Prototype.Beings
 import ALMA.Prototype.Universe
 import ALMA.Prototype.StandardModel
 -- import ALMA.Prototype.Properties
+
 -- comp-cong-≃⇒ℱ hit a subst coherence obstruction and was left as a hole, excluded from CI
 -- comp-cong-≃⇒ℱ 撞上 subst 相干性障碍，留为洞，从 CI 排除

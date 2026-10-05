@@ -13,7 +13,7 @@
 -- 以及下一层的形状单点性。一旦把 dep-embed-general 注册为
 -- dep-rule 的 EmbedDep 字段，逐点等式 embed-eq 就成为定义性相等（refl）
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.DependentEmbedding where
 

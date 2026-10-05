@@ -1,15 +1,15 @@
 ------------------------------------------------------------------------
 -- StrictLift: level raising for the cumulative hierarchy
--- 严格层级提升：累积层级的层级递增迭代
---
 -- LiftContainerFunctor — Functor (ContCat s p) → Functor (ContCat (s ⊔ s′) (p ⊔ p′))
 -- StrictLayer / strictStep / strictStep-suc — layer stepping
 -- strictEmbed — embedding a cosmos into the strictly-raised next layer
+--
+-- 严格层级提升：累积层级的层级递增迭代
 -- LiftContainerFunctor —— 函子 ContCat s p → ContCat (s ⊔ s′) (p ⊔ p′)
 -- StrictLayer / strictStep / strictStep-suc —— 层级步进
 -- strictEmbed —— 将宇宙嵌入严格提升后的下一层
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.StrictLift where
 
@@ -26,7 +26,7 @@ open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using (_∘F_)
 
-open import ALMA.Cosmos.ContCategory using (ContCat; _≈M_)
+open import ALMA.Cosmos.ContCategory using (ContCat; _≈sr_)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding)
@@ -37,9 +37,9 @@ open import ALMA.Cosmos.CumulativeHierarchy
   using (FC∘π; EmbeddingData; UniformEmbeddingFamily)
 
 -- Level-raising preliminaries
--- 层级提升的预备构造
-
 -- Eta rule for Lift: lift ∘ lower is the identity
+--
+-- 层级提升的预备构造
 -- Lift 的 eta 规则：lift ∘ lower 是恒等
 lift-lower : ∀ {a b : Level} {A : Set a} (x : Lift b A) → lift (lower x) ≡ x
 lift-lower (lift _) = refl
@@ -47,6 +47,7 @@ lift-lower (lift _) = refl
 -- subst along a lift-equality commutes with lift, for the specific shape
 -- of P used by position types: the input is an arbitrary lifted element,
 -- and the family is applied after lowering
+--
 -- 沿 lift 等式的 subst 与 lift 交换，针对位置类型所用的 P 的形状：
 -- 输入为任意提升元素，族在降层后应用
 subst-lift-pos : ∀ {a b c d : Level} {A : Set a} {P : A → Set b} {x y : A}
@@ -59,6 +60,7 @@ subst-lift-pos refl p = sym (lift-lower p)
 
 -- lower of subst-lift-pos: the result is the unlifted substitution on
 -- the lowered input
+--
 -- subst-lift-pos 的降层形式：结果为对降层输入的未提升替换
 lower-subst-lift : ∀ {a b c d : Level} {A : Set a} {P : A → Set b} {x y : A}
                      (q : x ≡ y) (p : Lift {b} d (P x))
@@ -69,6 +71,7 @@ lower-subst-lift q p = cong lower (subst-lift-pos q p)
 
 -- Lift shape and position types by levels s′ and p′
 -- Position is defined via lower so that its interaction with subst stays definitional
+--
 -- 将形状与位置类型的层级分别提升 s′、p′
 -- Position 用 lower 定义，使与 subst 的交互保持定义性
 LiftContainer : ∀ {s p : Level} (s′ p′ : Level) → Container s p
@@ -80,6 +83,7 @@ LiftContainer {s} {p} s′ p′ C = record
 
 -- General form: subst along a lift-equality commutes with lift for an
 -- arbitrary family P, with input given as lift u
+--
 -- 一般形式：沿 lift 等式的 subst 对任意族 P 与 lift 交换，
 -- 输入以 lift u 的形式给出
 subst-lift : ∀ {a b c d : Level} {A : Set a} (P : A → Set b)
@@ -92,6 +96,7 @@ subst-lift P refl u = refl
 
 -- lower of subst-lift applied to lift u: simplifies to the unlifted
 -- substitution on u
+--
 -- subst-lift 作用于 lift u 后的降层形式：化简为对 u 的未提升替换
 subst-lift-lower : ∀ {a b c d : Level} {A : Set a} (P : A → Set b)
                      {x y : A} (e : x ≡ y) (u : P x)
@@ -102,6 +107,7 @@ subst-lift-lower : ∀ {a b c d : Level} {A : Set a} (P : A → Set b)
 subst-lift-lower P e u = cong lower (subst-lift P e u)
 
 -- Lift a ContCat-valued functor one level up
+--
 -- 将 ContCat 值函子提升一层
 LiftContainerFunctor : ∀ {s p : Level} (s′ p′ : Level)
                      → Functor (ContCat s p) (ContCat (s ⊔ s′) (p ⊔ p′))
@@ -122,20 +128,20 @@ LiftContainerFunctor {s} {p} s′ p′ = record
       }
 
     lift-id : ∀ {X} → liftF₁ {X = X} {Y = X} (id X)
-                      ≈M id (LiftContainer s′ p′ X)
+                      ≈sr id (LiftContainer s′ p′ X)
     lift-id = record
       { shape-eq = λ { (lift sh) → refl }
       ; position-eq   = λ { (lift sh) (lift q) → refl }
       }
 
     lift-hom : ∀ {X Y Z : Container s p} {f : X ⇒ Y} {g : Y ⇒ Z}
-             → liftF₁ (g ∘ f) ≈M (liftF₁ g ∘ liftF₁ f)
+             → liftF₁ (g ∘ f) ≈sr (liftF₁ g ∘ liftF₁ f)
     lift-hom {X = X} {Y = Y} {Z = Z} {f = f} {g = g} = record
       { shape-eq = λ { (lift sh) → refl }
       ; position-eq   = λ { (lift sh) (lift q) → refl }
       }
 
-    lift-resp : ∀ {X Y} {f g : X ⇒ Y} → f ≈M g → liftF₁ f ≈M liftF₁ g
+    lift-resp : ∀ {X Y} {f g : X ⇒ Y} → f ≈sr g → liftF₁ f ≈sr liftF₁ g
     lift-resp {X} {Y} {f} {g} f≈g = record
       { shape-eq = λ { (lift sh) → cong lift (Fe.shape-eq sh) }
       ; position-eq   = λ { (lift sh) (lift q) →
@@ -144,12 +150,12 @@ LiftContainerFunctor {s} {p} s′ p′ = record
                       (sym (subst-lift-lower (Position Y) (Fe.shape-eq sh) q))) }
       }
       where
-        module Fe = _≈M_ f≈g
+        module Fe = _≈sr_ f≈g
 
 -- Strict layers and strictly-growing step
--- 严格层级与严格增长的步进
-
 -- Universally quantifies over the source category's levels, hence resides in Setω
+--
+-- 严格层级与严格增长的步进
 -- 对源范畴的层级做全称量化，故位于 Setω
 LiftFC-Strategy : ∀ {s p s′ p′ : Level} → Setω
 LiftFC-Strategy {s} {p} {s′} {p′} =
@@ -164,6 +170,7 @@ concreteLiftFC {s} {p} {s′} {p′} FC =
   LiftContainerFunctor {s} {p} s′ p′ ∘F FC
 
 -- Layer record and the strictly-growing step operation
+--
 -- 层级记录与严格增长的步进操作
 record StrictLayer (o h e s p : Level) : Set (lsuc (o ⊔ h ⊔ e ⊔ s ⊔ p)) where
   field
@@ -191,6 +198,7 @@ concreteStrictStep {s = s} {p = p} {s′ = s′} {p′ = p′} L =
 
 -- Type depends on Agda's level normalization:
 -- s ⊔ lsuc (s ⊔ p) = lsuc (s ⊔ p) since s ≤ s ⊔ p
+--
 -- 类型依赖 Agda 的层级归一化：
 -- 因 s ≤ s ⊔ p，故 s ⊔ lsuc (s ⊔ p) = lsuc (s ⊔ p)
 strictStep-suc : ∀ {o h e s p}
@@ -201,9 +209,9 @@ strictStep-suc {s = s} {p = p} =
                      {s′ = lsuc (s ⊔ p)} {p′ = lsuc (s ⊔ p)}
 
 -- strictEmbed — embedding into the strictly-raised next layer
--- strictEmbed —— 嵌入到严格提升后的下一层
-
 -- lift ∘ lower is the identity on equality proofs
+--
+-- strictEmbed —— 嵌入到严格提升后的下一层
 -- 在等式证明上，lift ∘ lower 是恒等
 lift-lower-cong : ∀ {a b : Level} {A : Set a} {x y : Lift b A}
                   (q : x ≡ y) → cong lift (cong lower q) ≡ q
@@ -211,6 +219,7 @@ lift-lower-cong refl = refl
 
 -- The unfold functor of the strict embedding:
 -- forgets the outer shape and keeps the inner one
+--
 -- 严格嵌入的展开函子：遗忘外层形状，保留内层形状
 strictEmbed-unfoldFunctor
   : ∀ {o h e s p}
@@ -234,6 +243,7 @@ strictEmbed-unfoldFunctor L = record
 
 -- Subst along a lift-equality commutes with lower, specialised to the
 -- container functor of a strict layer
+--
 -- 沿 lift 等式的 subst 与 lower 交换，特化到严格层的容器函子
 module _ {o h e s p : Level} (L : StrictLayer o h e s p)
          (x : Cosmos (StrictLayer.C L) (StrictLayer.FC L))
@@ -285,17 +295,17 @@ module _ {o h e s p : Level} (L : StrictLayer o h e s p)
         ≡⟨ cong (actSOf FC_L (EmbeddingData.retract ed t))
                 (UX.pos-actS-compat f q p) ⟩
       actSOf FC_L (EmbeddingData.retract ed t) (actSOf FC_L g₁ x₀)
-        ≡⟨ sym (_≈M_.shape-eq
+        ≡⟨ sym (_≈sr_.shape-eq
                 (Functor.homomorphism FC_L {f = g₁}
                  {g = EmbeddingData.retract ed t}) x₀) ⟩
       actSOf FC_L (EmbeddingData.retract ed t FCat.∘ g₁) x₀
-        ≡⟨ sym (_≈M_.shape-eq
+        ≡⟨ sym (_≈sr_.shape-eq
                 (Functor.F-resp-≈ FC_L
                  {f = f FCat.∘ EmbeddingData.retract ed s}
                  {g = EmbeddingData.retract ed t FCat.∘ g₁}
                  (EmbeddingData.retract-natural ed f q)) x₀) ⟩
       actSOf FC_L (f FCat.∘ EmbeddingData.retract ed s) x₀
-        ≡⟨ _≈M_.shape-eq
+        ≡⟨ _≈sr_.shape-eq
              (Functor.homomorphism FC_L {f = EmbeddingData.retract ed s}
                 {g = f}) x₀ ⟩
       actSOf FC_L f (actSOf FC_L (EmbeddingData.retract ed s) x₀)
@@ -355,6 +365,7 @@ strictEmbed L x ed .out = record
     module UX = Unfolding UX
 
 -- Example: strictly-growing Unit hierarchy
+--
 -- 示例：严格增长的单位层级
 module StrictUnitHierarchyExample {ℓ : Level} where
 
@@ -371,6 +382,7 @@ module StrictUnitHierarchyExample {ℓ : Level} where
 -- the next strict layer. This captures the "direction" of the unfold
 -- functor as data, so that the framework in CumulativeHierarchyLimit
 -- becomes direction-agnostic
+--
 -- 嵌入规则：把"如何把宇宙嵌入下一严格层"提升为一等公民
 -- 这把展开函子的"方向"捕获为数据，使 CumulativeHierarchyLimit
 -- 中的框架成为方向无关的
@@ -386,6 +398,7 @@ record EmbeddingRule : Setω where
 -- this specialises to the outer-preserving family used by
 -- CumulativeHierarchy; when R = inner-rule (defined in FinCatInnerSewing),
 -- it gives the inner-preserving family
+--
 -- 给定规则 R 下的嵌入数据族。当 R = outer-rule 时，它特化为
 -- CumulativeHierarchy 所用的保外层族；当 R = inner-rule
 -- （定义于 FinCatInnerSewing）时，它给出保内层族
@@ -406,11 +419,13 @@ record EmbedFamily (R : EmbeddingRule) {o h e s p}
                    (EmbeddingRule.Embed R L y (getData y))
 
 -- The outer-preserving rule (the default direction of CumulativeHierarchy)
+--
 -- 保外层规则（CumulativeHierarchy 的默认方向）
 outer-rule : EmbeddingRule
 outer-rule .EmbeddingRule.Embed = strictEmbed
 
 -- StrictLambekConsistency: Lambek-consistency for the strict embedding
+--
 -- StrictLambekConsistency：严格嵌入的 Lambek 一致性
 record StrictLambekConsistency {o h e s p}
   (L : StrictLayer o h e s p)
@@ -429,12 +444,16 @@ record StrictLambekConsistency {o h e s p}
     in∘out≈id' : ∀ z → in-F' (out z) ≈C z
     in∘out≈id' = in∘out≈id {C = C_L'} {FC = FC_L'}
   field
+
     -- in-F′ ∘ out is bisimilar to the identity on strict embeddings
+    --
     -- in-F′ ∘ out 与严格嵌入上的恒等互模拟
     in-F-consistency : ∀ y
                      → in-F' (out (se (in-F {C = C_L} {FC = FC_L} y)))
                        ≈C se (in-F {C = C_L} {FC = FC_L} y)
+
     -- unfold-next commutes with strictEmbed on the lifted shape
+    --
     -- unfold-next 与 strictEmbed 在提升形状上交换
     out-consistency  : ∀ (x : Cosmos C_L FC_L) {A : Category.Obj C_L'}
                          (s : ShapeOf FC_L' A)

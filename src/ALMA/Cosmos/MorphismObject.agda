@@ -6,7 +6,7 @@
 -- with the container natural isomorphism
 -- MorphismObject 见证对象映射与位置映射同容器自然同构之间的交换性
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.MorphismObject where
 

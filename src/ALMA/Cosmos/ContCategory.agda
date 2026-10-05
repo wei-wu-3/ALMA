@@ -1,24 +1,21 @@
 ------------------------------------------------------------------------
 -- The category of containers (syntactic presentations of polynomial functors)
--- 容器范畴（容器是多项式函子的语法表示；多项式函子是容器的语义解释）
+-- The morphism equivalence is the generic pointwise-with-transport
+-- relation from SubstTransport-Right, instantiated at container
+-- morphisms, and the container-specific composition laws and the
+-- Category instance are added
 --
--- Defines the equivalence _≈M_ on morphisms between containers
--- (pointwise propositional equality of the shape maps, equality of position
--- maps up to transport along the shape map equality), verifies the
--- category laws, and constructs a Category instance
--- 定义容器态射上的等价关系 _≈M_
--- （形状映射逐点命题相等；位置映射在沿形状映射相等的传输下命题相等），
--- 验证范畴定律，并构造 Category 实例
+-- 容器范畴（容器是多项式函子的语法表示；多项式函子是容器的语义解释）
+-- 态射等价在 SubstTransport-Right 的逐点相等 + 传输关系在容器态射上
+-- 实例化并添加容器特有的复合定律与 Category 实例
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCategory where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.Structures using (IsEquivalence)
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≗_; cong; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality.Core using (cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open ≡-Reasoning
 open import Data.Container.Core using (Container; Shape; Position; _⇒_)
@@ -26,109 +23,54 @@ open import Data.Container.Morphism using (id; _∘_)
 
 open import Categories.Category.Core using (Category)
 
-open import ALMA.Cosmos.Equivalence using (module SubstTransport-Right)
+open import ALMA.Base.Equivalence.SubstTransport using (module SubstTransport-Right)
 
--- The equivalence relation on morphisms: pointwise equal on shape maps,
--- and on positions up to transport
--- 态射上的等价关系：形状映射逐点相等；位置映射在传输意义下相等
-module _ {s p} {X Y : Container s p} where
-  infix 4 _≈M_
-  record _≈M_ (f g : X ⇒ Y) : Set (s ⊔ p) where
-    private
-      module f = _⇒_ f
-      module g = _⇒_ g
-    field
-      shape-eq : f.shape ≗ g.shape
-      position-eq   : ∀ (sh : Shape X) (q : Position Y (f.shape sh))
-                → f.position {sh} q ≡ g.position {sh} (subst (Position Y) (shape-eq sh) q)
+------------------------------------------------------------------------
+-- Container morphism equivalence: the generic pointwise-with-transport
+-- relation from SubstTransport-Right, instantiated at container morphisms
+--
+-- 容器态射等价：SubstTransport-Right 的逐点相等 + 传输关系在容器态射上的实例化
+module _ {s p : Level} {X Y : Container s p} where
+  open SubstTransport-Right
+    {S = Shape X} {T = Shape Y}
+    (Position Y) (Position X)
+    {F = X ⇒ Y}
+    _⇒_.shape _⇒_.position public
 
-  open _≈M_
+-- Position commutes with substitution along shape map equalities
+--
+-- 位置映射与沿形状映射相等的传输交换
+position-subst : ∀ {s p} {B C : Container s p}
+               → (g : B ⇒ C) {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂)
+               → (q : Position C (_⇒_.shape g t₁))
+               → subst (Position B) eq (_⇒_.position g {t₁} q)
+                 ≡ _⇒_.position g {t₂} (subst (Position C) (cong (_⇒_.shape g) eq) q)
+position-subst g refl q = refl
 
-  private
-    module SR = SubstTransport-Right
-      {S = Shape X} {T = Shape Y}
-      (Position Y) (Position X)
-      {F = X ⇒ Y}
-      _⇒_.shape _⇒_.position
+module _ {s p} {A B C : Container s p} where
 
-    to≈M : ∀ {f g} → SR._≈sr_ f g → f ≈M g
-    to≈M sr = record
-      { shape-eq    = SR._≈sr_.shape-eq sr
-      ; position-eq = SR._≈sr_.position-eq sr
-      }
-
-    to≈sr : ∀ {f g} → f ≈M g → SR._≈sr_ f g
-    to≈sr eq = record
-      { shape-eq    = eq .shape-eq
-      ; position-eq = eq .position-eq
-      }
-
-  -- Reflexivity of _≈M_
-  -- _≈M_ 的自反性
-  ≈M-refl : ∀ {f : X ⇒ Y} → f ≈M f
-  ≈M-refl = to≈M SR.≈sr-refl
-
-  -- Symmetry of _≈M_
-  -- _≈M_ 的对称性
-  ≈M-sym : ∀ {f g : X ⇒ Y} → f ≈M g → g ≈M f
-  ≈M-sym eq = to≈M (SR.≈sr-sym (to≈sr eq))
-
-  -- Transitivity of _≈M_
-  -- _≈M_ 的传递性
-  ≈M-trans : ∀ {f g h : X ⇒ Y} → f ≈M g → g ≈M h → f ≈M h
-  ≈M-trans eq₁ eq₂ = to≈M (SR.≈sr-trans (to≈sr eq₁) (to≈sr eq₂))
-
-  -- _≈M_ is an equivalence relation
-  -- _≈M_ 构成等价关系
-  ≈M-isEquiv : IsEquivalence _≈M_
-  ≈M-isEquiv = record
-    { refl  = ≈M-refl
-    ; sym   = ≈M-sym
-    ; trans = ≈M-trans
+  -- Left/Right whiskering
+  --
+  -- 左/右 whiskering
+  ∘M-resp-≈ˡ : {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
+             → _≈sr_ g₁ g₂ → _≈sr_ (g₁ ∘ f) (g₂ ∘ f)
+  ∘M-resp-≈ˡ {g₁} {g₂} {f} eq = record
+    { shape-eq    = λ sh → _≈sr_.shape-eq eq (f.shape sh)
+    ; position-eq = λ sh q →
+        cong (f.position {sh}) (_≈sr_.position-eq eq (f.shape sh) q)
     }
+    where module f = _⇒_ f
 
-  -- Equational reasoning combinators for container morphism equivalence _≈M_
-  -- 容器态射等价 _≈M_ 的等式推理组合子
-  module ≈M-Reasoning where
-    open import Relation.Binary.Reasoning.Setoid (record
-      { Carrier       = X ⇒ Y
-      ; _≈_           = _≈M_
-      ; isEquivalence = ≈M-isEquiv
-      }) public
-
-module _ {s p} {B C : Container s p} where
-  -- Position commutes with substitution along shape map equalities
-  -- 位置映射与沿形状映射相等的传输交换
-  position-subst : ∀ (g : B ⇒ C) {t₁ t₂ : Shape B} (eq : t₁ ≡ t₂)
-                    (q : Position C (_⇒_.shape g t₁)) →
-                    subst (Position B) eq (_⇒_.position g {t₁} q)
-                    ≡ _⇒_.position g {t₂} (subst (Position C) (cong (_⇒_.shape g) eq) q)
-  position-subst g refl q = refl
-
-  -- Left whiskering: g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
-  -- 左 whiskering（与 f 前复合）保持等价：g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
-  ∘M-resp-≈ˡ : ∀ {A : Container s p} {g₁ g₂ : B ⇒ C} {f : A ⇒ B}
-            → g₁ ≈M g₂ → g₁ ∘ f ≈M g₂ ∘ f
-  ∘M-resp-≈ˡ {A} {g₁} {g₂} {f} eq = record
-    { shape-eq = λ sh → eq.shape-eq (f.shape sh)
-    ; position-eq   = λ sh q → cong (f.position {sh}) (eq.position-eq (f.shape sh) q)
-    }
-    where
-      module f  = _⇒_ f
-      module eq = _≈M_ eq
-
-  -- Right whiskering: f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
-  -- 右 whiskering（与 g 后复合）保持等价：f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
-  ∘M-resp-≈ʳ : ∀ {A : Container s p} {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
-            → f₁ ≈M f₂ → g ∘ f₁ ≈M g ∘ f₂
-  ∘M-resp-≈ʳ {A} {g} {f₁} {f₂} eq = record
-    { shape-eq = λ sh → cong (g.shape) (eq.shape-eq sh)
-    ; position-eq   = λ sh q →
+  ∘M-resp-≈ʳ : {g : B ⇒ C} {f₁ f₂ : A ⇒ B}
+             → _≈sr_ f₁ f₂ → _≈sr_ (g ∘ f₁) (g ∘ f₂)
+  ∘M-resp-≈ʳ {g} {f₁} {f₂} eq = record
+    { shape-eq    = λ sh → cong (g.shape) (_≈sr_.shape-eq eq sh)
+    ; position-eq = λ sh q →
         let q₁ = g.position {f₁.shape sh} q
-            e  = eq.shape-eq sh
+            e  = _≈sr_.shape-eq eq sh
         in begin
           f₁.position {sh} q₁
-            ≡⟨ eq.position-eq sh q₁ ⟩
+            ≡⟨ _≈sr_.position-eq eq sh q₁ ⟩
           f₂.position {sh} (subst (Position B) e q₁)
             ≡⟨ cong (f₂.position {sh}) (position-subst g e q) ⟩
           f₂.position {sh}
@@ -139,59 +81,62 @@ module _ {s p} {B C : Container s p} where
       module f₁ = _⇒_ f₁
       module f₂ = _⇒_ f₂
       module g  = _⇒_ g
-      module eq = _≈M_ eq
 
-  -- Composition respects equivalence: derived from left/right whiskering and transitivity
-  -- 复合保持等价：由左/右复合保持等价与传递性组合得到
-  ∘M-resp-≈ : ∀ {A : Container s p}
-              {g₁ g₂ : B ⇒ C} {f₁ f₂ : A ⇒ B}
-            → g₁ ≈M g₂ → f₁ ≈M f₂ → g₁ ∘ f₁ ≈M g₂ ∘ f₂
-  ∘M-resp-≈ {A} {g₁} {g₂} {f₁} {f₂} eq-g eq-f = R.begin
-      g₁ ∘ f₁
-    R.≈⟨ ∘M-resp-≈ˡ {f = f₁} eq-g ⟩
-      g₂ ∘ f₁
-    R.≈⟨ ∘M-resp-≈ʳ {g = g₂} eq-f ⟩
-      g₂ ∘ f₂
-    R.∎
-    where
-      module R = ≈M-Reasoning {X = A} {Y = C}
+  -- Composition respects equivalence
+  --
+  -- 复合保持等价
+  ∘M-resp-≈ : {g₁ g₂ : B ⇒ C} {f₁ f₂ : A ⇒ B}
+            → _≈sr_ g₁ g₂ → _≈sr_ f₁ f₂
+            → _≈sr_ (g₁ ∘ f₁) (g₂ ∘ f₂)
+  ∘M-resp-≈ {g₁} {g₂} {f₁} {f₂} eq-g eq-f =
+    ≈sr-trans
+      (∘M-resp-≈ˡ {f = f₁} eq-g)
+      (∘M-resp-≈ʳ {g = g₂} eq-f)
 
-module _ {s p} where
-  -- Associativity of composition
-  -- 复合的结合律
-  ∘M-assoc :
-    ∀ {A B C D : Container s p} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
-    → (h ∘ g) ∘ f ≈M h ∘ (g ∘ f)
-  ∘M-assoc {A = A} {D = D} {f = f} {g = g} {h = h} =
-    ≈M-refl {X = A} {Y = D} {f = (h ∘ g) ∘ f}
+------------------------------------------------------------------------
+-- Category laws
+--
+-- 范畴律
+∘M-assoc : ∀ {s p} {A B C D : Container s p}
+         → {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D}
+         → _≈sr_ ((h ∘ g) ∘ f) (h ∘ (g ∘ f))
+∘M-assoc = record
+  { shape-eq    = λ _ → refl
+  ; position-eq = λ _ _ → refl
+  }
 
-  -- Left identity law
-  -- 左单位律
-  ∘M-identityˡ :
-    ∀ {A B : Container s p} {f : A ⇒ B} → id B ∘ f ≈M f
-  ∘M-identityˡ {A = A} {B = B} {f = f} =
-    ≈M-refl {X = A} {Y = B} {f = id B ∘ f}
+-- Left/Right identity law
+--
+-- 左/右单位律
+module _ {s p} {A B : Container s p} where
 
-  -- Right identity law
-  -- 右单位律
-  ∘M-identityʳ :
-    ∀ {A B : Container s p} {f : A ⇒ B} → f ∘ id A ≈M f
-  ∘M-identityʳ {A = A} {B = B} {f = f} =
-    ≈M-refl {X = A} {Y = B} {f = f ∘ id A}
+  ∘M-identityˡ : {f : A ⇒ B} → _≈sr_ (id B ∘ f) f
+  ∘M-identityˡ = record
+    { shape-eq    = λ _ → refl
+    ; position-eq = λ _ _ → refl
+    }
 
--- Assemble the components into an instance of the category of containers
--- 将上述组件组装为容器范畴的一个实例
+  ∘M-identityʳ : {f : A ⇒ B} → _≈sr_ (f ∘ id A) f
+  ∘M-identityʳ = record
+    { shape-eq    = λ _ → refl
+    ; position-eq = λ _ _ → refl
+    }
+
+------------------------------------------------------------------------
+-- Container category instance
+--
+-- 容器范畴实例
 ContCat : (s p : Level) → Category (lsuc (s ⊔ p)) (s ⊔ p) (s ⊔ p)
 ContCat s p = record
   { Obj       = Container s p
   ; _⇒_       = _⇒_
-  ; _≈_       = _≈M_
+  ; _≈_       = _≈sr_
   ; id        = λ {A} → id A
   ; _∘_       = _∘_
-  ; equiv     = ≈M-isEquiv
+  ; equiv     = ≈sr-isEquivalence
   ; ∘-resp-≈  = ∘M-resp-≈
-  ; assoc     = λ {A B C D f g h} → ∘M-assoc {s} {p} {A} {B} {C} {D} {f} {g} {h}
-  ; sym-assoc = λ {A B C D f g h} → ≈M-sym (∘M-assoc {s} {p} {A} {B} {C} {D} {f} {g} {h})
+  ; assoc     = λ {A B C D f g h} → ∘M-assoc {f = f} {g = g} {h = h}
+  ; sym-assoc = λ {A B C D f g h} → ≈sr-sym (∘M-assoc {f = f} {g = g} {h = h})
   ; identityˡ = ∘M-identityˡ
   ; identityʳ = ∘M-identityʳ
   ; identity² = λ {A} → ∘M-identityˡ {f = id A}

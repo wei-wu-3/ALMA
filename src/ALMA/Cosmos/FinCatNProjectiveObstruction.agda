@@ -18,7 +18,7 @@
 -- 公共骨架，分别在 FinCatNOuterObstruction 与 FinCatNInnerObstruction
 -- 中实例化。参数 m 编码 n = suc (suc m)，使 n ≥ 2 定义性成立
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.FinCatNProjectiveObstruction where
 

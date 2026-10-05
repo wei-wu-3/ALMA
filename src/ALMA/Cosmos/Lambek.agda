@@ -1,7 +1,5 @@
 ------------------------------------------------------------------------
 -- Lambek's lemma for the terminal coalgebra Cosmos
--- Cosmos 终余代数的 Lambek 引理
---
 -- out : Cosmos → Unfolding Cosmos is a weak isomorphism:
 --   in-F ∘ out is bisimilar to id, and out ∘ in-F is US._≈U_-equivalent to id
 -- The inverse in-F is obtained from the universal property of the terminal
@@ -9,6 +7,8 @@
 --   in-F ∘ out ≈C id
 --   out ∘ in-F ≈F id
 --   out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
+--
+-- Cosmos 终余代数的 Lambek 引理
 -- out : Cosmos → Unfolding Cosmos 构成弱同构：
 --   in-F ∘ out 与 id 互模拟，展开等价 US._≈U_
 -- 逆映射 in-F 由终对象的泛性质构造。关键恒等式为：
@@ -16,12 +16,13 @@
 --   out ∘ in-F ≈F id
 --   out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.Lambek where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Agda.Builtin.Sigma using (_,_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 import Relation.Binary.Reasoning.Setoid as SetoidReasoning
@@ -32,6 +33,7 @@ open import Function.Bundles using (Func)
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
+open import ALMA.Base.Equivalence using (module SubstTransport-Left)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.Unfolding using (Unfolding; mapUnfolding; mapUnfolding-∘; module UnfoldingSetoid)
 open import ALMA.Cosmos using (Cosmos; out)
@@ -43,11 +45,13 @@ module _ {o h e s p : Level}
          {FC : Functor C (ContCat s p)} where
   private
     -- Overall level of objects and carriers.
+    --
     -- 由于 Lambek 引理涉及 Unfolding 的载体类型，必须包含所有结构层级。
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
     Lʳ = o ⊔ s ⊔ p
 
     -- Instantiate unfolding setoid module
+    --
     -- 实例化展开集合模块
     module US = UnfoldingSetoid
       {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
@@ -65,11 +69,13 @@ module _ {o h e s p : Level}
     CC = cosmosCoalg {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {FC = FC}
 
     -- out as a Setoid morphism
+    --
     -- out 作为 Setoid 态射
     outF : Func CS (US.unfoldingSetoid CS)
     outF = Coalgebra.α CC
 
     -- FT-Setoid: FT under propositional equality.
+    --
     -- 命题相等的关系层级与载体层级相同，故为 Setoid L L。
     FT-Setoid : Setoid L L
     FT-Setoid = record
@@ -88,11 +94,13 @@ module _ {o h e s p : Level}
       }
 
   -- coalgebra (F T, F out)
+  --
   -- 余代数 (F T, F out)
   FT-Coalg : Coalgebra L
   FT-Coalg = record { Carrier = FT-Setoid ; α = FT-α }
 
   -- in-F : FT-Coalg → CC by the universal property of the terminal object
+  --
   -- in-F : FT-Coalg → CC（由终对象的泛性质构造）
   in-hom : CoalgHom {r₁ = L} {r₂ = Lʳ} FT-Coalg CC
   in-hom = ana-hom FT-Coalg
@@ -101,20 +109,24 @@ module _ {o h e s p : Level}
   in-F = Func.to (CoalgHom.f in-hom)
 
   -- in-F preserves ≈F (coinductive, same pattern as ana-cong).
+  --
   -- in-F 保持 ≈F（余归纳，与 ana-cong 相同模式）。
   in-F-resp-≈F : ∀ {c₁ c₂} → US._≈U_ {X = CS} c₁ c₂ → in-F c₁ ≈C in-F c₂
   in-F-resp-≈F {c₁} {c₂} eq = helper eq
     where
       open _≈C_
       helper : ∀ {d₁ d₂} → US._≈U_ {X = CS} d₁ d₂ → in-F d₁ ≈C in-F d₂
-      helper {d₁} {d₂} eq .unfoldFunctor₀-eq =
-        US._≈U_.unfoldFunctor₀-eq eq
-      helper {d₁} {d₂} eq .pos-to-shape-eq =
-        US._≈U_.pos-to-shape-eq eq
-      helper {d₁} {d₂} eq .unfold-next-eq s =
+      helper {d₁} {d₂} eq .unfoldFunctor₀-eq {A} s =
+        SubstTransport-Left._≈sl_.shape-eq
+          (US._≈U_.sl-eq eq) (A , s)
+      helper {d₁} {d₂} eq .pos-to-shape-eq {A} s p =
+        SubstTransport-Left._≈sl_.position-eq
+          (US._≈U_.sl-eq eq) (A , s) p
+      helper {d₁} {d₂} eq .unfold-next-eq {A} s =
         helper (Func.cong outF (US._≈U_.unfold-next-eq eq s))
 
   -- in-F ∘ out as a self-homomorphism of (T, out)
+  --
   -- in-F ∘ out 作为 (T, out) 的自同态
   private
     in∘out-f : Func CS CS
@@ -142,6 +154,7 @@ module _ {o h e s p : Level}
     id-hom = record { f = idFunc ; commute = λ _ → refl }
 
   -- in-F ∘ out ≈C id_T
+  --
   -- in-F ∘ out 与恒等互模拟
   in∘out≈id : ∀ x → in-F (out x) ≈C x
   in∘out≈id x =
@@ -151,6 +164,7 @@ module _ {o h e s p : Level}
       x                   ∎
 
   -- out ∘ in-F ≡ F(in-F ∘ out)
+  --
   -- out ∘ in-F 与 F(in-F ∘ out) 命题相等
   out∘in≡F∘ : ∀ y → out (in-F y) ≡ mapUnfolding (in-F ∘ out) y
   out∘in≡F∘ y = let open ≡-Reasoning in begin
@@ -162,18 +176,22 @@ module _ {o h e s p : Level}
     ∎
 
   -- F(in-F ∘ out) ≈F id_{F T}
+  --
   -- F(in-F ∘ out) 与 F T 上的恒等 ≈F 等价
   private
     open Unfolding using (unfold-next)
     F∘≈Fid : ∀ y → US._≈U_ {X = CS} (mapUnfolding (in-F ∘ out) y) y
     F∘≈Fid y = record
-      { unfoldFunctor₀-eq = λ _ → refl
-      ; pos-to-shape-eq  = λ _ _ → refl
-      ; unfold-next-eq   = λ {A} s →
+      { sl-eq = record
+          { shape-eq    = λ _ → refl
+          ; position-eq = λ _ _ → refl
+          }
+      ; unfold-next-eq = λ {A} s →
           in∘out≈id (unfold-next y s)
       }
 
   -- out ∘ in-F ≈F id_{F T} (obtained by transferring along the previous equality)
+  --
   -- out ∘ in-F 与 F T 上的恒等 ≈F 等价（由前一等式转换得到）
   out∘in≈Fid : ∀ y → US._≈U_ {X = CS} (out (in-F y)) y
   out∘in≈Fid y =
@@ -185,6 +203,7 @@ module _ {o h e s p : Level}
   -- out is a weak isomorphism (up to the respective equivalences)
   --   in-F ∘ out ≈C id_T
   --   out ∘ in-F ≈F id_{F T}
+  --
   -- out 为弱同构（模各自等价关系）
   record LambekIso : Set (lsuc L) where
     field
@@ -193,6 +212,7 @@ module _ {o h e s p : Level}
       inverse-right : ∀ y → US._≈U_ {X = CS} (out (inverse y)) y
 
   -- The canonical Lambek isomorphism obtained from the terminal coalgebra
+  --
   -- 由终余代数得到的典范 Lambek 同构
   lambekIso : LambekIso
   lambekIso = record

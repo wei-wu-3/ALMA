@@ -9,7 +9,7 @@
 -- 借助 S 的函子性，MorphismMorphism 的复合直接成立。
 -- 提供逐点命题相等的等价关系 _≈MM_。
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.MorphismMorphism where
 

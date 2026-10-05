@@ -12,7 +12,7 @@
 -- LimitCompatible 记录、迭代嵌入 iterEmbed 及其复合律，以及单位塔实例
 -- 框架以 EmbeddingRule R 为参数，使其方向无关；单位实例使用 outer-rule
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.CumulativeHierarchyLimit where
 

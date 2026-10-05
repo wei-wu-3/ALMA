@@ -11,7 +11,7 @@
 -- 相异形状保持相异
 -- 这是关于 strictStep-suc 的一般结果，不依赖任何具体塔
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.StrictLiftShape where
 

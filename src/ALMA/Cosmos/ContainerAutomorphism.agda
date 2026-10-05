@@ -14,7 +14,7 @@
 -- 映射 aut→⇒ℱ。证明 aut→⇒ℱ 是群同态（aut-id、aut-comp、aut-inv）、
 -- 单射（aut-injective），并保持 _≈PA_（aut→⇒ℱ-resp-≈）
 ------------------------------------------------------------------------
-{-# OPTIONS --safe --cubical-compatible --exact-split --guardedness --double-check #-}
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContainerAutomorphism where
 
