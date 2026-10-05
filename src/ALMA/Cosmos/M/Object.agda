@@ -60,7 +60,9 @@ open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (EqOn; SysEq; propEqOn; _≈Mˢ_; ≈Mˢ-refl)
+open import ALMA.Base.MCorrSetoid
+  using (EqOn; SysEq; propEqOn; FiberAdjˢ; idAdjˢ
+       ; _≈Mˢ_; here-eq; below-eq; ≈Mˢ-refl)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
@@ -112,10 +114,15 @@ module _ {o h e s p : Level}
   CosmosM : I → Set (o ⊔ h ⊔ e ⊔ s ⊔ p)
   CosmosM i = M A E i
 
+  -- Successor index determined by a label and a source position.
+  -- 由标签与源位置确定的后继索引。
+  nextOf : (i : I) (d : A i) (p : PosOf FC (proj₂ i)) → I
+  nextOf (A₀ , s) d p =
+    ( Functor.F₀ (uf d) (A₀ , s)
+    , pts d s p )
+
   next : (i : I) (t : CosmosM i) (p : PosOf FC (proj₂ i)) → I
-  next (A₀ , s) t p =
-    ( Functor.F₀ (uf (M.here t)) (A₀ , s)
-    , pts (M.here t) s p )
+  next i t p = nextOf i (M.here t) p
 
   step : (i : I) (t : CosmosM i) (p : PosOf FC (proj₂ i))
        → CosmosM (next i t p)
@@ -125,6 +132,43 @@ module _ {o h e s p : Level}
   Rooted : (A₀ : Category.Obj C) → ShapeOf FC A₀
          → Set (o ⊔ h ⊔ e ⊔ s ⊔ p)
   Rooted A₀ s₀ = CosmosM (A₀ , s₀)
+
+  ----------------------------------------------------------------------
+  -- Terminality corecursor: a one-step coalgebra over a state family
+  -- Xst gives, at each index i, a label d and for every source position
+  -- p a child state at nextOf i d p.  ana produces a CosmosM by the
+  -- native guarded corecursion of M; the edge (p , ≡refl) is matched
+  -- constructively (never J/subst).  This replaces the old
+  -- seed-threaded unfold: self-reference is native.
+  -- 终性余递归子：状态族 Xst 上的一步余代数在每个索引 i 给出标签 d，
+  -- 并对每个源位置 p 给出 nextOf i d p 处的子状态。ana 借 M 内建的受
+  -- 保护余递归产生 CosmosM；边 (p , ≡refl) 被构造性匹配（不用
+  -- J/subst）。这取代了旧的经种子绕行的 unfold：自指是内建的。
+  ----------------------------------------------------------------------
+  record Coalgebra (u : Level) (Xst : I → Set u)
+         : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
+    field
+      label : (i : I) → Xst i → A i
+      child : (i : I) (x : Xst i) (p : PosOf FC (proj₂ i))
+            → Xst (nextOf i (label i x) p)
+  open Coalgebra public
+
+  ana : ∀ {u : Level} {Xst : I → Set u}
+        (γ : Coalgebra u Xst)
+      → (i : I) (x : Xst i) → CosmosM i
+  ana γ i x .M.here = label γ i x
+  ana γ i x .M.below j (p , ≡refl) = ana γ j (child γ i x p)
+
+  -- Observation coalgebra of a node: its state is CosmosM itself; label
+  -- reads the head, child steps along the edge.  ana of this coalgebra
+  -- rebuilds the tree.  The eta/terminal lemma ana-unfold shows the
+  -- rebuild is bisimilar to the original, up to the carried label EqOn.
+  -- 节点的观察余代数：状态即 CosmosM；label 读头部，child 沿边 step。
+  -- 对该余代数取 ana 即重建该树。eta/终性引理 ana-unfold 表明重建树在
+  -- 携带标签 EqOn 下与原树互模拟。
+  unfold-coalgebra : Coalgebra (o ⊔ h ⊔ e ⊔ s ⊔ p) CosmosM
+  unfold-coalgebra .label i t = M.here t
+  unfold-coalgebra .child i t p = step i t p
 
   ----------------------------------------------------------------------
   -- The object system as a SysEq carrying a label EqOn ≈CD; position
@@ -159,3 +203,30 @@ module _ {o h e s p : Level}
                   (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
                 → ∀ {i : I} (t : CosmosM i) → ≈CosmosM ≈CD t t
   ≈CosmosM-refl ≈CD = ≈Mˢ-refl (SysEq.≈A (sys ≈CD)) (SysEq.≈E (sys ≈CD))
+
+  ----------------------------------------------------------------------
+  -- Terminality / eta: ana of a node's observation coalgebra rebuilds
+  -- a tree bisimilar to the original, up to the carried label EqOn.
+  -- 终性 / eta：对节点观察余代数取 ana，重建出与原树在携带标签 EqOn
+  -- 下互模拟的树。
+  ----------------------------------------------------------------------
+  mutual
+    ana-unfold : ∀ {ℓd : Level}
+                 (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
+               → ∀ {i : I} (t : CosmosM i)
+               → ≈CosmosM ≈CD (ana unfold-coalgebra i t) t
+    ana-unfold ≈CD {i = i} t .here-eq = EqOn.refl (≈CD i)
+    ana-unfold ≈CD {i = i} t .below-eq y =
+        idAdjˢ (SysEq.≈E (sys ≈CD) i (M.here t) y)
+      , ( (λ { (p , ≡refl) → ana-unfold ≈CD (step i t p) })
+        , (λ { (p , ≡refl) → ana-unfold˘ ≈CD (step i t p) }) )
+
+    ana-unfold˘ : ∀ {ℓd : Level}
+                  (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
+                → ∀ {i : I} (t : CosmosM i)
+                → ≈CosmosM ≈CD t (ana unfold-coalgebra i t)
+    ana-unfold˘ ≈CD {i = i} t .here-eq = EqOn.refl (≈CD i)
+    ana-unfold˘ ≈CD {i = i} t .below-eq y =
+        idAdjˢ (SysEq.≈E (sys ≈CD) i (M.here t) y)
+      , ( (λ { (p , ≡refl) → ana-unfold˘ ≈CD (step i t p) })
+        , (λ { (p , ≡refl) → ana-unfold ≈CD (step i t p) }) )
