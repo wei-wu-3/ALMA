@@ -41,13 +41,15 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁)
 open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
+open import Relation.Binary.Structures using (IsEquivalence)
 open import Function.Base using (_∘_)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
   using (SysEq; EqOn; FiberAdjˢ; Stepˢ; Morphˢ; idAdjˢ; compAdjˢ
-        ; shapeᴿ; child; edge-adj)
+        ; shapeᴿ; child; edge-adj
+        ; _≈Mˢ_; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans)
 
 open SysEq
 open FiberAdjˢ
@@ -155,3 +157,102 @@ compFˢ {X = X} {Y = Y} {Z = Z} g f = record
                 (≈E Z (ug (uf x)) (shapeg (uf x) (shapef x a)) w)
                 (FMapˢ.adjFˢ f x a y')
                 (FMapˢ.adjFˢ g (uf x) (shapef x a) w)
+
+------------------------------------------------------------------------
+-- Subst-free relocation along a propositional index equality.
+-- relocate is defined by matching ≡refl, so at ≡refl it is the identity
+-- and every round-trip / congruence lemma collapses to the carried
+-- bisimulation reflexivity; no coinductive machine and no transport.
+--
+-- 沿命题索引等式的零 subst 重定位。relocate 按 ≡refl 匹配定义，故在
+-- ≡refl 处为恒等，所有往返/同余引理都坍缩为携带式互模拟自反；无需余
+-- 归纳机器，也无需传输。
+------------------------------------------------------------------------
+private
+  relocate : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
+               {E : (x : I) (a : A x) (y : I) → Set b} {x y : I}
+           → x ≡ y → M A E x → M A E y
+  relocate ≡refl t = t
+
+  ≈rel-respˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
+                 {E : (x : I) (a : A x) (y : I) → Set b}
+                 (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+                 (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+                 {x y : I} (r : x ≡ y) {t s : M A E x}
+             → _≈Mˢ_ ≈A ≈E t s
+             → _≈Mˢ_ ≈A ≈E (relocate r t) (relocate r s)
+  ≈rel-respˢ ≈A ≈E ≡refl p = p
+
+  ≈rel-roundˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
+                  {E : (x : I) (a : A x) (y : I) → Set b}
+                  (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+                  (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+                  {x y : I} (r : x ≡ y) (t : M A E x)
+              → _≈Mˢ_ ≈A ≈E (relocate (sym r) (relocate r t)) t
+  ≈rel-roundˢ ≈A ≈E ≡refl t = ≈Mˢ-refl ≈A ≈E t
+
+  ≈rel-compˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
+                 {E : (x : I) (a : A x) (y : I) → Set b}
+                 (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+                 (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+                 {x y z : I} (r : x ≡ y) (s : y ≡ z) (t : M A E x)
+             → _≈Mˢ_ ≈A ≈E (relocate (trans r s) t)
+                           (relocate s (relocate r t))
+  ≈rel-compˢ ≈A ≈E ≡refl ≡refl t = ≈Mˢ-refl ≈A ≈E t
+
+------------------------------------------------------------------------
+-- Behavioural equivalence of deterministic carried morphisms.
+-- The index functions must agree (first component); after matching that
+-- ≡refl the two image trees share an index and are related by the
+-- carried bisimulation ≈Mˢ.  In every category law the index component
+-- is definitionally ≡refl (id / composition), so no transport ever
+-- occurs in the proofs.
+--
+-- 确定性携带态射的行为等价。索引函数必须一致（第一分量）；匹配该
+-- ≡refl 后两棵像树共享索引，由携带式互模拟 ≈Mˢ 相关。在所有范畴律
+-- 中索引分量定义性地为 ≡refl（恒等/复合），故证明中从不发生传输。
+------------------------------------------------------------------------
+module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
+         {X : SysEq i a b ℓa ℓe} {Y : SysEq j c d ℓc ℓd} where
+
+  _≈Fˢ_ : FMapˢ X Y → FMapˢ X Y
+        → Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓc ⊔ ℓd)
+  _≈Fˢ_ f g =
+    ∀ (x : I X)
+    → Σ (FMapˢ.u f x ≡ FMapˢ.u g x)
+        (λ r → ∀ (t : M (A X) (E X) x)
+             → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (relocate r (FMapˢ.mapFˢ f x t))
+                      (FMapˢ.mapFˢ g x t))
+
+  ≈Fˢ-refl : (f : FMapˢ X Y) → f ≈Fˢ f
+  ≈Fˢ-refl f x =
+      ≡refl
+    , λ t → ≈Mˢ-refl (≈A Y) (≈E Y) (FMapˢ.mapFˢ f x t)
+
+  ≈Fˢ-sym : {f g : FMapˢ X Y} → f ≈Fˢ g → g ≈Fˢ f
+  ≈Fˢ-sym {f = f} {g = g} p x with p x
+  ... | r , h =
+      sym r
+    , λ t → ≈Mˢ-trans (≈A Y) (≈E Y)
+              (≈rel-respˢ (≈A Y) (≈E Y) (sym r)
+                 (≈Mˢ-sym (≈A Y) (≈E Y) (h t)))
+              (≈rel-roundˢ (≈A Y) (≈E Y) r (FMapˢ.mapFˢ f x t))
+
+  ≈Fˢ-trans : {f g h : FMapˢ X Y}
+            → f ≈Fˢ g → g ≈Fˢ h → f ≈Fˢ h
+  ≈Fˢ-trans {f = f} {g = g} {h = h} p q x with p x | q x
+  ... | r1 , h1 | r2 , h2 =
+      trans r1 r2
+    , λ t → ≈Mˢ-trans (≈A Y) (≈E Y)
+              (≈rel-compˢ (≈A Y) (≈E Y) r1 r2 (FMapˢ.mapFˢ f x t))
+              (≈Mˢ-trans (≈A Y) (≈E Y)
+                 (≈rel-respˢ (≈A Y) (≈E Y) r2 (h1 t))
+                 (h2 t))
+
+  ≈Fˢ-isEquivalence : IsEquivalence _≈Fˢ_
+  ≈Fˢ-isEquivalence = record
+    { refl  = λ {f} → ≈Fˢ-refl f
+    ; sym   = λ {f g} → ≈Fˢ-sym {f = f} {g = g}
+    ; trans = λ {f g h} → ≈Fˢ-trans {f = f} {g = g} {h = h}
+    }
