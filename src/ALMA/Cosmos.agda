@@ -1,267 +1,125 @@
 ------------------------------------------------------------------------
--- ALMA — Infinite, Unbounded, Self-Referential Dynamic Cosmos
--- Built with type theory, category theory, containers, and coalgebraic unfolding
--- Cosmos is the terminal coalgebra of a polynomial functor internalized in type theory
+-- ALMA — Cosmos, carried M-base entry point.
 --
--- ALMA —— 无穷、无界、自指的动态宇宙
--- 基于类型论、范畴论、容器与余代数展开构建；
--- Cosmos 是内化于类型论中的多项式函子的终余代数
+-- This module USED TO define the container terminal coalgebra directly
+-- (record Cosmos over Unfolding, its homomorphisms, UnitCosmos).  That
+-- construction carried the position/subst machinery and the strict
+-- cumulative hierarchy that the carried M base eliminates:
+--
+--   * the indexed coinductive type Mᵢ (Base.IndexedMType) carries no
+--     equality, so comparing morphisms no longer introduces subst —
+--     relocation is a carried fibre adjunction FiberAdjˢ (function),
+--     not a transport;
+--   * iterating the container ShapeCat is iterating the M index
+--     MO.I = Σ (Obj C) (ShapeOf FC), so the strict level tower is
+--     absorbed inductively; CosmosM is universe-polymorphic in one
+--     level with no per-step lifting.
+--
+-- The container cosmos is now a SPECIAL CASE (constant index I = ⊤) of
+-- the indexed M-Cosmos, exported from Cosmos.M.ContainerInstance, and
+-- every result of the old Unfolding / strict-hierarchy machine is
+-- re-established under Cosmos.M and Cosmos.Carried (see
+-- Cosmos.M.HierarchyAbsorption for the coverage manifest).
+--
+-- This file is therefore a thin re-export surface: a single
+-- `import ALMA.Cosmos` brings the container primitives, the M-Cosmos
+-- object/category/terminal layers and the carried colimit machinery.
+-- The further M witness modules (Lambek, congruence engines, list/swap,
+-- automorphisms, obstruction slices) are imported into the entry's
+-- closure so the whole world is type-checked together; refer to them by
+-- their qualified module names.
+--
+-- ALMA —— Cosmos，携带式 M 底座入口。
+--
+-- 本模块曾直接定义容器终余代数（基于 Unfolding 的 record Cosmos、其态
+-- 射、UnitCosmos）。该构造携带位置/subst 机器与严格累积层级，而携带式
+-- M 底座将其消除：
+--
+--   * 索引余归纳类型 Mᵢ（Base.IndexedMType）不携带等式，故比较态射不再
+--     引入 subst——重定位是携带式纤维伴随 FiberAdjˢ（函数），不是传输；
+--   * 迭代容器 ShapeCat 就是迭代 M 索引
+--     MO.I = Σ (Obj C) (ShapeOf FC)，严格层塔被归纳吸收；CosmosM 在单一
+--     层次 universe 多态，无需逐层抬级。
+--
+-- 容器宇宙现在是索引 M-Cosmos 的特例（常数索引 I = ⊤），由
+-- Cosmos.M.ContainerInstance 导出；旧 Unfolding/严格层级机器的每个结果
+-- 都在 Cosmos.M 与 Cosmos.Carried 下重建（覆盖清单见
+-- Cosmos.M.HierarchyAbsorption）。
+--
+-- 故本文件是薄 re-export 面：单个 `import ALMA.Cosmos` 即带出容器基件、
+-- M-Cosmos 对象/范畴/终性层与携带式余极限机器。其余 M 见证模块
+-- （Lambek、同余引擎、list/swap、自同构、障碍切片）以 import 纳入入口
+-- 闭包，使整个世界一并受类型检查；请以限定模块名引用它们。
 ------------------------------------------------------------------------
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos where
 
-open import Agda.Primitive using (Level; _⊔_)
-open import Agda.Builtin.Equality using (_≡_; refl)
-open import Agda.Builtin.Sigma using (_,_)
-open import Relation.Binary.PropositionalEquality.Core using (sym; trans; cong; subst)
-open import Relation.Binary.PropositionalEquality.Properties using (setoid)
-open import Function.Bundles using (Func)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Data.Product.Base using (proj₁; proj₂)
+------------------------------------------------------------------------
+-- Container base: the four modules the M kernel is built on.
+-- 容器基件：M 内核所依赖的四个模块。
+------------------------------------------------------------------------
+open import ALMA.Cosmos.ContCategory public
+open import ALMA.Cosmos.ContCategoryLemmas public
+open import ALMA.Cosmos.ContCatEquiv public
+open import ALMA.Cosmos.ContFunctor public
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Category.Instance.Sets using (Sets)
-open import Categories.Category.Instance.One using (One)
-open import Categories.Functor.Core using (Functor)
-open import Categories.Functor using (id; _∘F_)
+------------------------------------------------------------------------
+-- M-Cosmos object layer, category and terminality.
+-- M-Cosmos 对象层、范畴与终性。
+------------------------------------------------------------------------
+open import ALMA.Cosmos.M.Object public
+open import ALMA.Cosmos.M.Terminal public
+open import ALMA.Cosmos.M.CoalgCat public
+open import ALMA.Cosmos.M.CosmosCategory public
 
-open import ALMA.Cosmos.ContCategory using (≈sr-refl; ContCat)
-open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf; actSOf; actPOf)
-open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
-open import ALMA.Cosmos.Unfolding using (Unfolding; module UnfoldingSetoid)
-open import ALMA.Cosmos.MorphismObject using (MorphismObject; idMorphismObject; compMorphismObject)
-open import ALMA.Cosmos.MorphismMorphism
-  using (MorphismMorphism; idMorphismMorphism; actP-from-S; compMorphismMorphism)
+-- The container cosmos as the constant-index (I = ⊤) special case.
+-- 容器宇宙作为常数索引（I = ⊤）特例。
+import ALMA.Cosmos.M.ContainerInstance
+import ALMA.Cosmos.M.Lambek
 
--- Core Definitions: Cosmos as Terminal Coalgebra
--- One-layer unfolding of Cosmos: a container-shaped functorial structure
--- over a parameter X
--- Cosmos: the terminal coalgebra of the polynomial functor Unfolding
--- Defined coinductively: out : Cosmos → Unfolding (Cosmos)
+------------------------------------------------------------------------
+-- Deterministic / label-changing congruence engines and witnesses.
+-- 确定性/改标签同余引擎与见证。
+------------------------------------------------------------------------
+import ALMA.Cosmos.M.DetCongruence
+import ALMA.Cosmos.M.GenCongruence
+import ALMA.Cosmos.M.ListCosmos
+import ALMA.Cosmos.M.ListSwap
+import ALMA.Cosmos.M.ListSwapDef
+import ALMA.Cosmos.M.MorphismCorrespondence
+import ALMA.Cosmos.M.ContainerAutomorphism
+
+------------------------------------------------------------------------
+-- Constructive separation / obstruction / limit slices.
+-- 构造性分离/障碍/极限切片。
+------------------------------------------------------------------------
+import ALMA.Cosmos.M.TowerSeparation
+import ALMA.Cosmos.M.PermutationNonCommutative
+import ALMA.Cosmos.M.NontrivialLimit
+import ALMA.Cosmos.M.SewingObstruction
+import ALMA.Cosmos.M.PermutedEmbedding
+import ALMA.Cosmos.M.HierarchyAbsorption
+
+------------------------------------------------------------------------
+-- Carried finite/sequential colimit universal properties and boundaries.
+-- 携带式有限/序列余极限泛性质与边界。
+------------------------------------------------------------------------
+-- The carried colimit modules re-export one another (e.g. FinColimit
+-- opens SeqColimit), so they are brought into the entry's closure with
+-- qualified `import` rather than public re-export to avoid name clashes;
+-- use them by their qualified module names.
 --
--- 核心定义：Cosmos 作为终余代数
--- Cosmos 的单层展开：参数 X 上的容器形状函子结构
--- Cosmos：多项式函子 Unfolding 的终余代数
--- 以余归纳定义：out : Cosmos → Unfolding (Cosmos)
-record Cosmos {o h e s p : Level}
-              (C : Category o h e)
-              (FC : Functor C (ContCat s p))
-              : Set (o ⊔ h ⊔ e ⊔ s ⊔ p) where
-  coinductive
-  field
-    out : Unfolding FC (Cosmos C FC)
-open Cosmos public
-
--- Universe Morphisms: Coalgebra Homomorphisms
--- Generalized homomorphism _⇒ℱ[_]_ parameterized by a shape functor S
--- S : Functor (ShapeCat C FC) (ShapeCat C FC) controls how shape indices
--- are transported from source to target
---
--- 宇宙态射：余代数同态
--- 广义同态 _⇒ℱ[_]_ 以形状函子 S 为参数
--- S 控制形状索引从源到目标的传输
-mutual
-  record _⇒ℱ[_]_ {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)}
-                  (F : Cosmos C FC)
-                  (S : Functor (ShapeCat C FC) (ShapeCat C FC))
-                  (G : Cosmos C FC)
-                  : Set (o ⊔ h ⊔ s ⊔ p) where
-    coinductive
-    field
-      out : ⇒ℱLayer[ S ] F G
-
-  record ⇒ℱLayer[_] {o h e s p : Level} {C : Category o h e} {FC : Functor C (ContCat s p)}
-                    (S : Functor (ShapeCat C FC) (ShapeCat C FC))
-                    (F G : Cosmos C FC)
-                    : Set (o ⊔ h ⊔ s ⊔ p) where
-    inductive
-    private
-      module C = Category C
-      module S = Functor S
-      UF = out F
-      UG = out G
-    field
-
-      -- Shape translation: maps positions of source to shapes of target
-      --
-      -- 形状翻译：将源的位置映射为目标宇宙的形状
-      shapeTrans  : ∀ {A} {s : ShapeOf FC A}
-                  → PosOf FC s
-                  → ShapeOf FC (Functor.₀ (Unfolding.unfoldFunctor UG) (S.₀ (A , s)))
-
-      -- Morphism object compatibility
-      --
-      -- 态射对象相容性
-      morphismObj : MorphismObject UF UG S shapeTrans
-
-      -- Morphism morphism compatibility
-      --
-      -- 态射间态射相容性
-      morphismMor : MorphismMorphism UF UG S shapeTrans morphismObj
-
-      -- Recursive universe morphism on next seeds
-      --
-      -- 下一层种子上的递归宇宙态射
-      onunfold-next : ∀ {A} (s : ShapeOf FC A)
-                    → Unfolding.unfold-next UF s ⇒ℱ[ S ]
-                      Unfolding.unfold-next UG (proj₂ (S.₀ (A , s)))
-
-open _⇒ℱ[_]_ public
-open ⇒ℱLayer[_] public
-
--- S = id specialization
---
--- S = id 特化
-_⇒ℱ_ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
-     → Cosmos C FC → Cosmos C FC → Set (o ⊔ h ⊔ s ⊔ p)
-_⇒ℱ_ {C = C} {FC = FC} F G = F ⇒ℱ[ id ] G
-
--- Identity homomorphism exists only at S = id:
--- onunfold-next target = unfold-next UF (proj₂ (id.₀ (A,s))) = unfold-next UF s,
--- so id⇒ℱ applies recursively. For S ≠ id source and target differ, no canonical map
---
--- 恒等同态仅在 S = id 存在：
--- onunfold-next 目标 = unfold-next UF s，与源相同，可递归应用 id⇒ℱ
-id⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
-     → {F : Cosmos C FC} → F ⇒ℱ F
-id⇒ℱ {F = F} .out = record
-  { shapeTrans    = λ p → Unfolding.pos-to-shape UF _ p
-  ; morphismObj   = idMorphismObject UF
-  ; morphismMor   = idMorphismMorphism UF
-  ; onunfold-next = λ _ → id⇒ℱ
-  }
-  where UF = out F
-
--- Generalized composition: S₂ ∘F S₁, morphismMor via compMorphismMorphism
--- Non-mixfix name because composite S is determined by argument types
---
--- 广义复合：S 按 S₂ ∘F S₁ 封闭，morphismMor 由 compMorphismMorphism 自动导出
--- 使用非 mixfix 名称，因为复合 S 由参数类型决定
-comp⇒ℱ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
-       {S₁ S₂ : Functor (ShapeCat C FC) (ShapeCat C FC)}
-       {F G H : Cosmos C FC}
-       → G ⇒ℱ[ S₂ ] H → F ⇒ℱ[ S₁ ] G → F ⇒ℱ[ S₂ ∘F S₁ ] H
-comp⇒ℱ {S₁ = S₁} {S₂ = S₂} {F = F} {G = G} {H = H} g f .out = record
-  { shapeTrans    = λ p → shapeTrans (g .out) (onPos moF p)
-  ; morphismObj   = compMorphismObject UF UG UH S₁ S₂ stF stG moF moG
-  ; morphismMor   = compMorphismMorphism UF UG UH S₁ S₂ stF stG mmF mmG
-  ; onunfold-next = λ {A} s′ →
-      let A′ = proj₁ (S₁.₀ (A , s′))
-          s″ = proj₂ (S₁.₀ (A , s′))
-      in  comp⇒ℱ (onunfold-next (g .out) {A = A′} s″)
-                 (onunfold-next (f .out) s′)
-  }
-  where
-    open MorphismObject
-    module S₁ = Functor S₁
-    UF  = out F
-    UG  = out G
-    UH  = out H
-    stF = shapeTrans (f .out)
-    stG = shapeTrans (g .out)
-    moF = morphismObj (f .out)
-    moG = morphismObj (g .out)
-    mmF = morphismMor (f .out)
-    mmG = morphismMor (g .out)
-
--- S = id specialization of composition
---
--- S = id 特化的复合
-_∘⇒ℱ_ : ∀ {o h e s p} {C : Category o h e} {FC : Functor C (ContCat s p)}
-       {F G H : Cosmos C FC}
-       → G ⇒ℱ H → F ⇒ℱ G → F ⇒ℱ H
-_∘⇒ℱ_ {C = C} {FC = FC} {F = F} {G = G} {H = H} g f .out = record
-  { shapeTrans    = λ p → shapeTrans (g .out) (onPos moF p)
-  ; morphismObj   = record
-      { onPos      = λ p → onPos moG (onPos moF p)
-      ; pts-compat = λ p → pts-compat moG (onPos moF p)
-      }
-  ; morphismMor   = record { onActP = coh }
-  ; onunfold-next = λ s → (onunfold-next (g .out) s) ∘⇒ℱ (onunfold-next (f .out) s)
-  }
-  where
-    open MorphismObject
-    open MorphismMorphism
-    UF = out F
-    UG = out G
-    UH = out H
-    moF = morphismObj (f .out)
-    moG = morphismObj (g .out)
-    mmF = morphismMor (f .out)
-    mmG = morphismMor (g .out)
-    coh : ∀ {A B} (f′ : Category._⇒_ C A B) {s : ShapeOf FC A} {t : ShapeOf FC B}
-        → (p : actSOf FC f′ s ≡ t) (q : PosOf FC t)
-        → onPos moG (onPos moF (actPOf FC f′ s (subst (PosOf FC) (sym p) q)))
-          ≡ actP-from-S FC FC id f′ p (onPos moG (onPos moF q))
-    coh f′ p q = trans (cong (onPos moG) (onActP mmF f′ p q))
-                       (onActP mmG f′ p (onPos moF q))
-
--- The terminal category with one object and one morphism
---
--- 只有一个对象和一个态射的终范畴
-UnitCat : ∀ {ℓ} → Category ℓ ℓ ℓ
-UnitCat {ℓ} = One
-
--- The constant functor picking the unit container (⊤, λ _ → ⊤)
---
--- 选取单位容器 (⊤, λ _ → ⊤) 的常值函子
-UnitContainerFunctor : ∀ {ℓ} → Functor (UnitCat {ℓ}) (ContCat ℓ ℓ)
-UnitContainerFunctor = record
-  { F₀ = λ _ → record { Shape = ⊤; Position = λ _ → ⊤ }
-  ; F₁ = λ _ → record { shape = λ _ → tt; position = λ _ → tt }
-  ; identity = ≈sr-refl
-  ; homomorphism = ≈sr-refl
-  ; F-resp-≈ = λ _ → ≈sr-refl
-  }
-
--- The trivial Cosmos: a single point unfolding into itself forever
---
--- 平凡宇宙：一个永远展开为自身的单点
-UnitCosmos : ∀ {ℓ} → Cosmos (UnitCat {ℓ}) UnitContainerFunctor
-UnitCosmos .out = record
-  { unfoldFunctor = record
-    { F₀ = proj₁
-    ; F₁ = proj₁
-    ; identity = Category.Equiv.refl UnitCat
-    ; homomorphism = Category.Equiv.refl UnitCat
-    ; F-resp-≈ = λ p → p
-    }
-  ; unfold-next = λ _ → UnitCosmos
-  ; pos-to-shape = λ _ _ → tt
-  ; pos-actS-compat = λ _ _ _ → refl
-  }
-
--- Unfolding Functor: Sets → Setoids
---
--- Unfolding 函子：Sets → Setoids
-module CosmosFFunctor {o h e s p : Level}
-                      {C : Category o h e}
-                      {FC : Functor C (ContCat s p)} where
-  private
-
-    -- Instantiate the unfolding setoid module for the current container functor
-    --
-    -- 为当前容器函子实例化展开集合模块
-    module US = UnfoldingSetoid
-      {o = o} {h = h} {e = e} {s = s} {p = p} {C = C} {F = FC}
-
-  -- The Unfolding functor: Sets u → Setoids
-  --
-  -- Unfolding 函子：Sets u → Setoids
-  toStdFunc : {u : Level} {X Y : Set u} → (X → Y) → Func (setoid X) (setoid Y)
-  toStdFunc f = record { to = f ; cong = cong f }
-
-  cosmosFFunctor : (u : Level)
-    → Functor (Sets u)
-              (Setoids (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u)
-                       (o ⊔ s ⊔ p ⊔ u))
-  cosmosFFunctor u = record
-    { F₀           = λ X → US.unfoldingSetoid (setoid X)
-    ; F₁           = λ f → US.mapUnfolding-resp (toStdFunc f)
-    ; identity     = λ {X} → US.≈U-refl {X = setoid X}
-    ; homomorphism = λ {X Y Z} {f g} → US.≈U-refl {X = setoid Z}
-    ; F-resp-≈ = λ {X Y} {f g} f≈g {c} →
-        US.mapUnfolding-resp-≈ X Y f g (λ {x} → f≈g x) US.≈U-refl
-    }
+-- 携带式余极限模块彼此重导出（如 FinColimit open 了 SeqColimit），故以
+-- 限定 import 纳入入口闭包而非公开重导出，以免撞名；请用限定模块名。
+import ALMA.Cosmos.Carried.SeqColimit
+import ALMA.Cosmos.Carried.FinColimit
+import ALMA.Cosmos.Carried.FinTower
+import ALMA.Cosmos.Carried.LimitSystem
+import ALMA.Cosmos.Carried.DetColimit
+import ALMA.Cosmos.Carried.DetSys
+import ALMA.Cosmos.Carried.TrivProj
+import ALMA.Cosmos.Carried.FinNatUIP
+import ALMA.Cosmos.Carried.FinProj
+import ALMA.Cosmos.Carried.Boundaries
+import ALMA.Cosmos.Carried.FinEmbed

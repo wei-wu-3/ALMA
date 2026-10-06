@@ -41,7 +41,7 @@ import ALMA.Cosmos.ContCatEquiv
 -- import ALMA.Cosmos.MorphismObject.MorphismObject  -- ARCHIVED (M endgame): superseded by MCorr/MCorrSetoid; file retained
 -- import ALMA.Cosmos.ContCatEquivLemmas  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
 -- import ALMA.Cosmos.MorphismMorphism  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
--- import ALMA.Cosmos  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+import ALMA.Cosmos  -- carried M-base entry point: thin re-export of container base + M/Carried
 import ALMA.Cosmos.M.Object  -- M-Cosmos object layer on the setoid M base (setoid 参数化 M 底座上的 M-Cosmos 对象层)
 import ALMA.Cosmos.M.ContainerInstance  -- container instance type seam: old deterministic Cosmos morphism as M-Cosmos special case (容器实例类型接缝：旧确定性 Cosmos 态射作为 M-Cosmos 特例)
 import ALMA.Cosmos.M.Terminal  -- M-base terminality namespace: ana + eta, zero subst (M 底座终性命名空间：ana + eta，零 subst)
