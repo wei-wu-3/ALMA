@@ -100,6 +100,24 @@ module _ {o h e s p : Level}
     ≈Mˢ-trans (SysEq.≈A (MO.sys C FC ≈CD))
               (SysEq.≈E (MO.sys C FC ≈CD))
 
+  -- The bisimulation as a manifest EqOn on CosmosM i: the M-base
+  -- counterpart of the legacy cosmosSetoid, with no carrier coercion.
+  --
+  -- 互模拟作为 CosmosM i 上的外显 EqOn：旧 cosmosSetoid 的 M 底座对
+  -- 应物，无载体强制转换。
+  ≈CosmosM-isEqOn : ∀ {ℓd : Level}
+                      (≈CD : (i : MO.I C FC) → EqOn {ℓ = ℓd} (MO.A C FC i))
+                      {i : MO.I C FC}
+                    → EqOn (MO.CosmosM C FC i)
+  ≈CosmosM-isEqOn ≈CD {i = i} = record
+    { _≈_ = MO.≈CosmosM C FC ≈CD {i = i}
+    ; isEquivalence = record
+      { refl  = λ {t} → MO.≈CosmosM-refl C FC ≈CD t
+      ; sym   = ≈CosmosM-sym ≈CD
+      ; trans = ≈CosmosM-trans ≈CD
+      }
+    }
+
 -- Negative boundary: terminality uniqueness in the carried regime.
 --
 -- The legacy Cosmos/Terminal.agda states uniqueness for an ARBITRARY
