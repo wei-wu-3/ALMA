@@ -47,6 +47,7 @@ import ALMA.Cosmos.M.ContainerInstance  -- container instance type seam: old det
 import ALMA.Cosmos.M.Terminal  -- M-base terminality namespace: ana + eta, zero subst (M 底座终性命名空间：ana + eta，零 subst)
 import ALMA.Cosmos.M.CoalgCat  -- M-base coalgebra category + terminal coalgebra, carried bisimulation, zero subst (M 底座余代数范畴与终余代数，携带互模拟，零 subst)
 import ALMA.Cosmos.M.Lambek  -- M-base Lambek lemma: terminal coalgebra weak iso collapses to ana eta, zero subst (M 底座 Lambek 引理：终余代数弱同构坍缩为 ana eta，零 subst)
+import ALMA.Cosmos.M.CosmosCategory  -- M-Cosmos category: MCorrCatˢ specialised to M-Cosmos levels (M-Cosmos 范畴：MCorrCatˢ 在 M-Cosmos 层级处特化)
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
