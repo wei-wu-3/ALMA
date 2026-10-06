@@ -49,6 +49,7 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁)
+open import Relation.Binary.PropositionalEquality.Core using (cong)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
@@ -56,6 +57,8 @@ open import Categories.Functor using () renaming (id to idF)
 
 open import ALMA.Base.MCorrSetoid
   using (EqOn; propEqOn; FiberAdjˢ; idAdjˢ; SysEq; Stepˢ; Morphˢ)
+open import ALMA.Base.MCorrSetoidCat
+  using (FMapˢ; FMˢ; idFMˢ)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.M.Object as MO
@@ -248,3 +251,84 @@ module _ {o h e s p : Level}
   DetData.pullback detData-id _ v = v , ≡refl
   DetData.edgeAdj  detData-id x d v₀ (v , ≡refl) =
     idAdjˢ (propEqOn (MO.E C FC x d v))
+
+  ----------------------------------------------------------------------
+  -- Deterministic carried FUNCTOR (FMapˢ) from DetData.
+  --
+  -- The pointwise fields of DetData assemble the underlying FMapˢ with
+  -- no transport: u is S.₀ (whose propositional graph is the unique
+  -- witness ≡refl used by asMorphˢ), shape is labelMap, the canonical
+  -- child is the pullback and the edge adjunction is edgeAdj.
+  --
+  -- 由 DetData 构造确定性携带函子（FMapˢ）。
+  --
+  -- DetData 的逐点字段无传输地装配底层 FMapˢ：u 为 S.₀（其命题图即
+  -- asMorphˢ 所用的唯一见证 ≡refl），shape 为 labelMap，规范子节点为
+  -- pullback，边伴随为 edgeAdj。
+  ----------------------------------------------------------------------
+  detFMapˢ : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
+           → DetData S → FMapˢ sysP sysP
+  FMapˢ.u      (detFMapˢ S dd) = f₀ S
+  FMapˢ.shape  (detFMapˢ S dd) x d = labelMap dd x d
+  FMapˢ.childF (detFMapˢ S dd) x d v = pullback dd d v
+  FMapˢ.adjFˢ  (detFMapˢ S dd) x d v =
+    edgeAdj dd x d v (pullback dd d v)
+
+  ----------------------------------------------------------------------
+  -- The categorical endomorphism bundle FMˢ.
+  --
+  -- A setoid functor must CARRY its congruence (FMˢ.map-cong); it cannot
+  -- be reconstructed from the pointwise DetData fields.  The reason is
+  -- the decisive negative boundary already recorded for MCorrCatˢ:
+  -- map-cong must relate image trees whose source heads are only
+  -- propositionally equal (here t ≡ here s), and the canonical child
+  -- depends on that head; aligning the two children across the head
+  -- equality would require either K (matching the two neutral head
+  -- projections against ≡refl, rejected under --cubical-compatible) or
+  -- subst.  FMapˢ deliberately drops the old childF-coh, so no such
+  -- link is derivable pointwise.  The congruence is therefore supplied
+  -- as data — exactly the coinductive witness the setoid category
+  -- requires (the carried counterpart of the old coinductive _≈ℱ_).
+  --
+  -- mkDetFMˢ packages detFMapˢ together with the label congruence
+  -- (cong labelMap, a legal J step since the two labels are rigid
+  -- variables) and a caller-supplied coinductive tree congruence.  The
+  -- identity S supplies its bundle canonically as detFMˢ-id = idFMˢ;
+  -- a non-identity S supplies its map-cong from its onPos round-trip
+  -- data (the gow-style coinductive engine), which is a separate
+  -- construction and is never obtained by eliminating equality.
+  --
+  -- 范畴自态射束 FMˢ。
+  --
+  -- setoid 函子必须携带其同余（FMˢ.map-cong）；它无法由 DetData 的逐点
+  -- 字段重建。原因即 MCorrCatˢ 已记录的决定性否定边界：map-cong 须联系
+  -- 源头部仅命题相等（here t ≡ here s）的像树，而规范子节点依赖该头
+  -- 部；跨头部等式对齐两个子节点要么需要 K（把两个中性头部投影匹配为
+  -- ≡refl，--cubical-compatible 拒绝），要么需要 subst。FMapˢ 刻意删除
+  -- 旧 childF-coh，故该联系无法逐点导出。同余因而是数据——恰为 setoid
+  -- 范畴所需的余归纳见证（旧余归纳 _≈ℱ_ 的携带式对应物）。
+  --
+  -- mkDetFMˢ 把 detFMapˢ 与标签同余（cong labelMap，因两标签为刚性变
+  -- 量而是合法 J 步骤）及调用方供给的余归纳树同余打包。恒等 S 典范地
+  -- 以 detFMˢ-id = idFMˢ 供给其束；非恒等 S 由其 onPos 往返数据供给
+  -- map-cong（gow 式余归纳引擎），那是独立构造，绝不靠消去等式获得。
+  ----------------------------------------------------------------------
+  mkDetFMˢ : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
+             (dd : DetData S)
+           → ( ∀ {x : MO.I C FC} {t s : MO.CosmosM C FC x}
+             → MO.≈CosmosM C FC propLabel t s
+             → MO.≈CosmosM C FC propLabel
+                 (FMapˢ.mapFˢ (detFMapˢ S dd) x t)
+                 (FMapˢ.mapFˢ (detFMapˢ S dd) x s) )
+           → FMˢ sysP sysP
+  mkDetFMˢ S dd mc = record
+    { mor        = detFMapˢ S dd
+    ; shape-cong = λ {x = x} {a₁} {a₂} ea → cong (labelMap dd x) ea
+    ; map-cong   = mc
+    }
+
+  -- The canonical deterministic identity endomorphism bundle.
+  --
+  -- 典范确定性恒等自态射束。
+  detFMˢ-id : FMˢ sysP sysP
+  detFMˢ-id = idFMˢ {X = sysP}
