@@ -44,6 +44,7 @@ import ALMA.Cosmos
 import ALMA.Cosmos.M.Object  -- M-Cosmos object layer on the setoid M base (setoid 参数化 M 底座上的 M-Cosmos 对象层)
 import ALMA.Cosmos.M.ContainerInstance  -- container instance type seam: old deterministic Cosmos morphism as M-Cosmos special case (容器实例类型接缝：旧确定性 Cosmos 态射作为 M-Cosmos 特例)
 import ALMA.Cosmos.M.Terminal  -- M-base terminality namespace: ana + eta, zero subst (M 底座终性命名空间：ana + eta，零 subst)
+import ALMA.Cosmos.M.CoalgCat  -- M-base coalgebra category + terminal coalgebra, carried bisimulation, zero subst (M 底座余代数范畴与终余代数，携带互模拟，零 subst)
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
