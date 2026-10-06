@@ -42,6 +42,7 @@ import ALMA.Cosmos.ContCatEquivLemmas
 import ALMA.Cosmos.MorphismMorphism
 import ALMA.Cosmos
 import ALMA.Cosmos.M.Object  -- M-Cosmos object layer on the setoid M base (setoid 参数化 M 底座上的 M-Cosmos 对象层)
+import ALMA.Cosmos.M.ContainerInstance  -- container instance type seam: old deterministic Cosmos morphism as M-Cosmos special case (容器实例类型接缝：旧确定性 Cosmos 态射作为 M-Cosmos 特例)
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
 import ALMA.Cosmos.Lambek
