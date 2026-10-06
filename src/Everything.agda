@@ -34,14 +34,14 @@ import ALMA.Cosmos.ContCategory
 import ALMA.Cosmos.ContCategoryLemmas
 import ALMA.Cosmos.ContFunctor
 import ALMA.Cosmos.ContCatEquiv
-import ALMA.Cosmos.ContCatEquivFunctor
-import ALMA.Cosmos.Unfolding
-import ALMA.Cosmos.MorphismObject
-import ALMA.Cosmos.MorphismObject.Covariant
-import ALMA.Cosmos.MorphismObject.MorphismObject
-import ALMA.Cosmos.ContCatEquivLemmas
-import ALMA.Cosmos.MorphismMorphism
-import ALMA.Cosmos
+-- import ALMA.Cosmos.ContCatEquivFunctor  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.Unfolding  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.MorphismObject  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.MorphismObject.Covariant  -- ARCHIVED (M endgame): superseded by MCorr/MCorrSetoid; file retained
+-- import ALMA.Cosmos.MorphismObject.MorphismObject  -- ARCHIVED (M endgame): superseded by MCorr/MCorrSetoid; file retained
+-- import ALMA.Cosmos.ContCatEquivLemmas  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.MorphismMorphism  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
 import ALMA.Cosmos.M.Object  -- M-Cosmos object layer on the setoid M base (setoid 参数化 M 底座上的 M-Cosmos 对象层)
 import ALMA.Cosmos.M.ContainerInstance  -- container instance type seam: old deterministic Cosmos morphism as M-Cosmos special case (容器实例类型接缝：旧确定性 Cosmos 态射作为 M-Cosmos 特例)
 import ALMA.Cosmos.M.Terminal  -- M-base terminality namespace: ana + eta, zero subst (M 底座终性命名空间：ana + eta，零 subst)
@@ -61,44 +61,44 @@ import ALMA.Cosmos.M.SewingObstruction  -- M edge retract iff routing fixed poin
 import ALMA.Cosmos.M.PermutedEmbedding  -- feasible invertible carried swap need not preserve F0; refutes criterion C, zero subst
 import ALMA.Cosmos.M.HierarchyAbsorption  -- manifest: strict cumulative hierarchy results absorbed by M/Carried; archive guard
 import ALMA.Cosmos.M.ListCosmos  -- uniform binary universe: fixed-label swap01 (n=2) edge permutation, zero subst
-import ALMA.Cosmos.Terminal
-import ALMA.Cosmos.CoalgCat
-import ALMA.Cosmos.Lambek
-import ALMA.Cosmos.CosmosCategory
-import ALMA.Cosmos.MorphismCorrespondence
-import ALMA.Cosmos.Closure
-import ALMA.Cosmos.ContainerAutomorphism
-import ALMA.Cosmos.ListCosmos
-import ALMA.Cosmos.CumulativeHierarchy
-import ALMA.Cosmos.CumulativeHierarchyInner
-import ALMA.Cosmos.StrictLift
-import ALMA.Cosmos.StrictLiftShape
-import ALMA.Cosmos.CumulativeHierarchyInstances
-import ALMA.Cosmos.CumulativeHierarchyLimit
-import ALMA.Cosmos.CumulativeHierarchySewing
-import ALMA.Cosmos.FinCatNInnerSewing
-import ALMA.Cosmos.FinCatNWitness
-import ALMA.Cosmos.FinCatNTowerLemmas
-import ALMA.Cosmos.ConditionalNontrivialLimit
-import ALMA.Cosmos.LayerZeroMediator
-import ALMA.Cosmos.FinCatNColimit
-import ALMA.Cosmos.FinCatNEmbeddingMismatch
-import ALMA.Cosmos.DependentEmbedding
-import ALMA.Cosmos.FinCatNColimitWithDep
-import ALMA.Cosmos.FinCatNSurjectivity
-import ALMA.Cosmos.FinCatNDefaultUnif
-import ALMA.Cosmos.FinCatNFunctorial
-import ALMA.Cosmos.FinCatNProjectiveObstruction
-import ALMA.Cosmos.FinCatNOuterObstruction
-import ALMA.Cosmos.FinCatNInnerObstruction
-import ALMA.Cosmos.FinCatNPermutedEmbedding
-import ALMA.Cosmos.FinCatNNonCommutative
-import ALMA.Cosmos.FinCatInfinity
-import ALMA.Cosmos.FinCatInfinityProjection
-import ALMA.Cosmos.FinCatInfinityTowerCompat
-import ALMA.Cosmos.FinCatInfinityColimit
-import ALMA.Cosmos.FinCatInfinityColimitUniversal
-import ALMA.Cosmos.Instances
+-- import ALMA.Cosmos.Terminal  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CoalgCat  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.Lambek  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CosmosCategory  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.MorphismCorrespondence  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.Closure  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.ContainerAutomorphism  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.ListCosmos  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CumulativeHierarchy  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CumulativeHierarchyInner  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.StrictLift  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.StrictLiftShape  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CumulativeHierarchyInstances  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CumulativeHierarchyLimit  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.CumulativeHierarchySewing  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNInnerSewing  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNWitness  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNTowerLemmas  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.ConditionalNontrivialLimit  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.LayerZeroMediator  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNColimit  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNEmbeddingMismatch  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.DependentEmbedding  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNColimitWithDep  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNSurjectivity  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNDefaultUnif  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNFunctorial  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNProjectiveObstruction  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNOuterObstruction  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNInnerObstruction  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNPermutedEmbedding  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatNNonCommutative  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatInfinity  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatInfinityProjection  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatInfinityTowerCompat  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatInfinityColimit  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.FinCatInfinityColimitUniversal  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
+-- import ALMA.Cosmos.Instances  -- ARCHIVED (M endgame): superseded by M/Carried; file retained
 -- import ALMA.Cosmos.WIP  -- uniqueness blocked at FMap/⇒ℱX layer;
                            -- retrying carried-style below
                            -- 唯一性在 FMap/⇒ℱX 层受阻；改为携带式重新尝试
