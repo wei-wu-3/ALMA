@@ -143,13 +143,20 @@ module _ {o h e s p : Level}
   record DetData (S : Functor (ShapeCat C FC) (ShapeCat C FC))
          : Set (o ⊔ h ⊔ e ⊔ s ⊔ p) where
     field
-      labelMap : MO.CosmosData C FC → MO.CosmosData C FC
+      -- Index-aware label map: the target label at S.₀ x for the source
+      -- label d at x.  The old morphism builds this layerwise from the
+      -- two unfoldings and the shape natural isomorphism, so it must see
+      -- the source index x.
+      -- 索引感知的标签映射：x 处源标签 d 在 S.₀ x 处的目标标签。旧态射
+      -- 由两个 unfolding 与形状自然同构逐层构造它，故必须见到源索引 x。
+      labelMap : (x : MO.I C FC) (d : MO.CosmosData C FC)
+               → MO.CosmosData C FC
       pullback : (d : MO.CosmosData C FC) (v : MO.I C FC)
                → Σ (MO.I C FC) λ x' → f₀ S x' ≡ v
       edgeAdj  : (x : MO.I C FC) (d : MO.CosmosData C FC)
                  (v : MO.I C FC)
                  (pb : Σ (MO.I C FC) λ x' → f₀ S x' ≡ v)
-               → FiberAdjˢ (propEqOn (MO.E C FC (f₀ S x) (labelMap d) v))
+               → FiberAdjˢ (propEqOn (MO.E C FC (f₀ S x) (labelMap x d) v))
                             (propEqOn (MO.E C FC x d (proj₁ pb)))
   open DetData public
 
@@ -165,7 +172,7 @@ module _ {o h e s p : Level}
             → ∀ {x y : MO.I C FC} (r : Graph S x y)
             → Stepˢ sysP sysP (Graph S) r
     detStep S dd {x = x₀} {y = .(f₀ S x₀)} ≡refl = record
-      { shapeᴿ = labelMap dd
+      { shapeᴿ = labelMap dd x₀
       ; child   = λ d v → pullback dd d v
       ; edge-adj = λ d v → edgeAdj dd x₀ d v (pullback dd d v)
       }
@@ -195,7 +202,7 @@ module _ {o h e s p : Level}
   -- 形状函子的 DetData，端到端验证 DetData 接口（独立于 Det-id）。
   ----------------------------------------------------------------------
   detData-id : DetData idF
-  DetData.labelMap detData-id = λ d → d
+  DetData.labelMap detData-id _ d = d
   DetData.pullback detData-id _ v = v , ≡refl
   DetData.edgeAdj  detData-id x d v₀ (v , ≡refl) =
     idAdjˢ (propEqOn (MO.E C FC x d v))
