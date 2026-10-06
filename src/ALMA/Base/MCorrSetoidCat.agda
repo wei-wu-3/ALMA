@@ -49,7 +49,8 @@ open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
   using (SysEq; EqOn; FiberAdjˢ; Stepˢ; Morphˢ; idAdjˢ; compAdjˢ
         ; shapeᴿ; child; edge-adj
-        ; _≈Mˢ_; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans)
+        ; _≈Mˢ_; here-eq; below-eq
+        ; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans)
 
 open SysEq
 open FiberAdjˢ
@@ -86,6 +87,17 @@ record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
   --
   -- 确定性映射作为沿 u 之图的关系泛化 Morphˢ；(x , u x) 处唯一的图见
   -- 证为 ≡refl。
+  -- Pullback: the canonical source child together with the transported
+  -- source edge (via fro) and the graph witness.
+  --
+  -- 拉回：规范源子节点，连同（经 fro）传输的源边与图见证。
+  pullFˢ : (x : I X) (a : A X x) (v : I Y)
+           (q : E Y (u x) (shape x a) v)
+         → Σ (I X) λ x' → Σ (E X x a x') λ e → u x' ≡ v
+  pullFˢ x a v q =
+    let x' , r' = childF x a v
+    in x' , fro (adjFˢ x a v) q , r'
+
   asMorphˢ : Morphˢ X Y (λ (x : I X) (v : I Y) → u x ≡ v)
   asMorphˢ .Morphˢ.step {x = x} {y = .(u x)} ≡refl = record
     { shapeᴿ   = shape x
@@ -256,3 +268,112 @@ module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
     ; sym   = λ {f g} → ≈Fˢ-sym {f = f} {g = g}
     ; trans = λ {f g h} → ≈Fˢ-trans {f = f} {g = g} {h = h}
     }
+
+------------------------------------------------------------------------
+-- Coinductive fusion: the tree map of a composition is bisimilar to
+-- the composition of the two tree maps.  compFˢ uses the same canonical
+-- child decomposition as the nested mapR (its fro is definitionally the
+-- two-stage pullback), so each output child is one guarded recursive
+-- call and the carried fibre adjunction is the identity.
+--
+-- 余归纳融合：复合的树映射与两个树映射的复合互模拟。compFˢ 采用与嵌
+-- 套 mapR 相同的规范子节点分解（其 fro 定义性为两段拉回），故每个输
+-- 出子节点恰为一次受保护递归调用，携带的纤维伴随为恒等。
+------------------------------------------------------------------------
+module Fusionˢ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+              {X : SysEq i a b ℓa ℓe}
+              {Y : SysEq j c d ℓc ℓd}
+              {Z : SysEq k e fℓ ℓg ℓh}
+              (gm : FMapˢ Y Z) (fm : FMapˢ X Y) where
+
+  uf     = FMapˢ.u fm
+  ug     = FMapˢ.u gm
+  shapef = FMapˢ.shape fm
+  shapeg = FMapˢ.shape gm
+  asF    = FMapˢ.asMorphˢ fm
+  asG    = FMapˢ.asMorphˢ gm
+  asC    = FMapˢ.asMorphˢ (compFˢ gm fm)
+
+  mutual
+    fusionˢ : ∀ {x : I X} {y : I Y} {z : I Z}
+                (rf : uf x ≡ y) (rg : ug y ≡ z)
+                (t : M (A X) (E X) x)
+            → _≈Mˢ_ (≈A Z) (≈E Z)
+                     (Morphˢ.mapR asC (trans (cong ug rf) rg) t)
+                     (Morphˢ.mapR asG rg (Morphˢ.mapR asF rf t))
+    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+      .here-eq = EqOn.refl (≈A Z (ug (uf x)))
+    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+      .below-eq w =
+        idAdjˢ (≈E Z (ug (uf x))
+                     (shapeg (uf x) (shapef x (M.here t))) w)
+      , ( (λ q → let y' , eY , eg =
+                        FMapˢ.pullFˢ gm (uf x) (shapef x (M.here t)) w q
+                     x'' , eX , ef =
+                        FMapˢ.pullFˢ fm x (M.here t) y' eY
+                 in fusionˢ ef eg (M.below t x'' eX))
+        , (λ q → let y' , eY , eg =
+                        FMapˢ.pullFˢ gm (uf x) (shapef x (M.here t)) w q
+                     x'' , eX , ef =
+                        FMapˢ.pullFˢ fm x (M.here t) y' eY
+                 in fusion˘ˢ ef eg (M.below t x'' eX)) )
+
+    fusion˘ˢ : ∀ {x : I X} {y : I Y} {z : I Z}
+                 (rf : uf x ≡ y) (rg : ug y ≡ z)
+                 (t : M (A X) (E X) x)
+             → _≈Mˢ_ (≈A Z) (≈E Z)
+                      (Morphˢ.mapR asG rg (Morphˢ.mapR asF rf t))
+                      (Morphˢ.mapR asC (trans (cong ug rf) rg) t)
+    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+      .here-eq = EqOn.refl (≈A Z (ug (uf x)))
+    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+      .below-eq w =
+        idAdjˢ (≈E Z (ug (uf x))
+                     (shapeg (uf x) (shapef x (M.here t))) w)
+      , ( (λ q → let y' , eY , eg =
+                        FMapˢ.pullFˢ gm (uf x) (shapef x (M.here t)) w q
+                     x'' , eX , ef =
+                        FMapˢ.pullFˢ fm x (M.here t) y' eY
+                 in fusion˘ˢ ef eg (M.below t x'' eX))
+        , (λ q → let y' , eY , eg =
+                        FMapˢ.pullFˢ gm (uf x) (shapef x (M.here t)) w q
+                     x'' , eX , ef =
+                        FMapˢ.pullFˢ fm x (M.here t) y' eY
+                 in fusionˢ ef eg (M.below t x'' eX)) )
+
+mapFˢ-comp : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+               {X : SysEq i a b ℓa ℓe}
+               {Y : SysEq j c d ℓc ℓd}
+               {Z : SysEq k e fℓ ℓg ℓh}
+               (gm : FMapˢ Y Z) (fm : FMapˢ X Y)
+               (x : I X) (t : M (A X) (E X) x)
+           → _≈Mˢ_ (≈A Z) (≈E Z)
+                    (FMapˢ.mapFˢ (compFˢ gm fm) x t)
+                    (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
+mapFˢ-comp gm fm x t = Fusionˢ.fusionˢ gm fm ≡refl ≡refl t
+
+------------------------------------------------------------------------
+-- The identity tree map is the identity up to carried bisimulation.
+--
+-- 恒等树映射在携带式互模拟意义下为恒等。
+------------------------------------------------------------------------
+module _ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} where
+
+  mutual
+    mapFˢ-id : (x : I X) (t : M (A X) (E X) x)
+             → _≈Mˢ_ (≈A X) (≈E X)
+                      (FMapˢ.mapFˢ (idFˢ {X = X}) x t) t
+    mapFˢ-id x t .here-eq = EqOn.refl (≈A X x)
+    mapFˢ-id x t .below-eq w =
+        idAdjˢ (≈E X x (M.here t) w)
+      , ( (λ q → mapFˢ-id w (M.below t w q))
+        , (λ q → mapFˢ-id˘ w (M.below t w q)) )
+
+    mapFˢ-id˘ : (x : I X) (t : M (A X) (E X) x)
+              → _≈Mˢ_ (≈A X) (≈E X)
+                       t (FMapˢ.mapFˢ (idFˢ {X = X}) x t)
+    mapFˢ-id˘ x t .here-eq = EqOn.refl (≈A X x)
+    mapFˢ-id˘ x t .below-eq w =
+        idAdjˢ (≈E X x (M.here t) w)
+      , ( (λ q → mapFˢ-id˘ w (M.below t w q))
+        , (λ q → mapFˢ-id w (M.below t w q)) )
