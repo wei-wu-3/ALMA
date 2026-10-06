@@ -37,13 +37,14 @@
 
 module ALMA.Base.MCorrSetoidCat where
 
-open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Primitive using (Level; _⊔_; lsuc)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁)
 open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.Structures using (IsEquivalence)
 open import Function.Base using (_∘_)
+open import Categories.Category.Core using (Category)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
@@ -185,6 +186,13 @@ private
                {E : (x : I) (a : A x) (y : I) → Set b} {x y : I}
            → x ≡ y → M A E x → M A E y
   relocate ≡refl t = t
+
+  -- trans p refl ≡ p (J-eliminated on the variable equation p).
+  --
+  -- trans p refl ≡ p（在变量等式 p 上 J 消去）。
+  trans-refl-≡ : ∀ {ℓ} {A : Set ℓ} {x y : A} (p : x ≡ y)
+               → trans p ≡refl ≡ p
+  trans-refl-≡ ≡refl = ≡refl
 
   ≈rel-respˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
                  {E : (x : I) (a : A x) (y : I) → Set b}
@@ -352,6 +360,21 @@ mapFˢ-comp : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                     (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
 mapFˢ-comp gm fm x t = Fusionˢ.fusionˢ gm fm ≡refl ≡refl t
 
+-- Reverse fusion: the nested tree maps are bisimilar to the composite's
+-- tree map.
+--
+-- 反向融合：嵌套树映射与复合的树映射互模拟。
+mapFˢ-comp˘ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+                {X : SysEq i a b ℓa ℓe}
+                {Y : SysEq j c d ℓc ℓd}
+                {Z : SysEq k e fℓ ℓg ℓh}
+                (gm : FMapˢ Y Z) (fm : FMapˢ X Y)
+                (x : I X) (t : M (A X) (E X) x)
+            → _≈Mˢ_ (≈A Z) (≈E Z)
+                     (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
+                     (FMapˢ.mapFˢ (compFˢ gm fm) x t)
+mapFˢ-comp˘ gm fm x t = Fusionˢ.fusion˘ˢ gm fm ≡refl ≡refl t
+
 ------------------------------------------------------------------------
 -- The identity tree map is the identity up to carried bisimulation.
 --
@@ -377,3 +400,363 @@ module _ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} where
         idAdjˢ (≈E X x (M.here t) w)
       , ( (λ q → mapFˢ-id˘ w (M.below t w q))
         , (λ q → mapFˢ-id w (M.below t w q)) )
+
+------------------------------------------------------------------------
+-- Index-only reflow machine for FMapˢ.
+--
+-- Composition-respect needs to reposition image trees along the
+-- (propositional, not necessarily refl) index equalities carried by
+-- behavioural morphism equality.  These change only the INDEX witness
+-- of mapR; labels are untouched, so here-eq is EqOn.refl and below-eq
+-- uses idAdjˢ.  Unlike the propositional gow machine, no label equation
+-- and no childF coherence is involved.
+--
+-- FMapˢ 的纯索引重排机器。
+--
+-- 复合同余需要把像树沿行为态射相等所携带的（命题的、未必 refl 的）索
+-- 引等式重定位。这些只改变 mapR 的索引见证，标签不变，故 here-eq 为
+-- EqOn.refl，below-eq 用 idAdjˢ。与命题版 gow 机器不同，不涉及标签等
+-- 式与 childF 相干。
+------------------------------------------------------------------------
+module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
+               {X : SysEq i a b ℓa ℓe}
+               {Y : SysEq j c d ℓc ℓd}
+               (f : FMapˢ X Y) where
+
+  private
+    asF  = FMapˢ.asMorphˢ f
+    uf   = FMapˢ.u f
+    mapf = FMapˢ.mapFˢ f
+
+  mutual
+    mapR-rel : ∀ {x : I X} {v : I Y} (r : uf x ≡ v)
+                 (t : M (A X) (E X) x)
+             → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (Morphˢ.mapR asF r t)
+                      (relocate r (mapf x t))
+    mapR-rel {x = x} ≡refl t =
+      ≈Mˢ-refl (≈A Y) (≈E Y) (mapf x t)
+
+    mapR-rel˘ : ∀ {x : I X} {v : I Y} (r : uf x ≡ v)
+                  (t : M (A X) (E X) x)
+              → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (relocate r (mapf x t))
+                      (Morphˢ.mapR asF r t)
+    mapR-rel˘ {x = x} ≡refl t =
+      ≈Mˢ-refl (≈A Y) (≈E Y) (mapf x t)
+
+    mapR-r-eq : ∀ {x : I X} {v : I Y} {r r' : uf x ≡ v}
+                  (eq : r ≡ r') (t : M (A X) (E X) x)
+              → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (Morphˢ.mapR asF r t)
+                      (Morphˢ.mapR asF r' t)
+    mapR-r-eq {x = x} {r = z} {r' = .z} ≡refl t =
+      ≈Mˢ-refl (≈A Y) (≈E Y) (Morphˢ.mapR asF z t)
+
+    mapR-cross : ∀ {x₁ x₀ : I X} {v : I Y}
+                   (d : x₁ ≡ x₀) (r₀ : uf x₀ ≡ v)
+                   (s₁ : M (A X) (E X) x₁)
+               → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (Morphˢ.mapR asF r₀ (relocate d s₁))
+                      (Morphˢ.mapR asF (trans (cong uf d) r₀) s₁)
+    mapR-cross {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .here-eq =
+      EqOn.refl (≈A Y (uf z))
+    mapR-cross {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .below-eq w =
+        idAdjˢ (≈E Y (uf z) (FMapˢ.shape f z (M.here s₁)) w)
+      , ( (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
+                 in mapR-cross ≡refl r' (M.below s₁ x' e))
+        , (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
+                 in mapR-cross˘ ≡refl r' (M.below s₁ x' e)) )
+
+    mapR-cross˘ : ∀ {x₁ x₀ : I X} {v : I Y}
+                    (d : x₁ ≡ x₀) (r₀ : uf x₀ ≡ v)
+                    (s₁ : M (A X) (E X) x₁)
+                → _≈Mˢ_ (≈A Y) (≈E Y)
+                      (Morphˢ.mapR asF (trans (cong uf d) r₀) s₁)
+                      (Morphˢ.mapR asF r₀ (relocate d s₁))
+    mapR-cross˘ {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .here-eq =
+      EqOn.refl (≈A Y (uf z))
+    mapR-cross˘ {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .below-eq w =
+        idAdjˢ (≈E Y (uf z) (FMapˢ.shape f z (M.here s₁)) w)
+      , ( (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
+                 in mapR-cross˘ ≡refl r' (M.below s₁ x' e))
+        , (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
+                 in mapR-cross ≡refl r' (M.below s₁ x' e)) )
+
+------------------------------------------------------------------------
+-- Deterministic carried setoid FUNCTOR.
+--
+-- A FMapˢ gives the operational action; a morphism of setoid systems
+-- must additionally PRESERVE the carried label equivalence and act on
+-- bisimilar trees.  In setoid-enriched category theory this functorial
+-- congruence is part of being a morphism: it is carried here as data,
+-- rather than rebuilt per proof by eliminating label equations (which
+-- would need K or subst).
+--
+-- Crucially the coinductive congruence map-cong is carried, so identity
+-- and composition obtain it from mapFˢ-id / fusion and the component
+-- congruences alone -- no static child-index coherence and no gow-style
+-- reflow machine is required at this level.  Primitive morphisms (e.g.
+-- the container instance) supply their own map-cong, where the edge
+-- regime is propositional and the cross-label adjunction is the
+-- bisimulation one.
+--
+-- 确定性携带 setoid 函子。
+--
+-- FMapˢ 给出操作作用；setoid 系统间的态射还必须保持所携带的标签等价
+-- 并作用于互模拟树。在 setoid 富范畴论中，这种函子同余本就是态射的一
+-- 部分：它在此作为数据携带，而非在每个证明中靠消去标签等式重建（那需
+-- 要 K 或 subst）。
+--
+-- 关键是余归纳同余 map-cong 被携带，故恒等与复合仅靠 mapFˢ-id /
+-- fusion 与分量同余即可得到它——此层无需静态子索引相干，也无需 gow
+-- 式重排机器。原始态射（如容器实例）自带 map-cong，那里边制度是命题
+-- 的，跨标签伴随即互模拟伴随。
+------------------------------------------------------------------------
+record FMˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
+           (X : SysEq i a b ℓa ℓe)
+           (Y : SysEq j c d ℓc ℓd)
+       : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓa ⊔ ℓe ⊔ ℓc ⊔ ℓd) where
+  field
+    mor        : FMapˢ X Y
+
+    -- The shape action preserves the carried label equivalence.
+    --
+    -- shape 作用保持所携带的标签等价。
+    shape-cong : ∀ {x : I X} {a₁ a₂ : A X x}
+               → EqOn._≈_ (≈A X x) a₁ a₂
+               → EqOn._≈_ (≈A Y (FMapˢ.u mor x))
+                           (FMapˢ.shape mor x a₁)
+                           (FMapˢ.shape mor x a₂)
+
+    -- The induced tree map preserves carried bisimulation.
+    --
+    -- 诱导树映射保持携带式互模拟。
+    map-cong   : ∀ {x : I X} {t s : M (A X) (E X) x}
+               → _≈Mˢ_ (≈A X) (≈E X) t s
+               → _≈Mˢ_ (≈A Y) (≈E Y)
+                        (FMapˢ.mapFˢ mor x t)
+                        (FMapˢ.mapFˢ mor x s)
+open FMˢ public
+
+------------------------------------------------------------------------
+-- Identity setoid functor
+--
+-- 恒等 setoid 函子
+------------------------------------------------------------------------
+idFMˢ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} → FMˢ X X
+idFMˢ {X = X} = record
+  { mor        = idFˢ {X = X}
+  ; shape-cong = λ ea → ea
+  ; map-cong   = λ {x} {t} {s} h →
+      ≈Mˢ-trans (≈A X) (≈E X)
+        (mapFˢ-id x t)
+        (≈Mˢ-trans (≈A X) (≈E X) h (mapFˢ-id˘ x s))
+  }
+
+------------------------------------------------------------------------
+-- Composition of setoid functors; congruence follows from fusion and
+-- the two component congruences.
+--
+-- setoid 函子的复合；同余由 fusion 与两个分量同余得到。
+------------------------------------------------------------------------
+compFMˢ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+            {X : SysEq i a b ℓa ℓe}
+            {Y : SysEq j c d ℓc ℓd}
+            {Z : SysEq k e fℓ ℓg ℓh}
+        → FMˢ Y Z → FMˢ X Y → FMˢ X Z
+compFMˢ {X = X} {Y = Y} {Z = Z} gm fm = record
+  { mor        = compFˢ gm0 fm0
+  ; shape-cong = λ ea → FMˢ.shape-cong gm (FMˢ.shape-cong fm ea)
+  ; map-cong   = λ {x} {t} {s} h →
+      ≈Mˢ-trans (≈A Z) (≈E Z)
+        (mapFˢ-comp gm0 fm0 x t)
+        (≈Mˢ-trans (≈A Z) (≈E Z)
+           (FMˢ.map-cong gm (FMˢ.map-cong fm h))
+           (mapFˢ-comp˘ gm0 fm0 x s))
+  }
+  where
+  gm0 = FMˢ.mor gm
+  fm0 = FMˢ.mor fm
+
+------------------------------------------------------------------------
+-- Hom equivalence: behavioural equality of the underlying carried
+-- morphisms (pointwise carried bisimulation of image trees).
+--
+-- hom 等价：底层携带态射的行为相等（像树的逐点携带式互模拟）。
+------------------------------------------------------------------------
+module _ {i a b ℓa ℓe : Level}
+         {X Y : SysEq i a b ℓa ℓe} where
+
+  _≈FM_ : FMˢ X Y → FMˢ X Y → Set (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)
+  f ≈FM g = FMˢ.mor f ≈Fˢ FMˢ.mor g
+
+  ≈FM-refl : (f : FMˢ X Y) → f ≈FM f
+  ≈FM-refl f = ≈Fˢ-refl (FMˢ.mor f)
+
+  ≈FM-sym : {f g : FMˢ X Y} → f ≈FM g → g ≈FM f
+  ≈FM-sym p = ≈Fˢ-sym p
+
+  ≈FM-trans : {f g h : FMˢ X Y} → f ≈FM g → g ≈FM h → f ≈FM h
+  ≈FM-trans p q = ≈Fˢ-trans p q
+
+  ≈FM-isEquivalence : IsEquivalence _≈FM_
+  ≈FM-isEquivalence = record
+    { refl  = λ {f} → ≈FM-refl f
+    ; sym   = λ {f g} → ≈FM-sym {f = f} {g = g}
+    ; trans = λ {f g h} → ≈FM-trans {f = f} {g = g} {h = h}
+    }
+
+------------------------------------------------------------------------
+-- Composition respects behavioural equality.
+--
+-- 复合尊重行为相等。
+------------------------------------------------------------------------
+module _ {i a b ℓa ℓe : Level}
+         {X Y Z : SysEq i a b ℓa ℓe} where
+
+  ∘-resp-≈FM : {F₁ F₂ : FMˢ X Y} {G₁ G₂ : FMˢ Y Z}
+             → F₁ ≈FM F₂ → G₁ ≈FM G₂
+             → compFMˢ G₁ F₁ ≈FM compFMˢ G₂ F₂
+  ∘-resp-≈FM {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} eqF eqG x
+    with eqF x | eqG (FMapˢ.u (FMˢ.mor F₂) x)
+  ... | rF , hF | rG , hG =
+      trans (cong (FMapˢ.u (FMˢ.mor G₁)) rF) rG
+    , λ t →
+        let s1 = FMapˢ.mapFˢ (FMˢ.mor F₁) x t
+            s2 = FMapˢ.mapFˢ (FMˢ.mor F₂) x t
+            a1 = FMapˢ.mapFˢ (FMˢ.mor G₁) (FMapˢ.u (FMˢ.mor F₁) x) s1
+            cg = cong (FMapˢ.u (FMˢ.mor G₁)) rF
+            b1 = FMapˢ.mapFˢ (FMˢ.mor G₁) (FMapˢ.u (FMˢ.mor F₂) x)
+                             (relocate rF s1)
+            r  = trans cg rG
+        in
+        ≈Mˢ-trans (≈A Z) (≈E Z)
+          (≈rel-respˢ (≈A Z) (≈E Z) r
+             {t = FMapˢ.mapFˢ (compFˢ (FMˢ.mor G₁) (FMˢ.mor F₁)) x t}
+             {s = a1}
+             (mapFˢ-comp (FMˢ.mor G₁) (FMˢ.mor F₁) x t))
+          (≈Mˢ-trans (≈A Z) (≈E Z)
+            (≈rel-compˢ (≈A Z) (≈E Z) cg rG a1)
+            (≈Mˢ-trans (≈A Z) (≈E Z)
+              (≈rel-respˢ (≈A Z) (≈E Z) rG
+                 {t = relocate cg a1} {s = b1}
+                 (≈Mˢ-trans (≈A Z) (≈E Z)
+                    (CongIdxˢ.mapR-rel˘ (FMˢ.mor G₁) cg s1)
+                    (≈Mˢ-trans (≈A Z) (≈E Z)
+                       (CongIdxˢ.mapR-r-eq (FMˢ.mor G₁)
+                          (sym (trans-refl-≡ cg)) s1)
+                       (CongIdxˢ.mapR-cross˘ (FMˢ.mor G₁) rF ≡refl s1))))
+              (≈Mˢ-trans (≈A Z) (≈E Z)
+                (≈rel-respˢ (≈A Z) (≈E Z) rG
+                   {t = b1}
+                   {s = FMapˢ.mapFˢ (FMˢ.mor G₁) (FMapˢ.u (FMˢ.mor F₂) x) s2}
+                   (FMˢ.map-cong G₁ (hF t)))
+                (≈Mˢ-trans (≈A Z) (≈E Z)
+                   (hG s2)
+                   (≈Mˢ-sym (≈A Z) (≈E Z)
+                      (mapFˢ-comp (FMˢ.mor G₂) (FMˢ.mor F₂) x t))))))
+
+------------------------------------------------------------------------
+-- Category laws, all at behavioural equality.  Associativity and the
+-- identities follow from fusion (mapFˢ-comp) and the carried functor
+-- congruence / identity bisimulation; no index transport is used and
+-- the index components are definitionally ≡refl.
+--
+-- 范畴律，全部建立在行为相等上。结合律与恒等律由 fusion
+-- （mapFˢ-comp）与携带的函子同余/恒等互模拟得到；不使用索引传输，索
+-- 引分量定义性地为 ≡refl。
+------------------------------------------------------------------------
+module _ {i a b ℓa ℓe : Level}
+         {W X Y Z : SysEq i a b ℓa ℓe}
+         {f : FMˢ W X} {g : FMˢ X Y} {h : FMˢ Y Z} where
+
+  private
+    f0 = FMˢ.mor f
+    g0 = FMˢ.mor g
+    h0 = FMˢ.mor h
+
+  assocFM : compFMˢ (compFMˢ h g) f ≈FM compFMˢ h (compFMˢ g f)
+  assocFM x = ≡refl , λ t →
+    let lhs→c =
+          ≈Mˢ-trans (≈A Z) (≈E Z)
+            (mapFˢ-comp (compFˢ h0 g0) f0 x t)
+            (mapFˢ-comp h0 g0 (FMapˢ.u f0 x)
+                            (FMapˢ.mapFˢ f0 x t))
+        rhs→c =
+          ≈Mˢ-trans (≈A Z) (≈E Z)
+            (mapFˢ-comp h0 (compFˢ g0 f0) x t)
+            (FMˢ.map-cong h (mapFˢ-comp g0 f0 x t))
+    in ≈Mˢ-trans (≈A Z) (≈E Z) lhs→c
+                   (≈Mˢ-sym (≈A Z) (≈E Z) rhs→c)
+
+  sym-assocFM : compFMˢ h (compFMˢ g f) ≈FM compFMˢ (compFMˢ h g) f
+  sym-assocFM =
+    ≈FM-sym {i = i} {a = a} {b = b} {ℓa = ℓa} {ℓe = ℓe}
+            {X = W} {Y = Z}
+            {f = compFMˢ (compFMˢ h g) f}
+            {g = compFMˢ h (compFMˢ g f)}
+            assocFM
+
+module _ {i a b ℓa ℓe : Level}
+         {X Y : SysEq i a b ℓa ℓe}
+         {f : FMˢ X Y} where
+
+  private
+    f0 = FMˢ.mor f
+
+  identityˡFM : compFMˢ idFMˢ f ≈FM f
+  identityˡFM x = ≡refl , λ t →
+    ≈Mˢ-trans (≈A Y) (≈E Y)
+      (mapFˢ-comp idFˢ f0 x t)
+      (mapFˢ-id (FMapˢ.u f0 x) (FMapˢ.mapFˢ f0 x t))
+
+  identityʳFM : compFMˢ f idFMˢ ≈FM f
+  identityʳFM x = ≡refl , λ t →
+    ≈Mˢ-trans (≈A Y) (≈E Y)
+      (mapFˢ-comp f0 idFˢ x t)
+      (FMˢ.map-cong f (mapFˢ-id x t))
+
+module _ {i a b ℓa ℓe : Level}
+         {X : SysEq i a b ℓa ℓe} where
+
+  identity²FM : compFMˢ idFMˢ idFMˢ ≈FM (idFMˢ {X = X})
+  identity²FM x = ≡refl , λ t →
+    ≈Mˢ-trans (≈A X) (≈E X)
+      (mapFˢ-comp idFˢ idFˢ x t)
+      (mapFˢ-id x (FMapˢ.mapFˢ idFˢ x t))
+
+------------------------------------------------------------------------
+-- The category of setoid systems and deterministic carried setoid
+-- functors.  Objects are SysEq at fixed levels; hom is FMˢ (an FMapˢ
+-- carrying label congruence and tree-bisimulation congruence); the hom
+-- equivalence is behavioural _≈FM_.
+--
+-- setoid 系统与确定性携带 setoid 函子的范畴。对象为固定层级的 SysEq；
+-- hom 为 FMˢ（携带标签同余与树互模拟同余的 FMapˢ）；hom 等价为行为
+-- _≈FM_。
+------------------------------------------------------------------------
+MCorrCatˢ : (i a b ℓa ℓe : Level)
+          → Category (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe))
+                     (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)
+                     (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)
+MCorrCatˢ i a b ℓa ℓe = record
+  { Obj       = SysEq i a b ℓa ℓe
+  ; _⇒_       = λ X Y → FMˢ X Y
+  ; _≈_       = λ {X} {Y} f g → _≈FM_ {X = X} {Y = Y} f g
+  ; id        = λ {X} → idFMˢ {X = X}
+  ; _∘_       = λ {X} {Y} {Z} g f → compFMˢ g f
+  ; equiv     = λ {X} {Y} → ≈FM-isEquivalence {X = X} {Y = Y}
+  ; ∘-resp-≈  = λ {X} {Y} {Z} {f} {h} {g} {k} fh gk →
+                  ∘-resp-≈FM {X = X} {Y = Y} {Z = Z}
+                              {F₁ = g} {F₂ = k} {G₁ = f} {G₂ = h} gk fh
+  ; assoc     = λ {W} {X} {Y} {Z} {f} {g} {h} →
+                  assocFM {W = W} {X = X} {Y = Y} {Z = Z}
+                          {f = f} {g = g} {h = h}
+  ; sym-assoc = λ {W} {X} {Y} {Z} {f} {g} {h} →
+                  sym-assocFM {W = W} {X = X} {Y = Y} {Z = Z}
+                              {f = f} {g = g} {h = h}
+  ; identityˡ = λ {X} {Y} {f} → identityˡFM {X = X} {Y = Y} {f = f}
+  ; identityʳ = λ {X} {Y} {f} → identityʳFM {X = X} {Y = Y} {f = f}
+  ; identity² = λ {X} → identity²FM {X = X}
+  }
