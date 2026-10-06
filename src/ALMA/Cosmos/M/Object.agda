@@ -59,10 +59,11 @@ open import Data.Product.Base using (proj₁; proj₂)
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
-open import ALMA.Base.MCorr using (M)
+open import ALMA.Base.MCorr using (M; _⍮_)
 open import ALMA.Base.MCorrSetoid
   using (EqOn; SysEq; propEqOn; FiberAdjˢ; idAdjˢ
-       ; _≈Mˢ_; here-eq; below-eq; ≈Mˢ-refl)
+       ; _≈Mˢ_; here-eq; below-eq; ≈Mˢ-refl
+       ; Morphˢ; compMˢ; idMˢ)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
@@ -230,3 +231,46 @@ module _ {o h e s p : Level}
         idAdjˢ (SysEq.≈E (sys ≈CD) i (M.here t) y)
       , ( (λ { (p , ≡refl) → ana-unfold˘ ≈CD (step i t p) })
         , (λ { (p , ≡refl) → ana-unfold ≈CD (step i t p) }) )
+
+  ----------------------------------------------------------------------
+  -- Carried correspondences between M-Cosmos nodes.
+  --
+  -- A CosmosM⇒ is a MCorrSetoid Morphˢ over an arbitrary index relation
+  -- R; R need not be propositional (it may carry ShapeCat morphism data
+  -- up to C._≈_).  The categorical identity and composition are the
+  -- generic carried ones (idMˢ on the index path groupoid, compMˢ via
+  -- compAdjˢ) instantiated at sys: they contain no subst.
+  --
+  -- The DETERMINISTIC endomorphism of the old code (_⇒ℱ[S]_, with the
+  -- reverse onPos map and pts-compat / onActP) is recovered at the
+  -- container instance by taking R to be the graph of S.₀ and the edge
+  -- FiberAdjˢ to be onPosAdj; see ContainerInstance.
+  --
+  -- M-Cosmos 节点间的携带式对应。
+  --
+  -- CosmosM⇒ 是任意索引关系 R 上的 MCorrSetoid Morphˢ；R 不必是命题的
+  -- （可携带 C._≈_ 下的 ShapeCat 态射数据）。范畴恒等与复合即通用携带
+  -- 版本（索引路径广群上的 idMˢ、经 compAdjˢ 的 compMˢ）在 sys 处的
+  -- 实例化：不含 subst。
+  --
+  -- 旧代码的确定性自态射（_⇒ℱ[S]_，含反向 onPos 与 pts-compat /
+  -- onActP）在容器实例处通过令 R 为 S.₀ 的图、边 FiberAdjˢ 为
+  -- onPosAdj 而恢复；见 ContainerInstance。
+  ----------------------------------------------------------------------
+  CosmosM⇒ : ∀ {ℓd ℓr : Level}
+             (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
+             (R : I → I → Set ℓr)
+           → Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ ℓd ⊔ ℓr)
+  CosmosM⇒ ≈CD R = Morphˢ (sys ≈CD) (sys ≈CD) R
+
+  idCosmosM : ∀ {ℓd : Level}
+              (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
+            → CosmosM⇒ ≈CD (λ (x y : I) → x ≡ y)
+  idCosmosM ≈CD = idMˢ (sys ≈CD)
+
+  compCosmosM : ∀ {ℓd ℓ₁ ℓ₂ : Level}
+                (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
+              → ∀ {R : I → I → Set ℓ₁} {S : I → I → Set ℓ₂}
+              → CosmosM⇒ ≈CD R → CosmosM⇒ ≈CD S
+              → CosmosM⇒ ≈CD (R ⍮ S)
+  compCosmosM ≈CD φ ψ = compMˢ φ ψ
