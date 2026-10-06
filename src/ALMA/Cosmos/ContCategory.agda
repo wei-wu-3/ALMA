@@ -9,6 +9,7 @@
 -- 态射等价在 SubstTransport-Right 的逐点相等 + 传输关系在容器态射上
 -- 实例化并添加容器特有的复合定律与 Category 实例
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCategory where

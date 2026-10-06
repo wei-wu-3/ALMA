@@ -3,27 +3,18 @@
 -- subst). Finite stages are trivial-fibre deterministic systems on
 -- Fin (n-at m), n-at m = suc (suc m); the coinductive limit L∞ is the
 -- trivial-fibre system on ℕ. The only real datum is the deterministic
--- position transition.
---
--- The position axis is eliminated at the defining site: the limit
--- transition at position v reads from stage v itself,
+-- position transition, eliminated at the defining site:
 --   s∞ v = toℕ (t v (natToFin v)),
--- and stage v has n-at v = suc (suc v) > v positions, so natToFin v is
--- always in range. There is no out-of-range case, hence no partial
--- defaultFin / finFromℕ-maybe, no threshold and no ≤-total split. The
--- coinductive orbit is written in edge-indexed style: the child index
--- is carried by the edge, so recursion never matches the successor
--- equation and never transports.
+-- with natToFin v always in range since n-at v > v. The coinductive
+-- orbit is written in edge-indexed style, so recursion never matches
+-- the successor equation and never transports.
 --
 -- FinCat 塔的携带式极限系统 —— 存在性核心（零 subst）。有限层是
 -- Fin (n-at m)（n-at m = suc (suc m)）上的平凡纤维确定性系统；余归纳
--- 极限 L∞ 是 ℕ 上的平凡纤维系统。唯一真实数据是确定性位置转移。
---
--- 位置轴在定义点即被消除：位置 v 处的极限转移直接从第 v 层读取，
+-- 极限 L∞ 是 ℕ 上的平凡纤维系统。唯一真实数据是确定性位置转移，并在
+-- 定义点即被消除：
 --   s∞ v = toℕ (t v (natToFin v))，
--- 第 v 层有 n-at v = suc (suc v) > v 个位置，故 natToFin v 永远在范围
--- 内。没有越界情形，因而没有偏函数 defaultFin / finFromℕ-maybe、没有
--- 阈值、没有 ≤-total 拆分。余归纳轨道以边索引风格书写：子索引由边携带，
+-- 因 n-at v > v，natToFin v 永远在范围内。余归纳轨道以边索引风格书写，
 -- 故递归绝不匹配后继等式、绝不传输。
 ------------------------------------------------------------------------
 
@@ -43,8 +34,7 @@ open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
-open import ALMA.Base.MCorr
-  using (Sys; M; here; below; _≈M_; idAdj)
+open import ALMA.Base.MCorr using (Sys; M; here; below; _≈M_; idAdj)
 open Sys
 open import ALMA.Cosmos.Carried.DetSys
 open import ALMA.Cosmos.Carried.SeqColimit using (shift)
@@ -57,10 +47,9 @@ open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
 n-at : ℕ → ℕ
 n-at m = suc (suc m)
 
--- Total, Cubical-safe strict dichotomy k ≤ h or h < k, by structural
--- recursion; never matches on a decidable / Bool-backed predicate.
--- 全函数、Cubical 安全的严格二分 k ≤ h 或 h < k，由结构递归定义；
--- 绝不匹配可判定 / Bool 支撑的谓词。
+-- Total, Cubical-safe strict dichotomy; no decidable / Bool-backed
+-- predicate is matched.
+-- 全函数、Cubical 安全严格二分；不匹配可判定 / Bool 支撑的谓词。
 ≤-or-> : ∀ (h k : ℕ) → (k ≤ h) ⊎ (h < k)
 ≤-or-> h       zero    = inj₁ z≤n
 ≤-or-> zero    (suc k) = inj₂ (s≤s z≤n)
@@ -79,12 +68,11 @@ toℕ-natToFin : (v : ℕ) → toℕ (natToFin v) ≡ v
 toℕ-natToFin zero    = refl
 toℕ-natToFin (suc v) = cong suc (toℕ-natToFin v)
 
--- d-fold finite embedding by iterating inject₁. The target size uses
--- the same `shift` recursion as the carried chain, so n-at (shift d m)
--- reduces definitionally — no subst Fin (+-suc), no castCosmos.
--- d 次有限嵌入，迭代 inject₁ 而成。目标尺寸用与携带链相同的 `shift`
--- 递归，故 n-at (shift d m) 定义性归约——无 subst Fin (+-suc)、无
--- castCosmos。
+-- Target size uses the same `shift` recursion as the carried chain, so
+-- n-at (shift d m) reduces definitionally — no subst Fin (+-suc), no
+-- castCosmos.
+-- 目标尺寸用与携带链相同的 `shift` 递归，故 n-at (shift d m) 定义性
+-- 归约——无 subst Fin (+-suc)、无 castCosmos。
 embFin : (d m : ℕ) → Fin (n-at m) → Fin (n-at (shift d m))
 embFin zero    m x = x
 embFin (suc d) m x = embFin d (suc m) (inject₁ x)
@@ -95,13 +83,11 @@ toℕ-embFin zero    m x = refl
 toℕ-embFin (suc d) m x =
   trans (toℕ-embFin d (suc m) (inject₁ x)) (toℕ-inject₁ x)
 
--- Stage-m representative of a natural position k, as a total clamp into
--- Fin (n-at m). For in-range k ≤ suc m its toℕ reading is exactly k.
--- Total and ℕ-recursive: no Fin indexed pattern match, no Cubical absurd
+-- Total clamp into Fin (n-at m); for in-range k ≤ suc m its toℕ reading
+-- is exactly k. ℕ-recursive: no Fin indexed pattern match, no absurd
 -- pattern on ≤ proofs.
--- 自然位置 k 在第 m 层的代表，即向 Fin (n-at m) 的全函数 clamp。
--- 范围内 k ≤ suc m 时其 toℕ 读数恰为 k。全函数且 ℕ 递归：无 Fin 索引
--- 模式匹配，无对 ≤ 证明的 Cubical 空模式。
+-- 向 Fin (n-at m) 的全函数 clamp；范围内 k ≤ suc m 时其 toℕ 读数恰为
+-- k。ℕ 递归：无 Fin 索引模式匹配、无对 ≤ 证明的空模式。
 cl : (m k : ℕ) → Fin (n-at m)
 cl m k = clamp {k = suc m} k
 
@@ -111,18 +97,15 @@ cl-toℕ m k le =
 
 ------------------------------------------------------------------------
 -- Push (forward / embedding) edge-following simulation. MCorr's
--- Step / FMap are pull notions (child total over target indices, so
--- only surjective maps); a colimit leg points the other way, from a
--- finite stage into the limit, and the limit has extra nodes with no
--- stage preimage. PushSim is the forward dual: for every source edge
--- it carries a target edge, a fresh index correspondence and the child
--- simulation; there is no totality over target indices. Everything is
--- carried data; no subst / cast.
--- 前向（push / 嵌入）边跟随互模拟。MCorr 的 Step / FMap 是 pull 概念
--- （child 对目标索引满，故只覆盖满射）；余极限腿方向相反，从有限层指向
--- 极限，极限含无层原像的额外节点。PushSim 是其前向对偶：对每条源边携带
--- 一条目标边、一条新索引对应与子互模拟；不对目标索引要求满。一切皆携带
--- 数据；无 subst / cast。
+-- Step / FMap are pull notions; a colimit leg points the other way,
+-- from a finite stage into the limit. PushSim is the forward dual:
+-- for every source edge it carries a target edge, a fresh index
+-- correspondence and the child simulation; no totality over target
+-- indices. Everything is carried data; no subst / cast.
+-- 前向（push / 嵌入）边跟随互模拟。MCorr 的 Step / FMap 是 pull 概念；
+-- 余极限腿方向相反，从有限层指向极限。PushSim 是其前向对偶：对每条源
+-- 边携带一条目标边、一条新索引对应与子互模拟；不对目标索引要求满。
+-- 一切皆携带数据；无 subst / cast。
 
 record PushSim {i j a b c d ℓr ℓh : Level}
               {X : Sys i a b} {Y : Sys j c d}
@@ -149,23 +132,20 @@ open PushSim public
 
 ------------------------------------------------------------------------
 -- The limit system, parameterised by the per-stage transition
--- t m : Fin (n-at m) → Fin (n-at m).
--- 极限系统，以各层转移 t m : Fin (n-at m) → Fin (n-at m) 为参数。
+-- t m : Fin (n-at m) → Fin (n-at m) and the one-step embedding
+-- compatibility, a bare homogeneous equation on Fin.
+-- 极限系统，以各层转移 t m : Fin (n-at m) → Fin (n-at m) 与一步嵌入
+-- 相容性（Fin 上的裸同质等式）为参数。
 
 module LimitSystem
   (t : (m : ℕ) → Fin (n-at m) → Fin (n-at m))
-  -- One-step embedding compatibility: advancing one stage commutes with
-  -- the transition on inherited (non-new-top) positions; a bare
-  -- homogeneous equation on Fin, never a transport.
-  -- 一步嵌入相容：推进一层与继承位置（非新末位）上的转移交换；Fin 上的
-  -- 裸同质等式，绝非传输。
   (embed-compat :
      (m : ℕ) (x : Fin (n-at m))
    → t (suc m) (inject₁ x) ≡ inject₁ (t m x))
   where
 
-  -- Limit transition: read at the stage that always contains v.
-  -- 极限转移：在永远包含 v 的第 v 层读取。
+  -- Read at the stage that always contains v.
+  -- 在永远包含 v 的第 v 层读取。
   s∞ : ℕ → ℕ
   s∞ v = toℕ (t v (natToFin v))
 
@@ -174,11 +154,11 @@ module LimitSystem
 
   L∞ = sys
 
-  -- Coinductive orbit: child index y is carried by e, so the
-  -- continuation is orbit y — no successor equation is matched, no
-  -- transport, and the call is guarded directly by `below`.
-  -- 余归纳轨道：子索引 y 由 e 携带，故连续项就是 orbit y —— 不匹配后继
-  -- 等式、无需传输，递归调用直接由 below 保护。
+  -- Child index y is carried by e, so the continuation is orbit y — no
+  -- successor equation is matched, and the call is guarded directly by
+  -- `below`.
+  -- 子索引 y 由 e 携带，故连续项就是 orbit y —— 不匹配后继等式，递归
+  -- 调用直接由 below 保护。
   orbit∞ : (x : ℕ) → DetM x
   orbit∞ x .here      = tt
   orbit∞ x .below y _ = orbit∞ y
@@ -187,13 +167,10 @@ module LimitSystem
   -- In-range reading coherence: every position present at stage m is
   -- read by s∞. The split "inherited vs new top" is the bounded
   -- disjunction k ≤ suc m → k < suc m ⊎ k ≡ suc m, not the unbounded
-  -- ≤-total threshold. Arbitrary positions are normalised to the total
-  -- `cl` representative via toℕ-injective; no Fin constructor is
-  -- matched, no subst / cast.
+  -- ≤-total threshold.
   -- 范围内读数相干性：第 m 层存在的每个位置都被 s∞ 正确读取。拆分
   -- “继承 vs 新末位”是有界析取 k ≤ suc m → k < suc m ⊎ k ≡ suc m，
-  -- 不是无界 ≤-total 阈值。任意位置经 toℕ-injective 归一为全函数代表
-  -- cl；不对 Fin 构造子模式匹配，无 subst / cast。
+  -- 不是无界 ≤-total 阈值。
 
   private
     up-toℕ : ∀ m x → toℕ (t (suc m) (inject₁ x)) ≡ toℕ (t m x)
@@ -251,12 +228,10 @@ module LimitSystem
   ----------------------------------------------------------------------
   -- Colimit legs as push edge-following simulations: each stage's
   -- deterministic orbit pushes to the limit orbit along the graph of
-  -- toℕ. The single source edge is matched by the single limit edge, and
-  -- read-coh carries the required index correspondence. No
-  -- target-totality, no subst / cast.
+  -- toℕ. The single source edge is matched by the single limit edge,
+  -- and read-coh carries the required index correspondence.
   -- 余极限腿：前向边跟随互模拟。每层确定性轨道沿 toℕ 的图前推到极限
-  -- 轨道。唯一源边对应唯一极限边，read-coh 携带所需索引对应。无目标
-  -- 满射，无 subst / cast。
+  -- 轨道。唯一源边对应唯一极限边，read-coh 携带所需索引对应。
 
   module Leg (m : ℕ) where
     open TrivDet {i = lzero} (Fin (n-at m)) (t m)
@@ -273,9 +248,8 @@ module LimitSystem
        → Rₘ x v → ⊤ {lzero} → ⊤ {lzero} → Set lzero
     Hₘ _ _ _ _ _ = ⊤ {lzero}
 
-    -- General over the limit index v and the carried graph witness
-    -- r : toℕ x ≡ v.
-    -- 对极限索引 v 与携带的图见证 r : toℕ x ≡ v 一般化。
+    -- General over the limit index v and the carried graph witness.
+    -- 对极限索引 v 与携带的图见证一般化。
     leg : ∀ (x : Fin (n-at m)) (v : ℕ) (r : Rₘ x v)
         → PushSim {i = lzero} {j = lzero}
                   {a = lzero} {b = lzero}
@@ -292,18 +266,12 @@ module LimitSystem
 
   ----------------------------------------------------------------------
   -- Uniqueness of the deterministic limit up to bisimulation. The
-  -- trivial fibre has a unique label (⊤, unit η) and a unique successor
-  -- edge at every node, so any two limit trees at the same index are
-  -- edge-indexed bisimilar. Fibres carrying no edge are never inspected
-  -- (no emptiness decision, no Cubical absurd pattern). The two
-  -- below-eq directions are bare guarded corecursive calls with the
-  -- trees given in opposite argument order, so no ≈M-sym / ≈M-trans
-  -- combinator hides the guard.
-  -- 确定性极限在互模拟意义下的唯一性。平凡纤维在每个节点有唯一标签
-  -- （⊤，单位 η）与唯一后继边，故同一索引的任意两棵极限树边索引互模拟。
-  -- 不带边的纤维永不被检查（不判空、不写 Cubical 空模式）。below-eq
-  -- 两个方向均为裸受保护余归纳调用，两棵树以相反参数顺序给出，故无需
-  -- ≈M-sym / ≈M-trans 组合子遮蔽守卫。
+  -- trivial fibre has a unique label and a unique successor edge at
+  -- every node. The two below-eq directions are bare guarded
+  -- corecursive calls with the trees given in opposite argument order.
+  -- 确定性极限在互模拟意义下的唯一性。平凡纤维在每个节点有唯一标签与
+  -- 唯一后继边。below-eq 两个方向均为裸受保护余归纳调用，两棵树以相反
+  -- 参数顺序给出。
 
   det-unique : ∀ (x : ℕ) (t u : DetM x) → t ≈M u
   det-unique x t u ._≈M_.here-eq = refl

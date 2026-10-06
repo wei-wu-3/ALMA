@@ -8,6 +8,7 @@
 -- 通过容器嵌入将传输提升为自然变换的 ContCatEquivEmbedding、
 -- 形状范畴 ShapeCat（由形状函子的 Grothendieck 构造得到）
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCatEquiv where

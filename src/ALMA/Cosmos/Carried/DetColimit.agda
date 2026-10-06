@@ -1,30 +1,12 @@
 ------------------------------------------------------------------------
--- Universal property of the deterministic trivial-fibre tower colimit
--- (zero subst). LimitSystem supplies the apex L∞, the forward
--- edge-following legs Leg.leg, and det-unique; this slice closes the
--- universal property:
+-- Universal property of the deterministic trivial-fibre tower colimit.
+-- LimitSystem supplies the apex L∞, the forward edge-following legs
+-- Leg.leg, and det-unique; this slice closes the universal property
+-- with mediate / triangle / uniqueness.
 --
---   mediate     the apex L∞ together with the legs Leg.leg (a cocone);
---   triangle    any other cocone apex whose stage-v leg agrees with
---               the limit reading factors through L∞;
---   uniqueness  the factor is forced.
---
--- Legs and factor live at the PushSim layer (forward, non-total), not
--- as child-surjective FMap: finite stages inject into the limit, which
--- has extra nodes with no stage preimage. Everything is carried data;
--- no subst, no cast, no Maybe, no Cubical absurd pattern.
---
--- 确定性平凡纤维塔余极限的泛性质（零 subst）。LimitSystem 已提供顶点
--- L∞、前向边跟随腿 Leg.leg 与 det-unique；本切片闭合泛性质：
---
---   mediate    顶点 L∞ 连同腿 Leg.leg（一个余锥）；
---   triangle   任何其它余锥顶点，其第 v 层腿与极限读数相容，都经 L∞
---              分解；
---   uniqueness 因子被强制。
---
--- 腿与因子位于 PushSim 层（前向、非满），而非子节点满的 FMap：有限层
--- 单射到极限，极限含无层原像的额外节点。一切皆携带数据；无 subst、
--- 无 cast、无 Maybe、无 Cubical 空模式。
+-- 确定性平凡纤维塔余极限的泛性质。
+-- LimitSystem 已提供顶点 L∞、前向边跟随腿 Leg.leg 与 det-unique；
+-- 本切片用 mediate / triangle / uniqueness 闭合泛性质。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -59,15 +41,11 @@ module DetColimit
   open LimitSystem t embed-compat
     using (s∞; L∞; orbit∞; det-unique; module Leg)
 
-  -- DetM is a locally opened name inside LimitSystem and is not in
-  -- its export list, so it is re-opened here.
-  -- DetM 是 LimitSystem 内本地打开的名字，不在其导出清单中，故此处
-  -- 重新打开。
   open TrivDet {i = lzero} ℕ s∞ renaming (DetM to DetM∞)
 
   ----------------------------------------------------------------------
-  -- mediate: apex L∞, leg at stage m is Leg.leg at the natural
-  -- reading toℕ x with graph witness refl.
+  -- mediate: apex L∞, leg at stage m is Leg.leg at the natural reading
+  -- toℕ x with graph witness refl.
   -- mediate：顶点 L∞，第 m 层的腿即在自然读数 toℕ x 处、以 refl 为
   -- 图见证的 Leg.leg。
 

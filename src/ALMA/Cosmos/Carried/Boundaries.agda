@@ -1,7 +1,6 @@
 ------------------------------------------------------------------------
--- Machine-checked negative results for the carried FinCat colimit
--- (zero subst). Three object-level boundaries that were previously
--- prose-only conclusions:
+-- Machine-checked negative results for the carried FinCat colimit.
+-- Three object-level boundaries:
 --
 --   (1) inject₁ is injective but not surjective: the new top of
 --       Fin (n-at (suc m)) has no preimage in Fin (n-at m).
@@ -11,17 +10,7 @@
 --   (3) The total clamp saturates: suc k and suc (suc k) map to the
 --       same Fin top, so it is not injective.
 --
--- Every proof is a homogeneous contradiction on ℕ readings (toℕ),
--- closed by 1+n≰n / n≢1+n. No subst, no cast, no Maybe, no Cubical
--- absurd pattern.
---
--- The meta-theoretic boundaries (class B2: global UIP is independent;
--- class C: --cubical-compatible unification restrictions) cannot be
--- stated as negations here and live in the design notes. The usable
--- UIP boundary is the positive conditional DecUIP.dec⇒UIP, consumed
--- via the explicit uipI / uipJ parameters of TrivProj.SurjProj.
---
--- 携带式 FinCat 余极限的机检否定结果（零 subst）。三条对象层边界：
+-- 携带式 FinCat 余极限的机检否定结果。三条对象层边界：
 --
 --   (1) inject₁ 单射但非满射：Fin (n-at (suc m)) 的新末位在
 --       Fin (n-at m) 中无原像。
@@ -30,14 +19,6 @@
 --       FMap。
 --   (3) 全函数 clamp 饱和：suc k 与 suc (suc k) 送到同一 Fin 末位，
 --       故非单射。
---
--- 每个证明都是 toℕ 上的同质矛盾，由 1+n≰n / n≢1+n 闭合。无 subst、
--- 无 cast、无 Maybe、无 Cubical 空模式。
---
--- 元理论边界（B2：全局 UIP 独立；C：--cubical-compatible 归一化
--- 限制）无法在此作为否定陈述，见于设计注释。可用的 UIP 边界是肯定
--- 的条件定理 DecUIP.dec⇒UIP，经 TrivProj.SurjProj 的显式
--- uipI / uipJ 参数消费。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -73,11 +54,11 @@ Surjective : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
 Surjective f = ∀ y → Σ _ λ x → f x ≡ y
 
 ------------------------------------------------------------------------
--- (1) The new top has no preimage under inject₁
+-- The new top has no preimage under inject₁
 -- The claimed equality forces toℕ x ≡ n-at m, while x being a position
 -- of stage m gives toℕ x < n-at m; <⇒≢ is irreflexivity as a function
 -- of the equality.
--- (1) 新末位在 inject₁ 下无原像
+-- 新末位在 inject₁ 下无原像
 -- 所声称的等式迫使 toℕ x ≡ n-at m，而 x 是第 m 层位置给出
 -- toℕ x < n-at m；<⇒≢ 即以等式为参数的反自反性。
 
@@ -95,10 +76,10 @@ inject₁-notSurj m surj with surj (fromℕ (n-at m))
 ... | x , eq = inject₁-top-⊥ m x eq
 
 ------------------------------------------------------------------------
--- (2) Every FMap has a surjective index map
+-- Every FMap has a surjective index map
 -- childF returns a source index x' together with the graph witness
 -- u x' ≡ v, i.e. a chosen preimage of v; a pointed source suffices.
--- (2) 每个 FMap 的索引映射都满
+-- 每个 FMap 的索引映射都满
 -- childF 返回源索引 x' 与图见证 u x' ≡ v，即 v 的一个选定原像；
 -- 只需源端带点。
 
@@ -128,9 +109,9 @@ module _ (m : ℕ)
   ... | x' , r = inject₁-top-⊥ m x' (trans (sym (eu x')) r)
 
 ------------------------------------------------------------------------
--- (3) clamp saturates and is therefore not injective
+-- clamp saturates and is therefore not injective
 -- clamp {k} fixes every x ≥ k to the top fromℕ k.
--- (3) clamp 饱和，因而非单射
+-- clamp 饱和，因而非单射
 -- clamp {k} 把每个 x ≥ k 固定为末位 fromℕ k。
 
 private

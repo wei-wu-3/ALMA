@@ -1,39 +1,21 @@
 ------------------------------------------------------------------------
 -- Zero-subst colimit of a tower of finite endofunctions. A tower is a
 -- family f m : Fin (n-at m) → Fin (n-at m) together with the one-step
--- coherence that reading one stage up through inject₁ agrees:
---
+-- coherence
 --   toℕ (f (suc m) (inject₁ x)) ≡ toℕ (f m x).
---
--- This is exactly the Set-level content formerly encoded in
--- FinCatInfinityColimit by the partial extendFin / defaultFin machine
--- and the two-way ≤-total lemma extendFin-layer-independent (which
--- carried six subst). Here the whole colimit is just a FinCone over ℕ:
--- at m x = toℕ (f m x), compat = the supplied one-step coherence, and
--- FinCone derives at-cl / g∞ / extends / unique with zero subst. The
--- canonical reading g∞ k = toℕ (f k (natToFin k)) is the F₀ of the
--- tower colimit, and unique is its Set-level universal property.
---
--- The fibre of the FinCat tower is the lifted unit, so Cosmos-level
--- bisimulation uniqueness is carried separately by
--- LimitSystem.det-unique; this module fixes only the position axis.
+-- The colimit is a FinCone over ℕ: at m x = toℕ (f m x), compat is the
+-- supplied coherence, and FinCone derives at-cl / g∞ / extends / unique
+-- with zero subst. The canonical reading g∞ k = toℕ (f k (natToFin k))
+-- is the F₀ of the tower colimit, and unique is its Set-level universal
+-- property.
 --
 -- 有限自函数塔的零 subst 余极限。一个塔即一族
--- f m : Fin (n-at m) → Fin (n-at m)，附带一步相干性：经 inject₁ 上读
--- 一层一致：
---
+-- f m : Fin (n-at m) → Fin (n-at m)，附带一步相干性
 --   toℕ (f (suc m) (inject₁ x)) ≡ toℕ (f m x)。
---
--- 这正是先前 FinCatInfinityColimit 中用偏函数 extendFin / defaultFin
--- 机器与双向 ≤-total 引理 extendFin-layer-independent（含六处 subst）
--- 编码的 Set 层内容。这里整个余极限就是 ℕ 上的一个 FinCone：
--- at m x = toℕ (f m x)，compat 即所给的一步相干性，FinCone 零 subst
--- 地派生出 at-cl / g∞ / extends / unique。典范读数
--- g∞ k = toℕ (f k (natToFin k)) 即塔余极限的 F₀，unique 即其 Set 层
--- 泛性质。
---
--- FinCat 塔的纤维是提升的单位，故 Cosmos 层互模拟唯一性由
--- LimitSystem.det-unique 另行携带；本模块只固定位置轴。
+-- 余极限是 ℕ 上的一个 FinCone：at m x = toℕ (f m x)，compat 即所给
+-- 相干性，FinCone 零 subst 地派生出 at-cl / g∞ / extends / unique。
+-- 典范读数 g∞ k = toℕ (f k (natToFin k)) 即塔余极限的 F₀，unique 即
+-- 其 Set 层泛性质。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

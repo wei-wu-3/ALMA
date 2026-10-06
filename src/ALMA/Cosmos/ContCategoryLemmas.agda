@@ -16,6 +16,7 @@
 -- 封装反复出现的 subst 模式：沿对象等式运输形状、
 -- 消去沿 sym 的运输、拆分复合运输、把运输推过形状层映射
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContCategoryLemmas where

@@ -6,17 +6,13 @@
 -- uses embFin, whose target size n-at (shift d m) reduces
 -- definitionally; every position is read through the total clamp cl
 -- with a single bounded split m≤n⇒m<n∨m≡n and structural recursion on
--- m (no Fin indexed match, no Cubical absurd pattern on ≤). The public
--- API colimitUniv has the same shape as before, so consumers switch by
--- import alone.
+-- m.
 --
 -- 有限层 Fin (n-at m)（n-at m = suc (suc m)）的零 subst 余极限。该族经
 -- 迭代 inject₁ 嵌入，余极限为经 toℕ 的 ℕ。本模块是 FinCatInfinity 中
 -- Set 层泛性质的携带式、零 subst / 零 cast 替代：d 次嵌入用 embFin，
 -- 其目标尺寸 n-at (shift d m) 定义性归约；每个位置经全函数 clamp cl
--- 读取，只用一次有界拆分 m≤n⇒m<n∨m≡n，并对 m 结构递归（无 Fin 索引
--- 匹配，无对 ≤ 的 Cubical 空模式）。公开 API colimitUniv 与旧版同形，
--- 消费方仅改导入即可切换。
+-- 读取，只用一次有界拆分 m≤n⇒m<n∨m≡n，并对 m 结构递归。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -42,11 +38,11 @@ open import ALMA.Cosmos.Carried.LimitSystem
 
 ------------------------------------------------------------------------
 -- Pure Fin representatives, independent of the cone
--- 纯 Fin 代表，与锥无关
-
 -- One inject₁ reaches the canonical element of stage suc m with the
 -- same natural reading.
+-- 纯 Fin 代表，与锥无关
 -- 一次 inject₁ 到达第 suc m 层具有相同自然读数的典范元素。
+
 top-eq : ∀ m → inject₁ (cl m (suc m)) ≡ natToFin (suc m)
 top-eq m =
   toℕ-injective
@@ -141,8 +137,8 @@ record FinCone (X : Set) : Set where
 open FinCone public
 
 ------------------------------------------------------------------------
--- The Set-level universal property, same shape as before
--- Set 层泛性质，与旧版同形
+-- The Set-level universal property
+-- Set 层泛性质
 
 colimitUniv
   : ∀ {X : Set} (cone : FinCone X)

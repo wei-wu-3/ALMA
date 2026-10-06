@@ -5,7 +5,6 @@
 -- limit L∞ is one over ℕ. The finite projection projCosmos m : L∞ →
 -- stage m is a surjective index map u : I → J, hence a
 -- child-surjective MCorr FMap.
---
 -- childF is edge-independent and uses the section: the canonical
 -- source child of any target child v is pre v with graph witness
 -- surj v. The edge fibres are index-equality propositions, so the
@@ -17,7 +16,6 @@
 -- 塔的一层是 Fin (n-at m) 上的平凡纤维系统，极限 L∞ 是 ℕ 上的同类
 -- 系统。有限投影 projCosmos m : L∞ → 第 m 层 是满射索引映射 u : I → J，
 -- 故是子节点满的 MCorr FMap。
---
 -- childF 与边无关并用截面：目标子节点 v 的规范源子节点是 pre v，图见证
 -- 为 surj v。边纤维是索引等式命题，故 FiberAdj 往返律 η / ε 联系同一
 -- 等式的两份证明，由可判定等式导出的 UIP（Hedberg）闭合，而非公理 K。

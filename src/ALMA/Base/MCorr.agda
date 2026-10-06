@@ -1,11 +1,9 @@
 ------------------------------------------------------------------------
 -- Indexed M-types and carried functional correspondences
---
 -- Subst-free edge-family presentation, yielding the category MCorrCat
 -- of edge-indexed M-types and deterministic correspondences.
 --
 -- 索引 M 型与携带式功能对应
---
 -- 零 subst 边族表示，导出边索引 M 型与确定性对应的范畴 MCorrCat。
 ------------------------------------------------------------------------
 

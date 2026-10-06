@@ -6,27 +6,31 @@
 
 ## Introduction / 简介
 
-ALMA is a formal framework grounded in type theory, category theory, containers (dependent pairs of shapes and positions), and coalgebras. Its modular, parameterised architecture decouples categorical infrastructures (containers and container functors) from unfolding systems (polynomial coalgebras), thereby supporting composable universe constructions. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
+ALMA is a formal framework grounded in type theory, category theory, edge-family-indexed coinductive M-types, and coalgebras. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
 
-The project is organised into four source sub-trees: an active main line Cosmos/, its foundation Base/, and two frozen stages InitialPass/ and Prototype/.
+The project is organised into five source sub-trees: an active main line Cosmos/, its foundation Base/, and three frozen stages SecondPass/, InitialPass/ and Prototype/.
 
-Base/ — Fundamental structure. When the uniqueness proof in Cosmos/ stalled, a backtracking analysis of the cause revealed that all equivalence relations share a single indexed coinductive skeleton Mᵢ (with M as its trivial-index special case), organised into a two-axis degeneration lattice Equivalence/.
+Base/ — Fundamental structure. When the uniqueness proof in SecondPass/ stalled, a backtracking analysis of the cause revealed that all equivalence relations share a single indexed coinductive skeleton Mᵢ (with M as its trivial-index special case), organised into a two-axis degeneration lattice Equivalence/.
 
-Cosmos/ — The active main line of development. Building on the structural decomposition of InitialPass and now drawing on Base's Mᵢ skeleton, it achieves full modularisation and categorical reconstruction atop the standard library's containers and agda-categories.
+Cosmos/ — The active main line of development. It turns decisively to the carried M architecture.
 
-InitialPass/ — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Superseded by Cosmos/. Frozen for archival purposes.
+SecondPass/ — The second structural reorganisation. It introduced the MorphismObject / Unfolding framework, built the cross-universe cumulative hierarchy and the FinCatN tower, and concentrated the project's subst debt. Superseded by Cosmos/. Frozen for archival purposes.
+
+InitialPass/ — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Frozen for archival purposes.
 
 Prototype/ — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
 
-ALMA 是基于类型论、范畴论、容器（形状与位置的依赖对）及余代数的形式化框架。其模块化参数化架构将容器与容器函子等范畴基础设施，与多项式余代数等展开系统解耦，从而支撑起宇宙构造的可组合性。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
+ALMA 是基于类型论、范畴论、边族索引余归纳 M 型及余代数的形式化框架。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
-项目结构划分为四个源码子树：一条活跃主线 Cosmos/，其基础结构 Base/，以及两个冻结的历史阶段 InitialPass/ 与 Prototype/。
+项目结构划分为五个源码子树：一条活跃主线 Cosmos/，其基础结构 Base/，以及三个冻结的历史阶段 SecondPass/、InitialPass/ 与 Prototype/。
 
-Base/ —— 基础结构。在 Cosmos/ 唯一性证明出现障碍回溯原因时，发现所有等价关系共享一个索引余归纳骨架 Mᵢ（M 为其平凡索引特例），并组织为两轴退化格 Equivalence/。
+Base/ —— 基础结构。在 SecondPass/ 唯一性证明受阻、回溯其原因时，发现所有等价关系共享一个索引余归纳骨架 Mᵢ（M 为其平凡索引特例），并组织为两轴退化格 Equivalence/。
 
-Cosmos/ —— 当前活跃开发的主线。它在 InitialPass 结构性拆分的基础上，并借助 Base 的 Mᵢ 骨架，依托标准库容器与 agda-categories 实现模块化及范畴论重建。
+Cosmos/ —— 当前活跃开发的主线。彻底转向携带式 M 架构。
 
-InitialPass/ —— 吸纳社区反馈后的结构性重组：将单体原型拆分为独立模块。已被 Cosmos/ 取代。冻结存档。
+SecondPass/ —— 第二次结构性重组。引入 MorphismObject / Unfolding 框架，构建跨宇宙累积层级与 FinCatN 塔，是项目 subst 债务的集中地。已被 Cosmos/ 取代。冻结存档。
+
+InitialPass/ —— 吸纳社区反馈后的结构性重组：将单体原型拆分为独立模块。冻结存档。
 
 Prototype/ —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的“subst hell”问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
 
@@ -83,11 +87,13 @@ agda -i src src/Everything.agda
 ```text
 src/
 ├── ALMA/
-│   ├── Base/
+│   ├── Base/                              Active main line — foundation
 │   │   ├── IndexedMType.agda
 │   │   ├── Container.agda
 │   │   ├── MCategory.agda
-│   │   ├── MCorr.agda
+│   │   ├── MCorr.agda                     Carried correspondence kernel
+│   │   ├── MCorrSetoid.agda               Setoid-parameterised kernel
+│   │   ├── MCorrSetoidCat.agda            Setoid correspondence category
 │   │   ├── Equivalence.agda
 │   │   └── Equivalence/
 │   │       ├── Core.agda
@@ -103,16 +109,55 @@ src/
 │   │       ├── ManifoldEq.agda
 │   │       ├── Lattice.agda
 │   │       └── StrongEquiv.agda
-│   ├── Cosmos.agda
-│   ├── Cosmos/
-│   │   ├── ContCategory.agda
+│   │
+│   ├── Cosmos.agda                        Thin re-export entry point
+│   ├── Cosmos/                            Active main line — M-Cosmos
+│   │   ├── ContCategory.agda              Container primitives
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContFunctor.agda
 │   │   ├── ContCatEquiv.agda
+│   │   ├── M/
+│   │   │   ├── Object.agda                M-Cosmos object layer
+│   │   │   ├── ContainerInstance.agda     I = ⊤ special case
+│   │   │   ├── Terminal.agda
+│   │   │   ├── CoalgCat.agda
+│   │   │   ├── Lambek.agda
+│   │   │   ├── CosmosCategory.agda
+│   │   │   ├── DetCongruence.agda         Congruence engines
+│   │   │   ├── GenCongruence.agda
+│   │   │   ├── ListSwap.agda
+│   │   │   ├── ListSwapDef.agda
+│   │   │   ├── MorphismCorrespondence.agda
+│   │   │   ├── ContainerAutomorphism.agda
+│   │   │   ├── ListCosmos.agda
+│   │   │   ├── TowerSeparation.agda       Separation / obstruction
+│   │   │   ├── PermutationNonCommutative.agda
+│   │   │   ├── NontrivialLimit.agda
+│   │   │   ├── SewingObstruction.agda
+│   │   │   └── PermutedEmbedding.agda
+│   │   └── Carried/                       Zero-subst colimit machinery
+│   │       ├── SeqColimit.agda
+│   │       ├── DetSys.agda
+│   │       ├── TrivProj.agda
+│   │       ├── FinNatUIP.agda
+│   │       ├── FinProj.agda
+│   │       ├── LimitSystem.agda
+│   │       ├── FinEmbed.agda
+│   │       ├── FinColimit.agda
+│   │       ├── FinTower.agda
+│   │       ├── DetColimit.agda
+│   │       └── Boundaries.agda
+│   │
+│   ├── SecondPass/                        Frozen archive
 │   │   ├── ContCatEquivFunctor.agda
 │   │   ├── Unfolding.agda
+│   │   ├── MorphismObject.agda
+│   │   ├── MorphismObject/
+│   │   │   ├── Covariant.agda
+│   │   │   └── MorphismObject.agda
 │   │   ├── ContCatEquivLemmas.agda
 │   │   ├── MorphismMorphism.agda
+│   │   ├── Cosmos.agda
 │   │   ├── Terminal.agda
 │   │   ├── CoalgCat.agda
 │   │   ├── Lambek.agda
@@ -151,25 +196,9 @@ src/
 │   │   ├── FinCatInfinityColimit.agda
 │   │   ├── FinCatInfinityColimitUniversal.agda
 │   │   ├── Instances.agda
-│   │   ├── CosmosMorphism.agda
-│   │   ├── MorphismObject.agda
-│   │   ├── MorphismObject/
-│   │   │   ├── Covariant.agda
-│   │   │   └── MorphismObject.agda
-│   │   ├── Carried/
-│   │   │   ├── SeqColimit.agda
-│   │   │   ├── DetSys.agda
-│   │   │   ├── TrivProj.agda
-│   │   │   ├── FinNatUIP.agda
-│   │   │   ├── FinProj.agda
-│   │   │   ├── LimitSystem.agda
-│   │   │   ├── FinColimit.agda
-│   │   │   ├── FinTower.agda
-│   │   │   ├── FinEmbed.agda
-│   │   │   ├── DetColimit.agda
-│   │   │   └── Boundaries.agda
-│   │   └── WIP.agda  (archived; excluded from Everything.agda)
-│   ├── InitialPass/
+│   │   └── WIP.agda                       (excluded from Everything.agda)
+│   │
+│   ├── InitialPass/                       Frozen archive
 │   │   ├── ObjEquivCat.agda
 │   │   ├── ObjEquivFunctor.agda
 │   │   ├── ContCategory.agda
@@ -181,15 +210,17 @@ src/
 │   │   ├── ContCatEquivLemmas.agda
 │   │   ├── MorphismMorphism.agda
 │   │   └── Cosmos.agda
-│   └── Prototype/
+│   │
+│   └── Prototype/                         Frozen archive
 │       ├── Prelude.agda
 │       ├── Cosmos.agda
-│       ├── Properties.agda
+│       ├── Properties.agda                (excluded from Everything.agda)
 │       ├── Indestructibility.agda
 │       ├── Beings.agda
 │       ├── Universe.agda
 │       └── StandardModel.agda
-└── Everything.agda
+│
+└── Everything.agda                        Build entry — imports all of the above
 ```
 
 ## Contributing / 贡献指南

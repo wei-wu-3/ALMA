@@ -5,7 +5,6 @@
 -- replacing the live code's partial finFromℕ-maybe / defaultFin. It is
 -- surjective, with section toℕ and exact round-trip
 -- clamp (toℕ v) ≡ v.
---
 -- The transitions s∞ and t-fin together with their compatibility
 -- sec-step are parameters, supplied by the tower's layer-independent
 -- limit reading. No dependent transport is used — only the one
@@ -15,7 +14,6 @@
 -- projCosmos m 的携带形式。索引映射是全函数钳制 ℕ → Fin (suc k)，在
 -- 末位饱和，取代真实代码中越界即塌缩的偏函数 finFromℕ-maybe /
 -- defaultFin。它是满射，截面为 toℕ，且有精确往返 clamp (toℕ v) ≡ v。
---
 -- 转移 s∞ 与 t-fin 及其相容性 sec-step 在此为参数，由塔的层无关极限
 -- 读数供给。无依赖传输——只有经 SurjProj 携带的一条同质等式 sec-step。
 ------------------------------------------------------------------------

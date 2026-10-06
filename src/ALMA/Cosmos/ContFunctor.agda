@@ -16,6 +16,7 @@
 -- 满性通过测试对象构造原像，并利用自然性验证其与给定自然变换相等。
 -- 建立容器范畴与多项式函子全子范畴之间的强等价及由此诱导的伴随等价
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.ContFunctor where
