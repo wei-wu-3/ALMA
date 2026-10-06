@@ -53,6 +53,7 @@ import ALMA.Cosmos.M.GenCongruence  -- label-changing deterministic congruence e
 import ALMA.Cosmos.M.ListSwap  -- list universe label-changing swap01 endomorphism via GenCongruence, zero subst
 import ALMA.Cosmos.M.ListSwapDef
 import ALMA.Cosmos.M.MorphismCorrespondence
+import ALMA.Cosmos.M.ContainerAutomorphism
 import ALMA.Cosmos.M.ListCosmos  -- uniform binary universe: fixed-label swap01 (n=2) edge permutation, zero subst
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
