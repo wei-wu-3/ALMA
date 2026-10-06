@@ -1,53 +1,39 @@
 ------------------------------------------------------------------------
--- Carried sequential colimit — specification slice (zero subst)
+-- Carried sequential colimit — specification slice (zero subst). A
+-- Chain is an ℕ-indexed sequence of edge-indexed systems together with
+-- carried embedding FMap between successive layers. Two design choices
+-- eliminate the two transport axes that made the propositional-equality
+-- version collapse:
 --
--- A Chain is an ℕ-indexed sequence of edge-indexed systems
--- (ALMA.Base.MCorr.Sys) together with CARRIED embedding morphisms
--- (ALMA.Base.MCorr.FMap) between successive layers.
---
--- Two design choices eliminate the two transport axes that made the
--- propositional-equality version (WIP.agda) collapse:
---
---   * Layer arithmetic axis. The d-fold embedding is iteration of the
---     carried composition compF, and its target stage is `shift d m`,
---     which computes by recursion on d so that
---       shift (suc d) m ≡ shift d (suc m)
---     holds DEFINITIONALLY. There is therefore no +-suc / +-assoc
---     equality to cast along: the old castCosmos / ShiftedTower
---     machinery (subst over the layer index) never appears.
---
---   * Position axis. A cocone leg is itself a carried FMap (it carries
---     the canonical child correspondence childF and the whole-fibre
---     FiberAdj). Leg compatibility is behavioural equivalence _≈F_,
---     never transport of a cross-category morphism along an equation
---     between source objects: the old partial defaultFin /
---     subst-src-FinCatN / cancel-subst-src machinery never appears.
+--   * Layer arithmetic axis: the d-fold embedding iterates compF, and
+--     its target stage shift d m computes by recursion on d so that
+--     shift (suc d) m ≡ shift d (suc m) holds definitionally; no
+--     +-suc / +-assoc cast, no castCosmos / ShiftedTower.
+--   * Position axis: a cocone leg is itself a carried FMap, and leg
+--     compatibility is behavioural equivalence _≈F_; no source-object
+--     equality, no defaultFin / subst-src-FinCatN / cancel-subst-src.
 --
 -- This slice fixes the interface and the carried iterated embedding.
--- The concrete apex construction, mediate, the triangle equations and
--- uniqueness are filled in the following slices, each compiled green.
+-- The apex construction, mediate, the triangle equations and
+-- uniqueness are filled in the following slices.
 --
--- 携带式序列余极限 —— 规范切片（零 subst）
+-- 携带式序列余极限 —— 规范切片（零 subst）。Chain 是以 ℕ 为索引的边
+-- 索引系统序列，相邻两层间携带嵌入 FMap。两处设计消去了让命题等式
+-- 版本崩溃的两条传输轴：
 --
--- Chain 是以 ℕ 为索引的边索引系统（ALMA.Base.MCorr.Sys）序列，并在相
--- 邻两层之间携带嵌入态射（ALMA.Base.MCorr.FMap）。
+--   * 层算术轴：d 次嵌入迭代 compF，其目标层 shift d m 对 d 递归使得
+--     shift (suc d) m ≡ shift d (suc m) 定义性成立；无 +-suc / +-assoc
+--     的 cast，无 castCosmos / ShiftedTower。
+--   * 位置轴：余锥腿本身就是携带 FMap，腿相容性是行为等价 _≈F_；
+--     无源对象等式，无 defaultFin / subst-src-FinCatN /
+--     cancel-subst-src。
 --
--- 两处设计消去了让命题等式版本（WIP.agda）崩溃的两条传输轴：
---
---   * 层算术轴。d 次嵌入是携带复合 compF 的迭代，其目标层为
---     `shift d m`，对 d 递归使得 shift (suc d) m ≡ shift d (suc m)
---     定义性成立。因此不存在需要沿之 cast 的 +-suc / +-assoc 等式：
---     旧的 castCosmos / ShiftedTower 机器（沿层索引的 subst）不再出现。
---
---   * 位置轴。余锥腿本身就是携带的 FMap（携带规范子对应 childF 与整
---     纤维 FiberAdj）。腿的相容性是行为等价 _≈F_，绝不沿源对象等式
---     传输跨范畴态射：旧的偏函数 defaultFin / subst-src-FinCatN /
---     cancel-subst-src 机器不再出现。
---
--- 本切片固定接口与携带的迭代嵌入；具体 apex 构造、mediate、三角等
--- 式与唯一性在后续切片补齐，每片均编译通过。
+-- 本切片固定接口与携带的迭代嵌入；apex 构造、mediate、三角等式与
+-- 唯一性在后续切片补齐。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
+
 module ALMA.Cosmos.Carried.SeqColimit where
 
 open import Agda.Primitive using (Level; _⊔_; lsuc)
@@ -56,46 +42,34 @@ open import Agda.Builtin.Equality using (_≡_)
 open import Data.Nat.Base using (ℕ; zero; suc)
 
 open import ALMA.Base.MCorr
-  using (Sys; FMap; _≈F_; idF; compF
-        ; I; A
-        ; ≈F-refl; ≈F-trans
+  using (Sys; FMap; _≈F_; idF; compF; I; A; ≈F-refl; ≈F-trans
         ; ∘-resp-≈; sym-assoc-f; identityʳ-f)
 
 ------------------------------------------------------------------------
--- Stage shift by d successor edges.
---
--- It is written to recurse on d in the form that makes
---   shift (suc d) m = shift d (suc m)
--- hold by reduction. This is the carried replacement for the layer
--- arithmetic equality m + suc d ≡ suc m + d (+-suc): the equality is
--- baked into the recursion, so nothing is ever transported along it.
---
--- 沿 d 条后继边的层偏移。
--- 按对 d 递归的方式书写，使 shift (suc d) m = shift d (suc m) 经归约
--- 成立。这是层算术等式 m + suc d ≡ suc m + d（+-suc）的携带替代：等
--- 式已烤进递归，无需沿之传输任何东西。
-------------------------------------------------------------------------
+-- Stage shift by d successor edges. Recursion on d in the form that
+-- makes shift (suc d) m = shift d (suc m) hold by reduction; the
+-- layer-arithmetic equality is baked into the recursion, so nothing is
+-- ever transported along it.
+-- 沿 d 条后继边的层偏移。按对 d 递归的方式书写，使
+-- shift (suc d) m = shift d (suc m) 经归约成立；层算术等式已烤进
+-- 递归，无需沿之传输任何东西。
+
 shift : ℕ → ℕ → ℕ
 shift zero    m = m
 shift (suc d) m = shift d (suc m)
 
 ------------------------------------------------------------------------
 -- A carried chain: systems X m and a carried embedding at each layer.
---
 -- 携带式链：系统 X m 与每层的携带嵌入。
-------------------------------------------------------------------------
+
 record Chain (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
   field
     X   : ℕ → Sys i a b
     emb : (m : ℕ) → FMap (X m) (X (suc m))
 
-  -- The d-fold embedding as iteration of the carried composition.
-  -- At d = 0 it is the identity; at suc d it is emb m followed by the
-  -- d-fold embedding starting at suc m. The target stage computes via
-  -- shift, so no arithmetic cast is needed at any step.
-  --
-  -- d 次嵌入即携带复合的迭代。d = 0 为恒等；suc d 为先 emb m 再接从
-  -- suc m 起的 d 次嵌入。目标层经 shift 计算，任一步都无需算术 cast。
+  -- Iteration of compF; the target stage computes via shift, so no
+  -- arithmetic cast is needed at any step.
+  -- compF 的迭代；目标层经 shift 计算，任一步都无需算术 cast。
   emb^d : (m d : ℕ) → FMap (X m) (X (shift d m))
   emb^d m zero    = idF (X m)
   emb^d m (suc d) = compF (emb^d (suc m) d) (emb m)
@@ -103,56 +77,27 @@ record Chain (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
 open Chain public
 
 ------------------------------------------------------------------------
--- A carried cocone over a chain with apex Y: a leg out of every layer
--- and behavioural compatibility saying that the leg at suc m factors
--- through the embedding.
---
--- 以 Y 为 apex 的携带余锥：每层一条出站腿，以及"suc m 处的腿经嵌入
--- 分解"的行为相容性。
-------------------------------------------------------------------------
+-- A carried cocone with apex Y: a leg out of every layer, and
+-- behavioural compatibility compF (leg (suc m)) (emb m) ≈F leg m.
+-- 以 Y 为 apex 的携带余锥：每层一条出站腿，以及行为相容性
+-- compF (leg (suc m)) (emb m) ≈F leg m。
+
 record Cocone {i a b : Level} (ch : Chain i a b) (Y : Sys i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
   field
     leg : (m : ℕ) → FMap (X ch m) Y
-    -- compF (leg (suc m)) (emb ch m) ≈F leg m, carried as a behavioural
-    -- equivalence; no source-object equality is involved.
-    --
-    -- compF (leg (suc m)) (emb ch m) ≈F leg m，作为行为等价携带；不涉
-    -- 及任何源对象等式。
     coh : (m : ℕ)
         → compF (leg (suc m)) (emb ch m) ≈F leg m
 
 open Cocone public
 
 ------------------------------------------------------------------------
--- d-fold leg coherence, carried.
---
--- From the one-step compatibility coh m we derive, by induction on d,
--- that the leg at the stage reached after d embeddings, factored
--- through the d-fold embedding, is the leg at m:
---
---   compF (leg (shift d m)) (emb^d m d) ≈F leg m
---
--- This is the carried replacement for the old transport wrapping: the
--- old code packaged every cocone / g leg in subst-src-FinCatN along a
--- defaultFin-src-eq and realigned the iterated embedCosmos^d with the
--- E1…E5 transport lemmas before every coinductive step. Here the
--- iteration is plain carried composition; coherence is a finite chain
--- of behavioural equivalences (associativity, congruence, the one-step
+-- d-fold leg coherence, by induction on d from the one-step coh; a
+-- finite chain of behavioural equivalences (associativity, congruence,
 -- coh), with no source-object equality and no dependent transport.
---
--- d 次腿的携带相干性。
--- 由一步相容性 coh m 对 d 归纳，得到：经 d 次嵌入分解后的、偏移 d 层
--- 处的腿，在行为等价意义下就是 m 处的腿：
---
---   compF (leg (shift d m)) (emb^d m d) ≈F leg m
---
--- 这是旧传输包裹的携带替代：旧代码把每条余锥 / g 腿沿
--- defaultFin-src-eq 包一层 subst-src-FinCatN，并在每个余归纳步前用
--- E1…E5 传输引理对齐迭代的 embedCosmos^d。此处迭代就是纯携带复合，
--- 相干性是行为等价的有限链（结合律、同余、一步 coh），无源对象等式，
--- 无依赖传输。
-------------------------------------------------------------------------
+-- d 次腿相干性，由一步 coh 对 d 归纳；行为等价的有限链（结合律、
+-- 同余、coh），无源对象等式、无依赖传输。
+
 module _ {i a b : Level} {ch : Chain i a b} {L : Sys i a b}
          (coc : Cocone ch L) where
 
@@ -174,17 +119,9 @@ module _ {i a b : Level} {ch : Chain i a b} {L : Sys i a b}
 
 ------------------------------------------------------------------------
 -- The colimit universal property, expressed entirely with carried
--- morphisms and behavioural equivalence:
---   mediate   — every cocone factors through the apex;
---   triangle  — mediating after a leg equals the cocone leg;
---   unique    — any morphism satisfying the triangles is mediating, up
---               to behavioural equivalence.
---
--- 余极限泛性质，完全用携带态射与行为等价表达：
---   mediate  —— 任意余锥经 apex 分解；
---   triangle —— 中介态射接余锥腿等于该余锥腿；
---   unique   —— 满足三角的任意态射在行为等价意义下等于 mediate。
-------------------------------------------------------------------------
+-- morphisms and behavioural equivalence.
+-- 余极限泛性质，完全用携带态射与行为等价表达。
+
 record IsColimit {i a b : Level} {ch : Chain i a b}
                 (Apex : Sys i a b) (coc : Cocone ch Apex)
        : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -200,9 +137,8 @@ open IsColimit public
 
 ------------------------------------------------------------------------
 -- A bundled colimit: apex, its cocone and the universal property.
---
 -- 打包的余极限：apex、其余锥与泛性质。
-------------------------------------------------------------------------
+
 record Colimit (i a b : Level) (ch : Chain i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
   field
@@ -213,96 +149,54 @@ record Colimit (i a b : Level) (ch : Chain i a b)
 open Colimit public
 
 ------------------------------------------------------------------------
--- Carried colimit LIMIT STRUCTURE (existence data).
+-- Carried colimit limit structure (existence data). The colimit exists
+-- relative to a pre-given limit system L with unbounded positions, a
+-- plain (non-FMap, not child-surjective) position/label injection of
+-- each stage into L, together with inj-coh (the embedding preserves
+-- the injected position; one homogeneous equation on I L) and rep
+-- (every limit point has a specified, total finite-stage
+-- representative with a homogeneous graph witness).
 --
--- A chain alone does not determine a colimit without quotienting
--- indices (which would reintroduce propositional identification). The
--- colimit exists relative to a pre-given limit system L with UNBOUNDED
--- positions (the analogue of FinCat∞/ℕ), a plain (non-FMap, not
--- child-surjective) position/label injection inj-u / inj-shape of each
--- stage into L, together with:
+-- rep replaces the old partial defaultFin: limit positions are
+-- unbounded (ℕ), so the representative at position k is simply stage
+-- k — no bound, no out-of-range case, no threshold. The graph witness
+-- is homogeneous in I L; dependent fibres are aligned by carried
+-- FiberAdj (added later as rep-child), never transported.
 --
---   * inj-coh — the embedding preserves the injected position
---     (toℕ-inject₁); one homogeneous equation on I L;
+-- 携带式余极限的极限结构（存在性数据）。余极限相对于预给的、位置无界
+-- 的极限系统 L 存在，每层到 L 有普通的（非 FMap、不满足子节点满）位置
+-- 与标签注入，附带 inj-coh（嵌入保持注入位置；I L 上的单一同质等式）
+-- 与 rep（每个极限点有指定的全函数有限层代表及同质图见证）。
 --
---   * rep    — EVERY limit point has a SPECIFIED, TOTAL finite-stage
---     representative (m , x) together with the homogeneous graph
---     witness inj-u m x ≡ v.
---
--- rep is the carried replacement for the old defaultFin. The old
--- defaultFin : ℕ → Fin n was a PARTIAL canonicaliser into a BOUNDED
--- finite set (out-of-range collapsed to fzero), which forced the
--- "sufficiently large layer L ≥ base+k+1" device in the uniqueness
--- proof. Here the limit positions are unbounded (ℕ), so the
--- representative at position k is simply stage k: rep is a total
--- function with no bound, no out-of-range case, no threshold. The graph
--- witness is homogeneous in I L — the only equality, on a single index
--- type; dependent fibres are aligned by carried FiberAdj (added later
--- as rep-child), never transported.
---
--- 携带式余极限的极限结构（存在性数据）。
--- 仅有链并不能在不商索引的前提下确定余极限（商索引会重新引入命题
--- 识别）。余极限相对于一个预给的极限系统 L 存在：L 具有无界位置（类
--- 比 FinCat∞/ℕ），每层到 L 有一个普通的（非 FMap、不满足子节点满）位
--- 置/标签注入 inj-u / inj-shape，并附带：
---
---   * inj-coh —— 嵌入保持注入位置（toℕ-inject₁）；I L 上的单一同质
---     等式；
---
---   * rep   —— 每个极限点都有一个指定的、全函数的有限层代表
---     (m , x) 及同质图见证 inj-u m x ≡ v。
---
--- rep 是旧 defaultFin 的携带替代。旧 defaultFin : ℕ → Fin n 是到有界
--- 有限集的偏典范化（越界塌为 fzero），逼出了唯一性证明里"足够大层
--- L ≥ base+k+1"的装置。此处极限位置无界（ℕ），位置 k 的代表就是第
--- k 层：rep 是全函数，无界、无越界、无阈值。图见证在 I L 中同质 ——
--- 唯一的等式，位于单一索引类型；依赖纤维由携带的 FiberAdj（后续以
--- rep-child 加入）对齐，绝不传输。
-------------------------------------------------------------------------
+-- rep 取代旧的偏函数 defaultFin：极限位置无界（ℕ），故位置 k 的代表
+-- 就是第 k 层——无界、无越界、无阈值。图见证在 I L 中同质；依赖纤维
+-- 由携带的 FiberAdj（后续以 rep-child 加入）对齐，绝不传输。
+
 record Limit {i a b : Level} (ch : Chain i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
 
   field
-    -- The pre-given limit system with unbounded positions (FinCat∞/ℕ).
-    --
-    -- 预给的、位置无界的极限系统（FinCat∞/ℕ）。
     L : Sys i a b
 
-    -- Stage→limit POSITION injection (toℕ). This is NOT a FMap: it is
-    -- not child-surjective (a limit position ≥ n-at m has no stage-m
-    -- preimage), so it has no tree action. It is a plain carried
-    -- function on indices, together with the label map.
-    --
-    -- 阶段→极限的位置注入（toℕ）。它不是 FMap：不满足子节点满（极限位
-    -- 置 ≥ n-at m 在第 m 层无原像），故无树作用。它只是索引上的普通携
-    -- 带函数，外加标签映射。
+    -- Stage→limit position injection (toℕ). NOT an FMap: not
+    -- child-surjective, hence no tree action.
+    -- 阶段→极限的位置注入（toℕ）。不是 FMap：不满足子节点满，故无树
+    -- 作用。
     inj-u : (m : ℕ) → I (X ch m) → I L
 
-    -- Label injection at the image positions (trivial in the current
-    -- tower; carried as a function, no equation).
-    --
-    -- 像位置处的标签注入（当前塔中平凡；作为函数携带，无等式）。
     inj-shape : (m : ℕ) (x : I (X ch m))
               → A (X ch m) x → A L (inj-u m x)
 
-    -- The embedding preserves limit positions:
-    --   inj-u (suc m) (u (emb m) x) ≡ inj-u m x
-    -- (the analogue of toℕ-inject₁). A single HOMOGENEOUS equation on
-    -- I L; no layer-arithmetic cast (the +-suc transport is done
-    -- definitionally by shift / emb^d).
-    --
-    -- 嵌入保持极限位置：inj-u (suc m) (u (emb m) x) ≡ inj-u m x
-    -- （类比 toℕ-inject₁）。I L 上的单一同质等式；无层算术 cast
-    -- （+-suc 传输由 shift / emb^d 定义性完成）。
+    -- Embedding preserves limit positions (analogue of toℕ-inject₁);
+    -- a single homogeneous equation on I L.
+    -- 嵌入保持极限位置（类比 toℕ-inject₁）；I L 上的单一同质等式。
     inj-coh : (m : ℕ) (x : I (X ch m))
             → inj-u (suc m) (FMap.u (emb ch m) x) ≡ inj-u m x
 
-    -- Total finite-stage representative of every limit point (natToFin):
-    -- position k is represented canonically at stage k, which always
-    -- contains k. Replaces the partial defaultFin and its threshold.
-    --
-    -- 每个极限点的全函数有限层代表（natToFin）：位置 k 在第 k 层有典范
-    -- 代表，而第 k 层必含 k。取代偏函数 defaultFin 及其阈值。
+    -- Total representative: position k is represented at stage k,
+    -- which always contains k. Replaces the partial defaultFin.
+    -- 全函数代表：位置 k 在第 k 层有典范代表，而第 k 层必含 k。取代
+    -- 偏函数 defaultFin。
     rep   : (v : I L)
           → Σ ℕ λ m →
             Σ (I (X ch m)) λ x →

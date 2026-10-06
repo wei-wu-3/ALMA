@@ -1,19 +1,16 @@
 ------------------------------------------------------------------------
--- bridging FullyFaithful + EssSurj to StrongEquivalence
--- A functor F : C → D is a strong equivalence of categories when it
--- is fully faithful and split essentially surjective. This module builds
--- the inverse functor G : D → C explicitly, together with natural
--- isomorphisms F ∘ G ≃ id and G ∘ F ≃ id, and assembles them into
--- a StrongEquivalence record
--- This module is independent of the DepLayeredEq degeneration lattice:
--- it operates at the category level
+-- Bridging FullyFaithful + EssSurj to StrongEquivalence. Given a
+-- fully faithful, split essentially surjective functor F : C → D,
+-- this module builds the inverse functor G : D → C explicitly, the
+-- natural isomorphisms F ∘ G ≃ id and G ∘ F ≃ id, and assembles them
+-- into a StrongEquivalence record.
 --
--- 从 FullyFaithful + EssSurj 桥接到 StrongEquivalence
--- 函子 F : C → D 是范畴的强等价，当且仅当它完全忠实且本质满射
--- 本模块显式构造逆函子 G : D → C，以及自然同构 F ∘ G ≃ id 与
--- G ∘ F ≃ id，并把它们打包为 StrongEquivalence 记录
--- 本模块独立于 DepLayeredEq 退化格：它在范畴层面运作
+-- 从 FullyFaithful + EssSurj 桥接到 StrongEquivalence。给定完全忠实、
+-- 分裂本质满射的函子 F : C → D，本模块显式构造逆函子 G : D → C、
+-- 自然同构 F ∘ G ≃ id 与 G ∘ F ≃ id，并组装为 StrongEquivalence
+-- 记录。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Equivalence.StrongEquiv where
@@ -32,10 +29,6 @@ open import Categories.NaturalTransformation.Core using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism)
 open import Categories.Morphism using (_≅_; Iso)
 
--- parameterized by the functor, its fully-faithful witness, and the
--- split essential surjectivity witness
---
--- 以函子、完全忠实见证与分裂本质满射见证为参数
 module _ {oc ℓc ec od ℓd ed : Level}
          {C : Category oc ℓc ec}
          {D : Category od ℓd ed}
@@ -60,10 +53,9 @@ module _ {oc ℓc ec od ℓd ed : Level}
 
   module Gm = Functor G
 
-  -- The category argument D is written explicitly because _≅_ takes
-  -- three parameters: category, source, target
-  --
-  -- 范畴参数 D 显式写出，因为 _≅_ 需要三个参数：范畴、源、靶
+  -- D is written explicitly because _≅_ takes three parameters:
+  -- category, source, target.
+  -- D 显式写出，因为 _≅_ 需要三个参数：范畴、源、靶。
   isoAt : (Y : Category.Obj D) → _≅_ D (Fm.F₀ (Gm.F₀ Y)) Y
   isoAt Y = proj₂ (ses Y)
 
@@ -79,19 +71,15 @@ module _ {oc ℓc ec od ℓd ed : Level}
   isoAt-bwd-fwd : (Y : Category.Obj D) → bwd Y D.∘ fwd Y D.≈ D.id
   isoAt-bwd-fwd Y = Iso.isoˡ (_≅_.iso (isoAt Y))
 
-  -- The essential characterisation of G₁: it factors through the
-  -- chosen isomorphism F (G Y) ≅ Y. This is the key lemma that drives
-  -- all subsequent naturality and inverse proofs
-  --
-  -- G₁ 的本质刻画：它经由所选同构 F (G Y) ≅ Y 分解
-  -- 这是驱动后续所有自然性与逆证明的关键引理
+  -- Essential characterisation of G₁: it factors through the chosen
+  -- isomorphism F (G Y) ≅ Y. This is the key lemma driving all
+  -- subsequent naturality and inverse proofs.
+  -- G₁ 的本质刻画：它经由所选同构 F (G Y) ≅ Y 分解。这是驱动后续
+  -- 所有自然性与逆证明的关键引理。
   F₁G₁-char : ∀ {Y Z} (f : Y D.⇒ Z)
             → Fm.F₁ (Gm.F₁ f) D.≈ bwd Z D.∘ (f D.∘ fwd Y)
   F₁G₁-char {Y} {Z} f = proj₂ (full (bwd Z D.∘ (f D.∘ fwd Y)))
 
-  -- Naturality square of F ∘ G ≃ id at f : Y ⇒ Z
-  --
-  -- F ∘ G ≃ id 在 f : Y ⇒ Z 处的自然性方块
   FG-comm : ∀ {Y Z} (f : Y D.⇒ Z)
           → fwd Z D.∘ Fm.F₁ (Gm.F₁ f) D.≈ f D.∘ fwd Y
   FG-comm {Y} {Z} f = begin
@@ -106,9 +94,6 @@ module _ {oc ℓc ec od ℓd ed : Level}
     f D.∘ fwd Y
       ∎
 
-  -- Inverse naturality square of F ∘ G ≃ id
-  --
-  -- F ∘ G ≃ id 的反向自然性方块
   FG-comm⁻¹ : ∀ {Y Z} (f : Y D.⇒ Z)
             → bwd Z D.∘ f D.≈ Fm.F₁ (Gm.F₁ f) D.∘ bwd Y
   FG-comm⁻¹ {Y} {Z} f = begin
@@ -150,9 +135,8 @@ module _ {oc ℓc ec od ℓd ed : Level}
   GF-bwd-comm : ∀ X → Fm.F₁ (GF-bwd X) D.≈ bwd (Fm.F₀ X)
   GF-bwd-comm X = proj₂ (full (bwd (Fm.F₀ X)))
 
-  -- Absorb the round-trip fwd Z ∘ bwd Z on the left
-  --
-  -- 在左侧吸收往返 fwd Z ∘ bwd Z
+  -- Absorb the round-trip fwd Z ∘ bwd Z on the left.
+  -- 在左侧吸收往返 fwd Z ∘ bwd Z。
   fwd-bwd-absorb : ∀ {W Z} (g : W D.⇒ Z)
                  → fwd Z D.∘ (bwd Z D.∘ g) D.≈ g
   fwd-bwd-absorb {Z = Z} g = begin
@@ -165,9 +149,8 @@ module _ {oc ℓc ec od ℓd ed : Level}
     g
       ∎
 
-  -- Absorb the round-trip fwd W ∘ bwd W on the right
-  --
-  -- 在右侧吸收往返 fwd W ∘ bwd W
+  -- Absorb the round-trip fwd W ∘ bwd W on the right.
+  -- 在右侧吸收往返 fwd W ∘ bwd W。
   bwd-fwd-absorb : ∀ {W Z} (g : W D.⇒ Z)
                  → (g D.∘ fwd W) D.∘ bwd W D.≈ g
   bwd-fwd-absorb {W = W} g = begin
@@ -180,9 +163,6 @@ module _ {oc ℓc ec od ℓd ed : Level}
     g
       ∎
 
-  -- Left inverse of G∘F ≅ id, obtained by lifting the F-image
-  --
-  -- G∘F ≅ id 的左逆，由提升 F-像得到
   GF-isoˡ : ∀ X → GF-fwd X C.∘ GF-bwd X C.≈ C.id
   GF-isoˡ X = faithful (begin
     Fm.F₁ (GF-fwd X C.∘ GF-bwd X)
@@ -196,9 +176,6 @@ module _ {oc ℓc ec od ℓd ed : Level}
     Fm.F₁ C.id
       ∎)
 
-  -- Right inverse of G∘F ≅ id
-  --
-  -- G∘F ≅ id 的右逆
   GF-isoʳ : ∀ X → GF-bwd X C.∘ GF-fwd X C.≈ C.id
   GF-isoʳ X = faithful (begin
     Fm.F₁ (GF-bwd X C.∘ GF-fwd X)
@@ -212,9 +189,8 @@ module _ {oc ℓc ec od ℓd ed : Level}
     Fm.F₁ C.id
       ∎)
 
-  -- Naturality square of G∘F ≅ id, proved via faithfulness
-  --
-  -- G∘F ≅ id 的自然性方块，经忠实性证明
+  -- Naturality of G∘F ≅ id, proved via faithfulness.
+  -- G∘F ≅ id 的自然性，经忠实性证明。
   GF-comm : ∀ {X Y} (f : X C.⇒ Y)
           → GF-fwd Y C.∘ Gm.F₁ (Fm.F₁ f) C.≈ f C.∘ GF-fwd X
   GF-comm {X} {Y} f = faithful (begin
@@ -231,9 +207,6 @@ module _ {oc ℓc ec od ℓd ed : Level}
     Fm.F₁ (f C.∘ GF-fwd X)
       ∎)
 
-  -- Inverse naturality square of G∘F ≅ id
-  --
-  -- G∘F ≅ id 的反向自然性方块
   GF-comm⁻¹ : ∀ {X Y} (f : X C.⇒ Y)
             → Gm.F₁ (Fm.F₁ f) C.∘ GF-bwd X C.≈ GF-bwd Y C.∘ f
   GF-comm⁻¹ {X} {Y} f = faithful (begin

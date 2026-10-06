@@ -1,16 +1,17 @@
 ------------------------------------------------------------------------
--- generic properties of LayeredEqGen and its specialisation LayeredEq
--- LayeredEqGen with a reflexive / symmetric / transitive layer is
--- itself reflexive / symmetric / transitive. The proofs require three
--- coherence conditions relating obs-map to the three layer operations.
--- LayeredEq is the specialisation at constant observation, where all
--- three coherences reduce to refl.
+-- Generic properties of LayeredEqGen and its specialisation LayeredEq.
+-- A reflexive / symmetric / transitive layer makes LayeredEqGen itself
+-- reflexive / symmetric / transitive, given three coherence conditions
+-- relating obs-map to the three layer operations. LayeredEq is the
+-- specialisation at constant observation, where all three coherences
+-- reduce to refl.
 --
--- LayeredEqGen 及其特化 LayeredEq 的通用性质
--- layer 自反 / 对称 / 传递的 LayeredEqGen 自身也自反 / 对称 / 传递。
--- 证明需要三条相干性条件，把 obs-map 与三种 layer 运算联系起来。
--- LayeredEq 是在常数观察处的特化，三条相干性均退化为 refl。
+-- LayeredEqGen 及其特化 LayeredEq 的通用性质。
+-- layer 自反 / 对称 / 传递的 LayeredEqGen 自身也自反 / 对称 / 传递，
+-- 前提是三条相干性条件把 obs-map 与三种 layer 运算联系起来。
+-- LayeredEq 是常数观察处的特化，三条相干性均退化为 refl。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Equivalence.Properties where
@@ -24,9 +25,9 @@ open import ALMA.Base.IndexedMType using (Mᵢ)
 open import ALMA.Base.Equivalence.Core using (LayeredEqGen; LayeredEq)
 
 ------------------------------------------------------------------------
--- generic properties of LayeredEqGen
---
+-- Generic properties of LayeredEqGen
 -- LayeredEqGen 的通用性质
+
 module LayeredEqGen-Properties
     {a b c} {X : Set a}
     {Obs : X → Set b}
@@ -34,9 +35,8 @@ module LayeredEqGen-Properties
     {layer : X → X → Set c}
     {obs-map : (x y : X) → layer x y → Obs x → Obs y} where
 
-  -- Reflexivity: obs-map along layer-refl must fix observations
-  --
-  -- 自反性：沿 layer-refl 的 obs-map 必须固定观察
+  -- Coherence: obs-map along layer-refl fixes observations.
+  -- 相干性：沿 layer-refl 的 obs-map 固定观察。
   le-refl
     : (layer-refl : ∀ x → layer x x)
     → (obs-refl : ∀ x (s : Obs x) → obs-map x x (layer-refl x) s ≡ s)
@@ -45,9 +45,8 @@ module LayeredEqGen-Properties
   le-refl layer-refl obs-refl x .Mᵢ.snd s
     rewrite obs-refl x s = le-refl layer-refl obs-refl (step x s)
 
-  -- Symmetry: obs-map along layer-sym must cancel the reverse obs-map
-  --
-  -- 对称性：沿 layer-sym 的 obs-map 必须抵消反向 obs-map
+  -- Coherence: obs-map along layer-sym cancels the reverse obs-map.
+  -- 相干性：沿 layer-sym 的 obs-map 抵消反向 obs-map。
   le-sym
     : (layer-sym : ∀ {x y} → layer x y → layer y x)
     → (obs-sym : ∀ {x y} (l : layer x y) (s : Obs y)
@@ -65,9 +64,8 @@ module LayeredEqGen-Properties
       l  = p .Mᵢ.fst
       s' = obs-map y x (layer-sym l) s
 
-  -- Transitivity: obs-map along layer-trans must compose the two obs-maps
-  --
-  -- 传递性：沿 layer-trans 的 obs-map 必须复合两个 obs-map
+  -- Coherence: obs-map along layer-trans composes the two obs-maps.
+  -- 相干性：沿 layer-trans 的 obs-map 复合两个 obs-map。
   le-trans
     : (layer-trans : ∀ {x y z} → layer x y → layer y z → layer x z)
     → (obs-trans : ∀ {x y z} (l : layer x y) (m : layer y z) (s : Obs x)
@@ -104,11 +102,9 @@ module LayeredEqGen-Properties
     ; trans = λ p q → le-trans layer-trans obs-trans p q
     }
 
-  -- Bundled equivalence
-  -- The three coherences are supplied alongside the IsEquivalence layer
-  --
-  -- 打包等价关系
-  -- 三条相干性与 IsEquivalence layer 一同提供
+  -- Bundled equivalence; the three coherences come alongside the
+  -- IsEquivalence layer.
+  -- 打包等价关系；三条相干性与 IsEquivalence layer 一同提供。
   le-isEquivalence
     : (layer-eq : IsEquivalence layer)
     → (obs-refl : ∀ x (s : Obs x)
@@ -128,11 +124,11 @@ module LayeredEqGen-Properties
     }
 
 ------------------------------------------------------------------------
--- le-isEquivalence specialised to LayeredEq (constant observation family)
--- obs-map is the identity function, so all three coherences reduce to refl
---
--- le-isEquivalence 在 LayeredEq（常数观察族）处的特化
--- obs-map 为恒等函数，三条相干性均退化为 refl
+-- le-isEquivalence specialised to LayeredEq: obs-map is the identity,
+-- so all three coherences reduce to refl.
+-- le-isEquivalence 在 LayeredEq 处的特化：obs-map 为恒等，三条相干性
+-- 均退化为 refl。
+
 module LayeredEq-Equiv
     {a b c} {X : Set a} {Obs : Set b} {step : X → Obs → X}
     {layer : X → X → Set c}

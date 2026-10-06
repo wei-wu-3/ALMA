@@ -1,19 +1,16 @@
 ------------------------------------------------------------------------
--- depth-bounded truncation of LayeredEqGen
--- LayeredEqGen is coinductive and therefore infinite. This module
--- provides its finite truncation at every depth n, together with the
--- projection from the infinite relation and monotonicity in n. The
--- truncation gives a finite induction-compatible predicate: any
--- coinductive proof projects to it at every depth, so downstream
--- proofs can reason by induction on n rather than by guarded
--- coinduction
+-- Depth-bounded truncation of LayeredEqGen. LayeredEqGen is
+-- coinductive and hence infinite; this module provides its finite
+-- truncation at every depth n, the projection from the infinite
+-- relation, and monotonicity in n. Downstream proofs can then reason
+-- by induction on n rather than by guarded coinduction.
 --
--- LayeredEqGen 的深度有界截断
--- LayeredEqGen 是余归纳的，因此是无穷的。本模块给出它在每个深度 n
--- 处的有限截断，以及从无穷关系到截断的投影和截断在 n 上的单调性
--- 该截断给出一个有限归纳相容的谓词：任何余归纳证明在每一深度上都
--- 投影到它，因此下游证明可对 n 作归纳，而不必使用受守卫的余归纳
+-- LayeredEqGen 的深度有界截断。LayeredEqGen 是余归纳的、因而无穷；
+-- 本模块给出它在每个深度 n 处的有限截断、从无穷关系的投影，以及
+-- 截断在 n 上的单调性。下游证明因此可对 n 作归纳，而不必使用受守卫
+-- 的余归纳。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Equivalence.LayeredEqGenDepth where
@@ -29,13 +26,8 @@ open import ALMA.Base.Equivalence.Core using (LayeredEqGen)
 
 ------------------------------------------------------------------------
 -- Finite truncation of LayeredEqGen
--- Since obs-map is a function (not an equality), no subst is needed
--- in the recursive case: the target-side observation is obtained by
--- applying obs-map directly
---
 -- LayeredEqGen 的有限截断
--- 由于 obs-map 是函数（而非等式），递归情形不需要 subst：
--- 目标侧观察由 obs-map 直接给出
+
 module LayeredEqGen-Depth
     {a b c} {X : Set a}
     {Obs : X → Set b}
@@ -43,9 +35,11 @@ module LayeredEqGen-Depth
     {layer : X → X → Set c}
     {obs-map : (x y : X) → layer x y → Obs x → Obs y} where
 
-  -- Depth-bounded truncation
-  --
-  -- 深度有界截断
+  -- obs-map is a function rather than an equality, so the recursive
+  -- case needs no subst: the target-side observation is obtained by
+  -- applying obs-map directly.
+  -- obs-map 是函数而非等式，故递归情形不需要 subst：目标侧观察由
+  -- obs-map 直接给出。
   LE-depth : (n : ℕ) → (x y : X) → Set (a ⊔ b ⊔ c)
   LE-depth zero    x y = ⊤
   LE-depth (suc n) x y =
@@ -54,9 +48,6 @@ module LayeredEqGen-Depth
         (step x s)
         (step y (obs-map x y l s)))
 
-  -- Every coinductive proof yields a depth-bounded truncation
-  --
-  -- 每个余归纳证明都给出深度有界截断
   le→LE-depth : ∀ {x y} → LayeredEqGen Obs step layer obs-map x y
               → ∀ n → LE-depth n x y
   le→LE-depth p zero    = tt
@@ -64,9 +55,6 @@ module LayeredEqGen-Depth
     ( p .fst
     , λ s → le→LE-depth (p .snd s) n )
 
-  -- Monotonicity in depth
-  --
-  -- 深度单调性
   LE-depth-mono : ∀ {m n} (m≤n : m ≤ n) {x y : X}
                 → LE-depth n x y → LE-depth m x y
   LE-depth-mono z≤n       p = tt

@@ -1,18 +1,21 @@
 ------------------------------------------------------------------------
--- the core definitions that the rest of Equivalence/ depends on
+-- Core definitions that the rest of Equivalence/ depends on.
+--
 --   _⊣_          adjunction skeleton on shape-indexed fibres
 --   Adj-Unit / Adj-Counit  the two components of the adjunction
 --   LayeredEqGen    generic coinductive skeleton, as an application of Mᵢ
 --   IndexedLayeredEq indexed skeleton, as an application of Mᵢ
 --   LayeredEq       LayeredEqGen at a constant observation family
 --
--- Equivalence/ 其余模块所依赖的核心定义
+-- Equivalence/ 其余模块所依赖的核心定义。
+--
 --   _⊣_          形状索引纤维上的伴随骨架
 --   Adj-Unit / Adj-Counit  伴随骨架的两个分量
 --   LayeredEqGen    通用余归纳骨架，作为 Mᵢ 的应用
 --   IndexedLayeredEq 索引骨架，作为 Mᵢ 的应用
 --   LayeredEq       LayeredEqGen 在常数观察族处的特化
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Equivalence.Core where
@@ -25,14 +28,10 @@ open import Data.Product.Base using (_×_)
 open import ALMA.Base.IndexedMType using (Mᵢ)
 
 ------------------------------------------------------------------------
--- Fibre-wise adjunction skeleton
--- The adjunction on each shape-indexed fibre: unit and counit are the
--- two round-trip propositions. They are independent of each other, so
--- a product suffices
---
--- 纤维层面的伴随骨架
--- 每根 shape 索引纤维上的伴随：unit 与 counit 是两条往返命题
--- 两者互相独立，故乘积即可
+-- Fibre-wise adjunction skeleton: unit and counit are independent
+-- round-trip propositions, so a product suffices.
+-- 纤维层面的伴随骨架：unit 与 counit 是互相独立的往返命题，故乘积即可。
+
 module _ {a b c d e : Level}
          {S : Set a} {T : Set c} (P : T → Set b) (R : S → Set d)
          {F : Set e} (shape : F → S → T)
@@ -47,15 +46,10 @@ module _ {a b c d e : Level}
   _⊣_ = Adj-Unit × Adj-Counit
 
 ------------------------------------------------------------------------
--- LayeredEqGen as an application of Mᵢ
--- Index is X × X. A (x, y) = layer x y; B (x, y) _ = Obs x
--- Successor at (x, y), p : layer x y, s : Obs x returns
--- (step x s, step y (obs-map x y p s))
---
--- 作为 Mᵢ 应用的 LayeredEqGen
--- 索引为 X × X。A (x, y) = layer x y；B (x, y) _ = Obs x
--- 后继在 (x, y)、p : layer x y、s : Obs x 处返回
--- (step x s, step y (obs-map x y p s))
+-- LayeredEqGen as an application of Mᵢ; index is X × X, and the
+-- successor advances both components by step.
+-- 作为 Mᵢ 应用的 LayeredEqGen；索引为 X × X，后继用 step 同时推进两个分量。
+
 module _ {a b c : Level} {X : Set a}
          (Obs : X → Set b)
          (step : (x : X) → Obs x → X)
@@ -72,15 +66,12 @@ module _ {a b c : Level} {X : Set a}
       next (x , y) p s = step x s , step y (obs-map x y p s)
 
 ------------------------------------------------------------------------
--- IndexedLayeredEq as an application of Mᵢ
--- Index is Σ I (λ j → X' j × X' j): a shared i together with the pair
--- of states. A (i, x, y) = layerI i x y; B (i, _, _) _ = ObsI i;
--- successor returns to next i with the states advanced by stepI
---
--- 作为 Mᵢ 应用的 IndexedLayeredEq
--- 索引为 Σ I (λ j → X' j × X' j)：共享的 i 与状态对
--- A (i, x, y) = layerI i x y；B (i, _, _) _ = ObsI i；
--- 后继返回 next i 并用 stepI 推进状态
+-- IndexedLayeredEq as an application of Mᵢ; index is
+-- Σ I (λ j → X' j × X' j), the successor moves the shared index by
+-- next and advances both states with stepI.
+-- 作为 Mᵢ 应用的 IndexedLayeredEq；索引为 Σ I (λ j → X' j × X' j)，
+-- 后继用 next 移动共享索引，并用 stepI 推进两个状态。
+
 module _ {a b c d : Level}
          {I : Set a} (X' : I → Set b)
          (next : I → I)
@@ -100,12 +91,10 @@ module _ {a b c d : Level}
       next' (i , x , y) p s = next i , stepI i x s , stepI i y s
 
 ------------------------------------------------------------------------
--- LayeredEq: constant observation set
--- A specialisation of LayeredEqGen at a constant observation family;
--- obs-map is the identity function
---
--- LayeredEq：常数观察集
--- LayeredEqGen 在常数观察族处的特化；obs-map 为恒等函数
+-- LayeredEq: LayeredEqGen at a constant observation family, with
+-- obs-map the identity.
+-- LayeredEq：LayeredEqGen 在常数观察族处的特化，obs-map 为恒等。
+
 LayeredEq : {a b c : Level} {X : Set a}
             (Obs : Set b) (step : X → Obs → X) (layer : X → X → Set c)
             (x y : X) → Set (c ⊔ b)

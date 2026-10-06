@@ -1,18 +1,18 @@
 ------------------------------------------------------------------------
--- preservation of the two skeletons
--- LayeredEqGen-Map is proved once for the generic skeleton.
--- IndexedLayeredEq-Map is proved directly: its index type is
--- Σ I (X' × X'), which differs from X × X used by LayeredEqGen, so
--- delegation is not applicable.
+-- Preservation of the two skeletons under compatible maps.
+-- LayeredEqGen-Map is proved once for the generic skeleton; 
+-- IndexedLayeredEq-Map is proved directly, since its index type
+-- Σ I (X' × X') differs from the X × X used by LayeredEqGen;
 -- LayeredEq-Map is a direct instantiation of LayeredEqGen-Map at a
--- constant observation family
+-- constant observation family.
 --
--- 两个骨架的保持性
--- LayeredEqGen-Map 在最一般的骨架上证明一次。
--- IndexedLayeredEq-Map 直接证明：其索引类型是 Σ I (X' × X')，与
--- LayeredEqGen 使用的 X × X 不同，因此无法委托。
--- LayeredEq-Map 是 LayeredEqGen-Map 在常数观察族处的直接实例化
+-- 两个骨架在相容映射下的保持性。
+-- LayeredEqGen-Map 在最一般的骨架上证明一次；IndexedLayeredEq-Map
+-- 直接证明，因其索引类型 Σ I (X' × X') 与 LayeredEqGen 所用的
+-- X × X 不同；LayeredEq-Map 是 LayeredEqGen-Map 在常数观察族处的
+-- 直接实例化。
 ------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Equivalence.Map where
@@ -21,11 +21,11 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (_×_; proj₁; proj₂)
+open import Data.Product.Properties using (Σ-≡,≡→≡)
 open import Relation.Binary.PropositionalEquality.Core
   using (sym; trans; cong; cong₂; subst)
 open import Relation.Binary.PropositionalEquality.Properties
   using (subst-subst-sym; module ≡-Reasoning)
-open import Data.Product.Properties using (Σ-≡,≡→≡)
 open ≡-Reasoning
 
 open import ALMA.Base.IndexedMType using (Mᵢ)
@@ -33,16 +33,9 @@ open import ALMA.Base.Equivalence.Core
   using (LayeredEqGen; IndexedLayeredEq; LayeredEq)
 
 ------------------------------------------------------------------------
--- preservation of LayeredEqGen under a compatible map
--- Compatible data: obs-map on each side (functions), a cast between
--- the observation families (forward and backward), the commutativity
--- of the map with step, and the coherence of the cast with the two
--- obs-maps along layer-comm
---
+-- Preservation of LayeredEqGen under a compatible map
 -- LayeredEqGen 在相容映射下的保持性
--- 相容数据：两侧的 obs-map（函数）、观察族之间的 cast（正向与反向）、
--- 映射与 step 的交换性，以及 cast 沿 layer-comm 与两个 obs-map 的
--- 相干性
+
 module LayeredEqGen-Map
     {a b cX cY e} {X : Set a} {Y : Set e}
     {ObsX : X → Set b} {ObsY : Y → Set b}
@@ -97,16 +90,16 @@ module LayeredEqGen-Map
       body rewrite sym leftEq | sym rightEq = rec
 
 ------------------------------------------------------------------------
--- degeneration: state carries an index
--- I/J, X'/Y', layerI/layerJ each live at independent levels. The
--- observation families ObsI/ObsJ must share one level, because
--- obs-comm-I : ObsI i ≡ ObsJ (fI i) is a propositional equality and
--- therefore forces both sides into the same universe
---
--- 退化：状态携带索引
--- I/J、X'/Y'、layerI/layerJ 各自位于独立级别。观察族 ObsI/ObsJ
--- 必须共享一个级别，因为 obs-comm-I : ObsI i ≡ ObsJ (fI i) 是命题
--- 等式，从而要求两侧位于同一宇宙
+-- Degeneration: state carries an index
+-- I/J, X'/Y', layerI/layerJ each live at independent levels. ObsI/ObsJ
+-- must share one level, because obs-comm-I : ObsI i ≡ ObsJ (fI i) is a
+-- propositional equality and therefore forces both sides into the same
+-- universe.
+-- 退化：状态携带索引。
+-- I/J、X'/Y'、layerI/layerJ 各自位于独立级别；ObsI/ObsJ 必须共享
+-- 一个级别，因为 obs-comm-I : ObsI i ≡ ObsJ (fI i) 是命题等式，从而
+-- 要求两侧位于同一宇宙。
+
 module IndexedLayeredEq-Map
     {aI aJ bX bY c dI dJ : Level}
     {I : Set aI} {J : Set aJ}
@@ -145,10 +138,9 @@ module IndexedLayeredEq-Map
     next' (j , x , y) p s = nextY j , stepJ j x s , stepJ j y s
 
     -- Substitution along an index equality does not decompose
-    -- definitionally into the two components, so an explicit lemma
-    -- is needed
-    --
-    -- 沿索引等式的替换不会定义性地分解到两个分量上，因此需要显式引理
+    -- definitionally into the two components, so an explicit lemma is
+    -- needed.
+    -- 沿索引等式的替换不会定义性地分解到两个分量上，因此需要显式引理。
     subst-× : ∀ {j j' : J} (e : j ≡ j') (p : Y' j × Y' j)
             → subst (λ l → Y' l × Y' l) e p
               ≡ (subst Y' e (proj₁ p) , subst Y' e (proj₂ p))
@@ -206,15 +198,15 @@ module IndexedLayeredEq-Map
       body rewrite sym i'-eq = rec
 
 ------------------------------------------------------------------------
--- degeneration: constant observation
+-- Degeneration: constant observation
 -- LayeredEq Obs step layer is LayeredEqGen (λ _ → Obs) step layer
--- (λ _ _ _ o → o). Instantiating LayeredEqGen-Map at this observation
--- family gives the map lemma for LayeredEq
---
--- 退化：常数观察
+-- (λ _ _ _ o → o); instantiating LayeredEqGen-Map at this observation
+-- family gives the map lemma for LayeredEq.
+-- 退化：常数观察。
 -- LayeredEq Obs step layer 即 LayeredEqGen (λ _ → Obs) step layer
--- (λ _ _ _ o → o)。在该观察族处实例化 LayeredEqGen-Map 即得
--- LayeredEq 的映射引理
+-- (λ _ _ _ o → o)；在该观察族处实例化 LayeredEqGen-Map 即得
+-- LayeredEq 的映射引理。
+
 module LayeredEq-Map
     {a b c d} {X : Set a} {Y : Set d}
     {ObsX : Set b} {ObsY : Set b}
@@ -230,9 +222,8 @@ module LayeredEq-Map
     where
 
   private
-    -- With constant observation, obs-coherence reduces to refl
-    --
-    -- 常数观察下，obs-coherence 退化为 refl
+    -- With constant observation, obs-coherence reduces to refl.
+    -- 常数观察下，obs-coherence 退化为 refl。
     obs-coherence : ∀ {x y} (l : layerX x y) (s : ObsX) →
         obs-cast s ≡ obs-cast s
     obs-coherence l s = refl

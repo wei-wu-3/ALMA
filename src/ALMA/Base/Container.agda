@@ -1,25 +1,39 @@
+------------------------------------------------------------------------
+-- Container functors and their morphisms
+--
+-- 容器函子与其态射
+------------------------------------------------------------------------
+
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.Container where
 
-open import Agda.Primitive using (Level; _⊔_; lsuc; lzero)
+open import Agda.Primitive using (Level; _⊔_; lsuc)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
+open import Data.Product.Base using (proj₁; proj₂)
+open import Function.Base using (id; _∘_)
 open import Relation.Binary.PropositionalEquality.Core
   using (cong; sym; trans; subst)
 open import Relation.Binary.PropositionalEquality.Properties
   using (subst-subst; subst-subst-sym; module ≡-Reasoning)
 open import Relation.Binary.Structures using (IsEquivalence)
-open import Data.Product.Base using (proj₁; proj₂)
-open import Function.Base using (id; _∘_)
 open ≡-Reasoning
 
 open import Categories.Category.Core using (Category)
 
 open import ALMA.Base.IndexedMType using (M; fst; snd)
 
+------------------------------------------------------------------------
+-- Container objects
+-- 容器对象
+
 ContObj : (a b : Level) → Set (lsuc (a ⊔ b))
 ContObj a b = Σ (Set a) (λ A → A → Set b)
+
+------------------------------------------------------------------------
+-- The container endofunctor
+-- 容器自函子
 
 ⟦_⟧ : ∀ {a b c} (A : Set a) (B : A → Set b) (X : Set c)
     → Set (a ⊔ b ⊔ c)
@@ -36,6 +50,10 @@ module _ {a b : Level} {A : Set a} {B : A → Set b} where
         (f : Y → Z) (g : X → Y) (x : ⟦ A ⟧ B X)
         → map (f ∘ g) x ≡ map f (map g x)
   map-∘ f g (s , k) = refl
+
+------------------------------------------------------------------------
+-- Container morphisms: a shape map together with a position pullback
+-- 容器态射：形状映射连同位置拉回
 
 Cont⇒ : ∀ {a₁ a₂ b₁ b₂}
       (A₁ : Set a₁) (B₁ : A₁ → Set b₁)
@@ -80,6 +98,10 @@ _∘⇒_ g f a =
   let (s' , τ) = f s
   in s' , k ∘ τ
 
+------------------------------------------------------------------------
+-- Pointwise equality of container morphisms
+-- 容器态射的逐点等价
+
 module _ {a₁ a₂ b₁ b₂}
         {A₁ : Set a₁} {B₁ : A₁ → Set b₁}
         {A₂ : Set a₂} {B₂ : A₂ → Set b₂} where
@@ -91,6 +113,9 @@ module _ {a₁ a₂ b₁ b₂}
     pos-transport : {x y : A₂} → x ≡ y → B₂ x → B₂ y
     pos-transport e = subst B₂ e
 
+    -- The position map of f agrees with that of g after transporting
+    -- along the shape equation.
+    -- f 的位置映射与 g 沿形状等式传输后的位置映射一致。
     pos-coherence : (f g : Cont⇒ A₁ B₁ A₂ B₂) {a : A₁}
                     (e : shape-layer f g a)
                     → Set (b₁ ⊔ b₂)
@@ -143,6 +168,10 @@ module _ {a₁ a₂ b₁ b₂}
     ; trans = λ {f g h} → layer-⇒-trans {f = f} {g = g} {h = h}
     }
 
+------------------------------------------------------------------------
+-- Category laws for container morphisms
+-- 容器态射的范畴定律
+
 module _ {a a' b b'} {A : Set a} {B : A → Set b}
         {A' : Set a'} {B' : A' → Set b'} where
 
@@ -166,12 +195,18 @@ module _ {a₁ a₂ a₃ a₄ b₁ b₂ b₃ b₄}
             → layer-⇒ ((h ∘⇒ g) ∘⇒ f) (h ∘⇒ (g ∘⇒ f))
   ∘⇒-assoc h g f = λ a → refl , λ _ → refl
 
+------------------------------------------------------------------------
+-- Congruence of composition
+-- 复合的同余
+
 module _ {a₁ a₂ a₃ b₁ b₂ b₃ : Level}
         {A₁ : Set a₁} {B₁ : A₁ → Set b₁}
         {A₂ : Set a₂} {B₂ : A₂ → Set b₂}
         {A₃ : Set a₃} {B₃ : A₃ → Set b₃} where
 
   private
+    -- Position maps commute with transport along a shape equation.
+    -- 位置映射与沿形状等式的传输可交换。
     transport-nat : (g : Cont⇒ A₂ B₂ A₃ B₃)
                     {x y : A₂} (e : x ≡ y)
                     (q : B₃ (Cont⇒-shape g x))
@@ -215,6 +250,10 @@ module _ {a₁ a₂ a₃ b₁ b₂ b₃ : Level}
       (∘⇒-resp-≈ˡ {f₁ = f₁} {f₂ = f₂} {g = g₁} eq-f)
       (∘⇒-resp-≈ʳ {g₁ = g₁} {g₂ = g₂} {f = f₂} eq-g)
 
+------------------------------------------------------------------------
+-- The category of containers
+-- 容器范畴
+
 ContCat : (a b : Level) → Category (lsuc (a ⊔ b)) (a ⊔ b) (a ⊔ b)
 ContCat a b = record
   { Obj       = ContObj a b
@@ -246,6 +285,10 @@ ContCat a b = record
   ; identityʳ = λ { {X} {Y} {f} → ∘⇒-identityʳ {A = proj₁ X} {B = proj₂ X} {A' = proj₁ Y} {B' = proj₂ Y} f }
   ; identity² = λ {X} → layer-⇒-refl {A₁ = proj₁ X} {B₁ = proj₂ X} {A₂ = proj₁ X} {B₂ = proj₂ X} (id⇒ (proj₁ X) (proj₂ X))
   }
+
+------------------------------------------------------------------------
+-- Coalgebra view of indexed M-types
+-- 索引 M 型的余代数视角
 
 module _ {a b : Level} (A : Set a) (B : A → Set b) where
   ContainerCoalg : Set (a ⊔ b)

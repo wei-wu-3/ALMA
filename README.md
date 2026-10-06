@@ -85,9 +85,9 @@ src/
 ├── ALMA/
 │   ├── Base/
 │   │   ├── IndexedMType.agda
-│   │   ├── MCorr.agda
-│   │   ├── MCategory.agda
 │   │   ├── Container.agda
+│   │   ├── MCategory.agda
+│   │   ├── MCorr.agda
 │   │   ├── Equivalence.agda
 │   │   └── Equivalence/
 │   │       ├── Core.agda
@@ -160,7 +160,6 @@ src/
 │   │   │   ├── SeqColimit.agda
 │   │   │   ├── DetSys.agda
 │   │   │   ├── TrivProj.agda
-│   │   │   ├── DecUIP.agda
 │   │   │   ├── FinNatUIP.agda
 │   │   │   ├── FinProj.agda
 │   │   │   ├── LimitSystem.agda
