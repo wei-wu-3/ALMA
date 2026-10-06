@@ -50,6 +50,7 @@ open import Agda.Builtin.Equality using (_≡_)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
+open import Categories.Functor using () renaming (id to idF)
 
 open import ALMA.Base.MCorrSetoid using (EqOn; propEqOn)
 open import ALMA.Cosmos.ContCategory using (ContCat)
@@ -80,3 +81,14 @@ module _ {o h e s p : Level}
   DetCosmosM⇒ : Functor (ShapeCat C FC) (ShapeCat C FC)
               → Set (o ⊔ h ⊔ e ⊔ s ⊔ p)
   DetCosmosM⇒ S = MO.CosmosM⇒ C FC propLabel (Graph S)
+
+  -- The identity shape functor gives the identity deterministic Cosmos
+  -- morphism: Graph id is (definitionally) the index path relation, so
+  -- the carried morphism is idCosmosM.  This recovers the old id⇒ℱ (the
+  -- only deterministic endomorphism that exists canonically).
+  --
+  -- 恒等形状函子给出恒等确定性 Cosmos 态射：Graph id（定义地）即索引
+  -- 路径关系，故携带态射为 idCosmosM。这恢复了旧 id⇒ℱ（唯一典范存在
+  -- 的确定性自态射）。
+  Det-id : DetCosmosM⇒ idF
+  Det-id = MO.idCosmosM C FC propLabel
