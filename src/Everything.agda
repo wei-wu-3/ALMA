@@ -56,6 +56,7 @@ import ALMA.Cosmos.M.MorphismCorrespondence
 import ALMA.Cosmos.M.ContainerAutomorphism
 import ALMA.Cosmos.M.TowerSeparation  -- FinCat n (n>=2) idN vs const0N non-bisimulation separation witness, zero subst
 import ALMA.Cosmos.M.PermutationNonCommutative  -- S_n n>=3 non-abelian + 3-cycle; S_2 abelian, zero subst
+import ALMA.Cosmos.M.NontrivialLimit  -- no non-trivial limit into a total/terminal target; reflection dichotomy, zero subst
 import ALMA.Cosmos.M.ListCosmos  -- uniform binary universe: fixed-label swap01 (n=2) edge permutation, zero subst
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
