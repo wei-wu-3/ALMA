@@ -59,6 +59,7 @@ import ALMA.Cosmos.M.PermutationNonCommutative  -- S_n n>=3 non-abelian + 3-cycl
 import ALMA.Cosmos.M.NontrivialLimit  -- no non-trivial limit into a total/terminal target; reflection dichotomy, zero subst
 import ALMA.Cosmos.M.SewingObstruction  -- M edge retract iff routing fixed point; sewing obstruction + direction dichotomy, zero subst
 import ALMA.Cosmos.M.PermutedEmbedding  -- feasible invertible carried swap need not preserve F0; refutes criterion C, zero subst
+import ALMA.Cosmos.M.HierarchyAbsorption  -- manifest: strict cumulative hierarchy results absorbed by M/Carried; archive guard
 import ALMA.Cosmos.M.ListCosmos  -- uniform binary universe: fixed-label swap01 (n=2) edge permutation, zero subst
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
