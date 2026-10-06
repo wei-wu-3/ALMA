@@ -49,6 +49,7 @@ import ALMA.Cosmos.M.CoalgCat  -- M-base coalgebra category + terminal coalgebra
 import ALMA.Cosmos.M.Lambek  -- M-base Lambek lemma: terminal coalgebra weak iso collapses to ana eta, zero subst (M 底座 Lambek 引理：终余代数弱同构坍缩为 ana eta，零 subst)
 import ALMA.Cosmos.M.CosmosCategory  -- M-Cosmos category: MCorrCatˢ specialised to M-Cosmos levels (M-Cosmos 范畴：MCorrCatˢ 在 M-Cosmos 层级处特化)
 import ALMA.Cosmos.M.DetCongruence  -- fixed-label deterministic congruence (gow-setoid map-cong engine, zero subst) (固定标签确定性同余：gow-setoid map-cong 引擎，零 subst)
+import ALMA.Cosmos.M.GenCongruence  -- label-changing deterministic congruence engine (generalises DetCongruence), zero subst
 import ALMA.Cosmos.M.ListCosmos  -- uniform binary universe: fixed-label swap01 (n=2) edge permutation, zero subst
 import ALMA.Cosmos.Terminal
 import ALMA.Cosmos.CoalgCat
