@@ -55,7 +55,7 @@ open import Categories.Functor.Core using (Functor)
 open import Categories.Functor using () renaming (id to idF)
 
 open import ALMA.Base.MCorrSetoid
-  using (EqOn; propEqOn; FiberAdjˢ; SysEq; Stepˢ; Morphˢ)
+  using (EqOn; propEqOn; FiberAdjˢ; idAdjˢ; SysEq; Stepˢ; Morphˢ)
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 open import ALMA.Cosmos.M.Object as MO
@@ -175,3 +175,27 @@ module _ {o h e s p : Level}
   mkDetCosmosM⇒ : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
                 → DetData S → DetCosmosM⇒ S
   mkDetCosmosM⇒ S dd = record { step = detStep S dd }
+
+  ----------------------------------------------------------------------
+  -- Identity lifting (base case of the adjunction+coverage supply).
+  --
+  -- The identity container morphism canonically carries the three
+  -- premises: labelMap is the identity; coverage is trivial (S.₀ is the
+  -- identity, so the pullback of v is (v , ≡refl)); the edge adjunction
+  -- is the identity fibre adjunction (the (v , ≡refl) pattern forces the
+  -- pullback source index to equal v).  This constructs DetData for the
+  -- identity shape functor directly from the carried premises, validating
+  -- the DetData interface end to end (independently of Det-id).
+  --
+  -- 恒等提升（伴随+覆盖供给的基例）。
+  --
+  -- 恒等容器态射典范携带三前提：labelMap 为恒等；覆盖平凡（S.₀ 为恒等，
+  -- 故 v 的 pullback 为 (v , ≡refl)）；边伴随为恒等纤维伴随（(v ,
+  -- ≡refl) 模式强制 pullback 源索引等于 v）。这直接由携带前提构造恒等
+  -- 形状函子的 DetData，端到端验证 DetData 接口（独立于 Det-id）。
+  ----------------------------------------------------------------------
+  detData-id : DetData idF
+  DetData.labelMap detData-id = λ d → d
+  DetData.pullback detData-id _ v = v , ≡refl
+  DetData.edgeAdj  detData-id x d v₀ (v , ≡refl) =
+    idAdjˢ (propEqOn (MO.E C FC x d v))
