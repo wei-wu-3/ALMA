@@ -201,6 +201,53 @@ open _≈Mˢ_ public
   , ( (λ e₁ → ≈Mˢ-refl ≈A ≈E (M.below t y e₁))
     , (λ e₂ → ≈Mˢ-refl ≈A ≈E (M.below t y e₂)) )
 
+-- Symmetry.  The below-eq field of a bisimulation already stores both
+-- directions (edges of t to s and edges of s to t), so symmetry only
+-- swaps the fibre adjunction (symAdjˢ) and exchanges the two component
+-- proofs; no coinductive call and no transport is needed.
+--
+-- 对称性。互模拟的 below-eq 字段已同时存放两个方向（t 到 s 的边与 s
+-- 到 t 的边），故对称性只需交换纤维伴随（symAdjˢ）并对调两个分量证
+-- 明；无需余归纳调用，也无需传输。
+≈Mˢ-sym : ∀ {i a b ℓa ℓe : Level}
+            {I : Set i} {A : I → Set a}
+            {E : (x : I) (a : A x) (y : I) → Set b}
+            (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+            (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+            {x : I} {t s : M A E x}
+          → _≈Mˢ_ ≈A ≈E t s → _≈Mˢ_ ≈A ≈E s t
+≈Mˢ-sym ≈A ≈E {x = x} p .here-eq = EqOn.sym (≈A x) (p .here-eq)
+≈Mˢ-sym ≈A ≈E {x = x} p .below-eq y
+    with p .below-eq y
+... | adj , fwd , bwd =
+      symAdjˢ adj , ( bwd , fwd )
+
+-- Transitivity.  Compose the two fibre adjunctions with compAdjˢ; the
+-- forward/backward child bisimulations are chained with a guarded
+-- recursive call.  Productive: every recursive call lies under the
+-- coinductive below-eq constructor.  No transport is used.
+--
+-- 传递性。用 compAdjˢ 复合两根纤维伴随；正/反向子互模拟以受保护的递
+-- 归调用串联。是产出式的：每个递归调用都位于余归纳 below-eq 构造子之
+-- 下。不使用传输。
+≈Mˢ-trans : ∀ {i a b ℓa ℓe : Level}
+              {I : Set i} {A : I → Set a}
+              {E : (x : I) (a : A x) (y : I) → Set b}
+              (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+              (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+              {x : I} {t m s : M A E x}
+            → _≈Mˢ_ ≈A ≈E t m → _≈Mˢ_ ≈A ≈E m s
+            → _≈Mˢ_ ≈A ≈E t s
+≈Mˢ-trans ≈A ≈E {x = x} p q .here-eq =
+    EqOn.trans (≈A x) (p .here-eq) (q .here-eq)
+≈Mˢ-trans ≈A ≈E {x = x} {t = t} {m = m} {s = s} p q .below-eq y
+    with p .below-eq y | q .below-eq y
+... | adjp , fwdp , bwdp | adjq , fwdq , bwdq =
+      compAdjˢ (≈E x (M.here t) y) (≈E x (M.here m) y) (≈E x (M.here s) y)
+               adjp adjq
+    , ( (λ e₁ → ≈Mˢ-trans ≈A ≈E (fwdp e₁) (fwdq (to adjp e₁)))
+      , (λ e₂ → ≈Mˢ-trans ≈A ≈E (bwdq e₂) (bwdp (fro adjq e₂))) )
+
 ------------------------------------------------------------------------
 -- The propositional equivalence, and the propositional FiberAdj as an
 -- instance of the setoid one.  Machine-checked evidence that the _≡_
