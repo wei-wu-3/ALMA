@@ -12,6 +12,7 @@ import ALMA.Base.MCategory
 import ALMA.Base.MCorr  -- Carried correspondence kernel (zero subst / cast)
                         -- 携带式对应内核（零 subst / cast）
 import ALMA.Base.MCorrSetoid  -- Setoid-parameterised carried correspondence pilot
+import ALMA.Base.MCorrSetoidCat  -- deterministic carried morphisms FMapˢ over setoid systems (setoid 系统上的确定性携带态射 FMapˢ)
                              -- setoid 参数化携带式对应（试点切片）
 
 import ALMA.Base.Equivalence
