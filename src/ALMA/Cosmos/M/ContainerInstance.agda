@@ -184,6 +184,48 @@ module _ {o h e s p : Level}
   mkDetCosmosM⇒ S dd = record { step = detStep S dd }
 
   ----------------------------------------------------------------------
+  -- Scope of the endo instance (what recovering old _⇒ℱ[S]_ requires).
+  --
+  -- CosmosData (uf , pts) corresponds to Unfolding.(unfoldFunctor,
+  -- pos-to-shape); a single Cosmos carries ONE such label, repeated at
+  -- every node (A _ = CosmosData).  The old _⇒ℱ[S]_ is an ENDO morphism
+  -- on the fixed C FC, so the target label is always the single label of
+  -- the target Cosmos G: labelMap = const d_G.  No uf natural
+  -- isomorphism is involved.
+  --
+  -- The ContCatEquivFunctor natural-isomorphism machine (H : C → D,
+  -- α : FC ⟹ FD ∘ H) serves only CROSS-BASE morphisms between different
+  -- FC / base categories — a generalisation strictly BEYOND the old
+  -- _⇒ℱ[S]_, not part of this endo instance (which fixes C FC).  A
+  -- cross-base M-Cosmos relation would relate two systems over distinct
+  -- FC and is a separate construction.
+  --
+  -- Hence for the endo case the only substantive premises are S.₀
+  -- coverage (pullback) and the per-edge position adjunction (edgeAdj);
+  -- both are mathematically necessary — a bare container morphism is a
+  -- contravariant pullback with no forward section.  mkDetCosmosM⇒ is
+  -- therefore the complete endo answer; a non-identity S is inhabited by
+  -- supplying its coverage and adjunction, never by eliminating equality.
+  --
+  -- 自态射实例的范围（恢复旧 _⇒ℱ[S]_ 所需）。
+  --
+  -- CosmosData（uf , pts）对应 Unfolding 的（unfoldFunctor,
+  -- pos-to-shape）；单个 Cosmos 只携带一份这样的标签并在每个节点重复
+  -- （A _ = CosmosData）。旧 _⇒ℱ[S]_ 是固定 C FC 上的自态射，故目标标签
+  -- 恒为目标 Cosmos G 的那一份：labelMap = const d_G，不涉及 uf 自然同构。
+  --
+  -- ContCatEquivFunctor 的自然同构机器（H : C → D、α : FC ⟹ FD ∘ H）
+  -- 只服务不同 FC / 基范畴之间的跨基态射——那是严格超出旧 _⇒ℱ[S]_ 的
+  -- 推广，不属于本固定 C FC 的自态射实例。跨基 M-Cosmos 关系将联系不同
+  -- FC 上的两个系统，是独立构造。
+  --
+  -- 故自态射情形唯一的实质前提是 S.₀ 覆盖（pullback）与逐边位置伴随
+  -- （edgeAdj）；两者数学上均必要——裸容器态射是无正截面的反变 pullback。
+  -- mkDetCosmosM⇒ 因而是自态射的完整答案；非恒等 S 通过供给其覆盖与伴随
+  -- 而有 inhabitant，绝不靠消去等式。
+  ----------------------------------------------------------------------
+
+  ----------------------------------------------------------------------
   -- Identity lifting (base case of the adjunction+coverage supply).
   --
   -- The identity container morphism canonically carries the three
