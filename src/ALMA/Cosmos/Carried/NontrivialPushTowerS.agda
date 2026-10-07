@@ -531,6 +531,16 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     norbit m v .M.here      = lab m v
     norbit m v .M.below w _ = norbit m w
 
+    -- Total stage-m tree with an arbitrary head label a and canonical
+    -- tails. Every head label (not only lab m v) is therefore reached by
+    -- the stage-m leg at some total tree.
+    -- 任意头标签 a、规范尾的全总阶段 m 树。故每个头标签（不限于
+    -- lab m v）都被阶段 m 腿在某棵全总树处到达。
+    stage-ray : (m v : ℕ) (a : L m v)
+              → M (A (NStage m)) (E (NStage m)) v
+    stage-ray m v a .M.here      = a
+    stage-ray m v a .M.below w _ = norbit m w
+
     -- Stage embedding: identity index, l-emb on labels.
     -- 阶段嵌入：索引恒等，标签经 l-emb。
     n-sim : (m v : ℕ)
@@ -998,6 +1008,104 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                     (≈Mˢ-trans (≈A Z) (≈E Z)
                        (≈Mˢ-sym (≈A Z) (≈E Z) cmp) p0))
                  (zlegray-go v v)
+
+      ------------------------------------------------------------------
+      -- Full coinductive uniqueness in the identity-index range.
+      --
+      -- A competing mediator is an identity-index functor hFM (u = id,
+      -- singleton child refl, identity fibre adjunction) given by a head
+      -- map H and its congruence, together with one triangle per stage.
+      -- Every apex node carries an inductive stage tag mk m a; the stage-m
+      -- triangle applied to stage-ray m v a forces H v (mk m a) = zm m v a
+      -- at the head, while each child is an arbitrary apex tree whose own
+      -- stage tag re-selects the leg and recurses guardedly. Hence the two
+      -- mediators are pointwise bisimilar on EVERY total apex tree, not
+      -- only on orbit∞. No index path and no transport are used.
+      --
+      -- 索引恒等范围内的完整余归纳唯一性。
+      -- 竞争 mediate 是索引恒等函子 hFM（u=id、单子节点 refl、恒等纤维
+      -- 伴随），由头映射 H 及其同余给出，并带逐阶段三角。每个顶点节点带
+      -- 归纳阶段标签 mk m a；阶段 m 三角作用于 stage-ray m v a 在头部强制
+      -- H v (mk m a) = zm m v a，每个子节点是任意顶点树，按其自身阶段标签
+      -- 重新选腿并守卫递归。故两个 mediate 在每棵全总顶点树上逐点互模拟，
+      -- 不限于 orbit∞。无索引路径、无传输。
+
+      mkHFM : (H : (v : ℕ) → Thread v → ZL v)
+              (Hc : ∀ {v : ℕ} {τ τ' : Thread v}
+                  → τ ≈Thread τ'
+                  → EqOn._≈_ (≈ZL v) (H v τ) (H v τ'))
+            → FMˢ L∞ Z
+      mkHFM H Hc = record
+        { mor        = hF
+        ; shape-cong = Hc
+        ; map-cong   = hmc
+        }
+        where
+        hF : FMapˢ L∞ Z
+        hF = record
+          { u      = λ v → v
+          ; shape  = λ v τ → H v τ
+          ; childF = λ v _ w → w , refl
+          ; adjFˢ  = λ v τ w → idAdjˢ (≈E Z v (H v τ) w)
+          }
+        hmc : ∀ {v : ℕ} {t s : M (A L∞) (E L∞) v}
+            → _≈Mˢ_ (≈A L∞) (≈E L∞) t s
+            → _≈Mˢ_ (≈A Z) (≈E Z)
+                     (FMapˢ.mapFˢ hF v t) (FMapˢ.mapFˢ hF v s)
+        hmc p ._≈Mˢ_.here-eq = Hc (_≈Mˢ_.here-eq p)
+        hmc {v = v} p ._≈Mˢ_.below-eq w =
+          let adj , (fs , bs) = _≈Mˢ_.below-eq p w
+          in adj , ((λ e → hmc (fs e)) , (λ e → hmc (bs e)))
+
+      module FullUniqueness
+        (H  : (v : ℕ) → Thread v → ZL v)
+        (Hc : ∀ {v : ℕ} {τ τ' : Thread v}
+            → τ ≈Thread τ'
+            → EqOn._≈_ (≈ZL v) (H v τ) (H v τ'))
+        (tr : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+            → _≈Mˢ_ (≈A Z) (≈E Z)
+                     (FMapˢ.mapFˢ (FMˢ.mor (mkHFM H Hc)) v
+                        (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v t))
+                     (FMapˢ.mapFˢ (legF m) v t))
+        where
+
+        hFM : FMˢ L∞ Z
+        hFM = mkHFM H Hc
+
+        -- The stage-m triangle forces the head label at every thread.
+        -- 阶段 m 三角在每个线程处强制头标签。
+        here-force : (m v : ℕ) (a : L m v)
+                   → EqOn._≈_ (≈ZL v) (H v (mk m a)) (zm m v a)
+        here-force m v a =
+          _≈Mˢ_.here-eq (tr m v (stage-ray m v a))
+
+        mutual
+          uniq : (v : ℕ) (t : M (A L∞) (E L∞) v)
+               → _≈Mˢ_ (≈A Z) (≈E Z)
+                        (FMapˢ.mapFˢ (FMˢ.mor hFM) v t)
+                        (FMapˢ.mapFˢ medF v t)
+          uniq v t ._≈Mˢ_.here-eq with M.here t
+          ... | mk m a = here-force m v a
+          uniq v t ._≈Mˢ_.below-eq w =
+              idAdjˢ (≈E Z v (H v (M.here t)) w)
+            , ( (λ e₁ → uniq  w (M.below t w e₁))
+              , (λ e₂ → uniq˘ w (M.below t w e₂)) )
+
+          uniq˘ : (v : ℕ) (t : M (A L∞) (E L∞) v)
+                → _≈Mˢ_ (≈A Z) (≈E Z)
+                         (FMapˢ.mapFˢ medF v t)
+                         (FMapˢ.mapFˢ (FMˢ.mor hFM) v t)
+          uniq˘ v t ._≈Mˢ_.here-eq with M.here t
+          ... | mk m a = EqOn.sym (≈ZL v) (here-force m v a)
+          uniq˘ v t ._≈Mˢ_.below-eq w =
+              idAdjˢ (≈E Z v (eval-ray (M.here t)) w)
+            , ( (λ e₁ → uniq˘ w (M.below t w e₁))
+              , (λ e₂ → uniq   w (M.below t w e₂)) )
+
+        -- Full behavioural uniqueness of the identity-index mediator.
+        -- 索引恒等 mediate 的完整行为唯一性。
+        unique-full : hFM ≈FM zmedFM
+        unique-full v = refl , λ t → uniq v t
 
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
