@@ -567,9 +567,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- 情形下自动的 refl。
 
     module SameIndexMediate
-      {z : Level}
-      (ZL  : ℕ → Set z)
-      (≈ZL : (v : ℕ) → EqOn {ℓ = z} (ZL v))
+      (ZL  : ℕ → Set ℓ)
+      (≈ZL : (v : ℕ) → EqOn {ℓ = ℓ} (ZL v))
       (zm  : (m v : ℕ) → L m v → ZL v)
       (zm-coh : (m v : ℕ) (a : L m v)
               → EqOn._≈_ (≈ZL v)
@@ -578,7 +577,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
       -- Target system: same ℕ index and s∞ dynamics, ZL labels.
       -- 目标系统：同一 ℕ 索引与 s∞ 动力，标签为 ZL。
-      Z : SysEq lzero z lzero z lzero
+      Z : SysEq lzero ℓ lzero ℓ lzero
       Z = record
         { I  = ℕ
         ; A  = ZL
@@ -610,7 +609,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       Rz : ℕ → ℕ → Set lzero
       Rz v w = v ≡ w
 
-      Hz : (m v w : ℕ) → Rz v w → L m v → ZL w → Set z
+      Hz : (m v w : ℕ) → Rz v w → L m v → ZL w → Set ℓ
       Hz m v .v refl a b = EqOn._≈_ (≈ZL v) b (zm m v a)
 
       -- Each stage leg as a forward simulation into Z.
@@ -627,7 +626,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       eval-ray : ∀ {v : ℕ} → Thread v → ZL v
       eval-ray {v} (mk m a) = zm m v a
 
-      H∞ : (v w : ℕ) → Rz v w → Thread v → ZL w → Set z
+      H∞ : (v w : ℕ) → Rz v w → Thread v → ZL w → Set ℓ
       H∞ v .v refl τ b = EqOn._≈_ (≈ZL v) b (eval-ray τ)
 
       -- The mediating simulation from the apex to Z.
@@ -779,6 +778,74 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         ; shape-cong = med-shape-cong
         ; map-cong   = med-map-cong
         }
+
+      ------------------------------------------------------------------
+      -- The same-index competing cocone with the zlegFM legs, and the
+      -- factorisation triangle zmedFM ∘ legFM m ≈ zlegFM m.
+      -- 以 zlegFM 为腿的同索引竞争余锥，以及因子分解三角
+      -- zmedFM ∘ legFM m ≈ zlegFM m。
+
+      comp-leg : (m : ℕ) → FMˢ (NStage m) Z
+      comp-leg m = compFMˢ (zlegFM (suc m)) (embFM m)
+
+      mutual
+        coc-go : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+               → _≈Mˢ_ (≈A Z) (≈E Z)
+                        (FMapˢ.mapFˢ (FMˢ.mor (comp-leg m)) v t)
+                        (FMapˢ.mapFˢ (FMˢ.mor (zlegFM m)) v t)
+        coc-go m v t ._≈Mˢ_.here-eq = zm-coh m v (M.here t)
+        coc-go m v t ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (zm m v (M.here t)) w)
+          , ( (λ e → coc-go   m w (M.below t w e))
+            , (λ e → coc-go˘  m w (M.below t w e)) )
+
+        coc-go˘ : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+                → _≈Mˢ_ (≈A Z) (≈E Z)
+                         (FMapˢ.mapFˢ (FMˢ.mor (zlegFM m)) v t)
+                         (FMapˢ.mapFˢ (FMˢ.mor (comp-leg m)) v t)
+        coc-go˘ m v t ._≈Mˢ_.here-eq =
+          EqOn.sym (≈ZL v) (zm-coh m v (M.here t))
+        coc-go˘ m v t ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (zm m v (M.here t)) w)
+          , ( (λ e → coc-go˘  m w (M.below t w e))
+            , (λ e → coc-go   m w (M.below t w e)) )
+
+      zcocone : Coconeˢ nchain Z
+      zcocone = record
+        { leg = zlegFM
+        ; coh = λ m v → refl , λ t → coc-go m v t
+        }
+
+      -- Factorisation: mediating after the apex leg is the stage leg.
+      -- Labels agree definitionally (eval-ray (mk m a) = zm m v a).
+      -- 因子分解：mediate 接顶点腿即阶段腿。标签定义性相等
+      -- （eval-ray (mk m a) = zm m v a）。
+      med-leg : (m : ℕ) → FMˢ (NStage m) Z
+      med-leg m = compFMˢ zmedFM (legFM m)
+
+      mutual
+        tri-go : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+               → _≈Mˢ_ (≈A Z) (≈E Z)
+                        (FMapˢ.mapFˢ (FMˢ.mor (med-leg m)) v t)
+                        (FMapˢ.mapFˢ (FMˢ.mor (zlegFM m)) v t)
+        tri-go m v t ._≈Mˢ_.here-eq = EqOn.refl (≈ZL v)
+        tri-go m v t ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (zm m v (M.here t)) w)
+          , ( (λ e → tri-go   m w (M.below t w e))
+            , (λ e → tri-go˘  m w (M.below t w e)) )
+
+        tri-go˘ : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+                → _≈Mˢ_ (≈A Z) (≈E Z)
+                         (FMapˢ.mapFˢ (FMˢ.mor (zlegFM m)) v t)
+                         (FMapˢ.mapFˢ (FMˢ.mor (med-leg m)) v t)
+        tri-go˘ m v t ._≈Mˢ_.here-eq = EqOn.refl (≈ZL v)
+        tri-go˘ m v t ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (zm m v (M.here t)) w)
+          , ( (λ e → tri-go˘  m w (M.below t w e))
+            , (λ e → tri-go   m w (M.below t w e)) )
+
+      triangle : (m : ℕ) → med-leg m ≈FM zlegFM m
+      triangle m v = refl , λ t → tri-go m v t
 
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
