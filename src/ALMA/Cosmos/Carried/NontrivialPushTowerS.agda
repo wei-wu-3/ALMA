@@ -30,8 +30,7 @@ open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
-open import Data.Fin.Base using (Fin; inject₁; toℕ)
-open import Data.Fin.Properties using (toℕ-inject₁)
+open import Data.Fin.Base using (Fin; zero; suc; inject₁; toℕ)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
@@ -42,6 +41,32 @@ open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
 import ALMA.Cosmos.Carried.LimitSystemS as LS
 
 open SysEq
+
+------------------------------------------------------------------------
+-- One-position extension with definitional toℕ preservation.
+--
+-- stdlib's inject₁ is defined via inject≥, so toℕ (inject₁ x) is only
+-- propositionally toℕ x. The stage embedding below recurses directly on
+-- Fin, giving toℕ (up x) = toℕ x definitionally; labels indexed by global
+-- id then align across stages with no index transport. up is
+-- propositionally inject₁.
+--
+-- 保持 toℕ 定义性不变的单位置扩张。
+-- 标准库 inject₁ 经 inject≥ 定义，toℕ (inject₁ x) 仅命题性等于 toℕ x。
+-- 下面的阶段嵌入直接对 Fin 递归，使 toℕ (up x) 定义性等于 toℕ x；按全局
+-- id 索引的标签因而跨阶段对齐，无需索引传输。up 命题性等于 inject₁。
+
+up : ∀ {n} → Fin n → Fin (suc n)
+up zero    = zero
+up (suc i) = suc (up i)
+
+up-toℕ : ∀ {n} (x : Fin n) → toℕ (up x) ≡ toℕ x
+up-toℕ zero    = refl
+up-toℕ (suc x) = cong suc (up-toℕ x)
+
+up-inject₁ : ∀ {n} (x : Fin n) → up x ≡ inject₁ x
+up-inject₁ zero    = refl
+up-inject₁ (suc x) = cong suc (up-inject₁ x)
 
 ------------------------------------------------------------------------
 -- A deterministic Fin tower with labels indexed by global id.
@@ -97,18 +122,26 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- One-step index embedding and the graph label correspondence.
   -- 一步索引嵌入与图标签对应。
 
-  R-emb : (m : ℕ) → Fin (n-at m) → Fin (n-at (suc m)) → Set lzero
-  R-emb m x y = inject₁ x ≡ y
+  -- Compatibility of t with up, derived from embed-compat for inject₁.
+  -- t 与 up 的相容性，由 inject₁ 的 embed-compat 导出。
+  up-compat : (m : ℕ) (x : Fin (n-at m))
+            → t (suc m) (up x) ≡ up (t m x)
+  up-compat m x =
+    trans (cong (t (suc m)) (up-inject₁ x))
+    (trans (embed-compat m x) (sym (up-inject₁ (t m x))))
 
-  -- At y = inject₁ x the two positions share global id toℕ x, so the
-  -- label correspondence is the graph of l-emb m (toℕ x): no Fin in its
-  -- type.
-  -- 在 y = inject₁ x 处两位置共享全局 id toℕ x，故标签对应即
-  -- l-emb m (toℕ x) 的图：类型中无 Fin。
+  R-emb : (m : ℕ) → Fin (n-at m) → Fin (n-at (suc m)) → Set lzero
+  R-emb m x y = up x ≡ y
+
+  -- At y = up x the two positions share global id toℕ x definitionally,
+  -- so the label correspondence is the graph of l-emb m (toℕ x): no Fin
+  -- in its type, no transport.
+  -- 在 y = up x 处两位置定义性共享全局 id toℕ x，故标签对应即
+  -- l-emb m (toℕ x) 的图：类型中无 Fin，无传输。
   H-emb : (m : ℕ) (x : Fin (n-at m)) (y : Fin (n-at (suc m)))
         → R-emb m x y
         → A (LStage m) x → A (LStage (suc m)) y → Set ℓ
-  H-emb m x .(inject₁ x) refl a b rewrite toℕ-inject₁ x =
+  H-emb m x .(up x) refl a b rewrite up-toℕ x =
     l-emb m (toℕ x) a ≡ b
 
   -- The embedding as a forward simulation. lab₁ is the next-stage
@@ -118,14 +151,14 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           → (coh : ∀ v → l-emb m v (lab v) ≡ lab₁ v)
           → (x : Fin (n-at m))
           → PushSimˢ (LStage m) (LStage (suc m)) (R-emb m) (H-emb m)
-                      refl (orbit m x lab) (orbit (suc m) (inject₁ x) lab₁)
-  emb-sim m lab lab₁ coh x .PushSimˢ.here-eq rewrite toℕ-inject₁ x =
+                      refl (orbit m x lab) (orbit (suc m) (up x) lab₁)
+  emb-sim m lab lab₁ coh x .PushSimˢ.here-eq rewrite up-toℕ x =
     coh (toℕ x)
   emb-sim m lab lab₁ coh x .PushSimˢ.push y (_ , eq) =
-    inject₁ y , ((tt , edge) , (refl , emb-sim m lab lab₁ coh y))
+    up y , ((tt , edge) , (refl , emb-sim m lab lab₁ coh y))
     where
-      edge : inject₁ y ≡ t (suc m) (inject₁ x)
-      edge = trans (cong inject₁ eq) (sym (embed-compat m x))
+      edge : up y ≡ t (suc m) (up x)
+      edge = trans (cong up eq) (sym (up-compat m x))
 
   ----------------------------------------------------------------------
   -- Eventual label at global id v: a stage-tagged element of L _ v.
