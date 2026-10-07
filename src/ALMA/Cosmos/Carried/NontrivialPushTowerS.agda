@@ -69,7 +69,7 @@ record LabeledFinTower (ℓ : Level) : Set (lsuc ℓ) where
 module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
   open LabeledFinTower T
-  open LS.LimitSystemS t embed-compat using (s∞)
+  open LS.LimitSystemS t embed-compat using (s∞; read-coh)
 
   ----------------------------------------------------------------------
   -- Stage systems. Labels are pulled from the global-id family via toℕ;
@@ -221,3 +221,76 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     ; ≈A = ≈A∞
     ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
     }
+
+  ----------------------------------------------------------------------
+  -- Canonical legs from a coherent global labelling.
+  --
+  -- lab (suc m) v is the forward image of lab m v under l-emb. The apex
+  -- orbit at v carries the thread born at stage v. A leg's push returns
+  -- the source child's own global id toℕ y as the target index; read-coh
+  -- is used only as the apex edge witness, so every recursive simulation
+  -- sits at r = refl with v = toℕ of the source position and labels share
+  -- a fibre. No index transport.
+  -- 相干全局标签族下的规范腿。
+  -- lab (suc m) v 是 lab m v 经 l-emb 的前向像。顶点轨道在 v 处携带阶段
+  -- v 诞生的线程。腿的 push 把源子节点自身的全局 id toℕ y 作为目标索引
+  -- 返回；read-coh 仅用作顶点边见证，故每个递归模拟都停在 r = refl、
+  -- v = 源位置的 toℕ，标签共享纤维。无索引传输。
+
+  module WithLabelling
+    (lab     : (m v : ℕ) → L m v)
+    (lab-coh : (m v : ℕ) → lab (suc m) v ≡ l-emb m v (lab m v))
+    where
+
+    -- Apex orbit: thread at v born at stage v.
+    -- 顶点轨道：v 处阶段 v 诞生的线程。
+    orbit∞ : (v : ℕ) → M (A L∞) (E L∞) v
+    orbit∞ v .M.here      = mk v (lab v v)
+    orbit∞ v .M.below w _ = orbit∞ w
+
+    -- Forward iteration of a stage label lands at the coherent label.
+    -- 阶段标签的前向迭代落在相干标签上。
+    forward-to : (k m v : ℕ)
+               → extend^ k (mk m (lab m v)) ≡ mk (k + m) (lab (k + m) v)
+    forward-to zero    m v = refl
+    forward-to (suc k) m v =
+      trans (cong extend (forward-to k m v))
+            (cong (mk (suc (k + m))) (sym (lab-coh (k + m) v)))
+
+    -- The thread born at stage v and the stage-m label at v are the same
+    -- ray: extend both to the common stage m + v.
+    -- 阶段 v 诞生的线程与 v 处阶段 m 标签是同一射线：二者都前向到共同
+    -- 阶段 m + v。
+    leg-here : (m v : ℕ) → mk v (lab v v) ≈Thread mk m (lab m v)
+    leg-here m v = record { dl = m ; dr = v ; same = goal }
+      where
+        mk-eq : mk (m + v) (lab (m + v) v) ≡ mk (v + m) (lab (v + m) v)
+        mk-eq rewrite +-comm m v = refl
+        goal : extend^ m (mk v (lab v v)) ≡ extend^ v (mk m (lab m v))
+        goal = trans (forward-to m v v)
+                     (trans mk-eq (sym (forward-to v m v)))
+
+    -- Layer relation: the apex node is the source global id.
+    -- 层关系：顶点节点即源全局 id。
+    Rₘ : (m : ℕ) → Fin (n-at m) → ℕ → Set lzero
+    Rₘ m x v = toℕ x ≡ v
+
+    -- Label correspondence at the refl layer witness: the apex thread
+    -- and the stage-m label are the same ray.
+    -- refl 层见证处的标签对应：顶点线程与阶段 m 标签是同一射线。
+    Hₘ : (m : ℕ) (x : Fin (n-at m)) (v : ℕ) → Rₘ m x v
+       → A (LStage m) x → Thread v → Set (ℓ ⊔ lzero)
+    Hₘ m x .(toℕ x) refl a τ = τ ≈Thread mk m a
+
+    -- The canonical leg at position x; every push stays at refl by
+    -- targeting the child's own global id.
+    -- 位置 x 处的规范腿；每次 push 以子节点自身全局 id 为目标，停在 refl。
+    legₘ : (m : ℕ) (x : Fin (n-at m))
+         → PushSimˢ (LStage m) L∞ (Rₘ m) (Hₘ m) refl
+                     (orbit m x (lab m)) (orbit∞ (toℕ x))
+    legₘ m x .PushSimˢ.here-eq = leg-here m (toℕ x)
+    legₘ m x .PushSimˢ.push y (_ , eq) =
+      toℕ y , ((tt , edge) , (refl , legₘ m y))
+      where
+        edge : toℕ y ≡ s∞ (toℕ x)
+        edge = trans (cong toℕ eq) (read-coh m x)
