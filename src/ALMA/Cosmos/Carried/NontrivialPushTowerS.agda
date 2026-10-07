@@ -32,6 +32,9 @@ open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
 open import Data.Fin.Base using (Fin; zero; suc; inject₁; toℕ)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Empty using (⊥)
+open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
@@ -40,6 +43,8 @@ open import ALMA.Base.MCorrSetoid
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open import ALMA.Base.MCorrSetoidCat
   using (FMapˢ; FMˢ; compFMˢ; _≈FM_)
+open import ALMA.Cosmos.Carried.ColimitPolarity
+  using (no-FM-nonsurjective)
 open import ALMA.Cosmos.Carried.SeqColimitS
   using (Chainˢ; Coconeˢ; Limitˢ)
 open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
@@ -673,3 +678,90 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                      → _≈Mˢ_ (≈A Z) (≈E Z)
                               (orbit-of zl v) (zorbit v)
       mediate-unique zl he v = orb-bisim zl eval∞ he v
+
+    --------------------------------------------------------------------
+    -- Route 2 (negative): the total-function Colimit is a pull notion.
+    --
+    -- A perfectly valid competing push cocone may have a target index
+    -- type not covered by the source trajectory. Take J = Nat ⊎ ⊤ with
+    -- the extra point fixed under stepZ, and the trajectory q = inj₁;
+    -- q (s∞ v) ≡ stepZ (q v) holds definitionally, so a forward
+    -- simulation mediates (it never has to reach the extra point). But
+    -- the mediating FMˢ demanded by the fixed IsColimitˢ would have
+    -- index map q, which is not surjective: FMapˢ.childF forces every
+    -- target index to have a source preimage, and inj₂ tt has none.
+    -- Hence no total FMˢ mediate exists. The forward (push) colimit is
+    -- the simulation of SameIndexMediate, not a total pull morphism.
+    --
+    -- 路线 2（否定性）：全函数余极限是 pull 概念。
+    -- 完全合法的竞争 push 余锥其目标索引类型可以不被源轨迹覆盖。取
+    -- J = ℕ ⊎ ⊤，额外点在 stepZ 下固定，轨迹 q = inj₁；q (s∞ v) ≡
+    -- stepZ (q v) 定义性成立，故前向模拟可 mediate（永不需要到达额外
+    -- 点）。但固定 IsColimitˢ 所要求的 mediate FMˢ 以 q 为索引映射，
+    -- 而 q 不满：FMapˢ.childF 迫使每个目标索引都有源原像，inj₂ tt 无
+    -- 原像。故不存在全函数 FMˢ mediate。前向（push）余极限是
+    -- SameIndexMediate 的模拟，而非全函数 pull 态射。
+
+    module ExtraPointObstruction where
+
+      J : Set lzero
+      J = ℕ ⊎ ⊤ {lzero}
+
+      stepZ : J → J
+      stepZ (inj₁ n) = inj₁ (s∞ n)
+      stepZ (inj₂ _) = inj₂ tt
+
+      q : ℕ → J
+      q v = inj₁ v
+
+      -- Trajectory coherence is definitional.
+      -- 轨迹相干性定义性成立。
+      q-coh : (v : ℕ) → q (s∞ v) ≡ stepZ (q v)
+      q-coh _ = refl
+
+      -- Deterministic target system with trivial labels; the
+      -- obstruction depends only on indices, hence holds a fortiori for
+      -- any non-trivial label fibre.
+      -- 平凡标签的确定性目标系统；障碍只依赖索引，故对任意非平凡标签
+      -- 纤维更成立。
+      ZJ : SysEq lzero lzero lzero lzero lzero
+      ZJ = record
+        { I   = J
+        ; A   = λ _ → ⊤ {lzero}
+        ; E   = λ j _ j' → Σ (⊤ {lzero}) λ _ → j' ≡ stepZ j
+        ; ≈A  = λ _ → propEqOn (⊤ {lzero})
+        ; ≈E  = λ j _ j' → propEqOn (Σ (⊤ {lzero}) λ _ → j' ≡ stepZ j)
+        }
+
+      zj-orbit : (w : J) → M (A ZJ) (E ZJ) w
+      zj-orbit w .M.here        = tt
+      zj-orbit w .M.below w' _  = zj-orbit w'
+
+      Rj : ℕ → J → Set lzero
+      Rj v w = w ≡ q v
+
+      Hj : (v : ℕ) (w : J) → Rj v w → Thread v → ⊤ {lzero} → Set lzero
+      Hj _ _ _ _ _ = ⊤ {lzero}
+
+      -- The forward simulation exists: it follows the inj₁ branch and
+      -- never has to account for the unreachable inj₂ point.
+      -- 前向模拟存在：它沿 inj₁ 支推进，永不需要处理不可达的 inj₂ 点。
+      medj : (v : ℕ)
+           → PushSimˢ L∞ ZJ Rj Hj refl (orbit∞ v) (zj-orbit (q v))
+      medj v .PushSimˢ.here-eq = tt
+      medj v .PushSimˢ.push w (_ , eq) =
+        q w , ((tt , cong inj₁ eq) , (refl , medj w))
+
+      -- The extra point has no preimage under q.
+      -- 额外点在 q 下无原像。
+      q-miss : ¬ Σ ℕ λ v → q v ≡ inj₂ tt
+      q-miss (_ , ())
+
+      -- No total FMˢ can mediate this cocone with index map q.
+      -- 不存在以 q 为索引映射的全函数 FMˢ mediate。
+      no-FM-mediate : (g : FMˢ L∞ ZJ)
+                    → ((x : ℕ) → FMapˢ.u (FMˢ.mor g) x ≡ q x)
+                    → ⊥
+      no-FM-mediate =
+        no-FM-nonsurjective {X = L∞} {Y = ZJ}
+          0 (M.here (orbit∞ 0)) q (inj₂ tt) q-miss
