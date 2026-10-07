@@ -6,33 +6,33 @@
 
 ## Introduction / 简介
 
-ALMA is a formal framework grounded in type theory, category theory, edge-family-indexed coinductive M-types, and coalgebras. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which serves as a mathematical model for philosophical ontology.
+ALMA is a formal framework grounded in type theory, category theory, edge-family-indexed M-types, and coalgebras. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which provides a mathematical model for philosophical ontology research.
 
-The project is organised into five source sub-trees: an active main line Cosmos/, its foundation Base/, and three frozen stages SecondPass/, InitialPass/ and Prototype/.
+The project is organised into five source sub-trees:
 
-Base/ — Fundamental structure. When the uniqueness proof in SecondPass/ stalled, a backtracking analysis of the cause revealed that all equivalence relations share a single indexed coinductive skeleton Mᵢ (with M as its trivial-index special case), organised into a two-axis degeneration lattice Equivalence/.
+**Base/** — Foundational structures: the indexed coinductive skeleton Mᵢ and the two-axis degeneracy lattice Equivalence/. It originated when the uniqueness proof of the colimit's universal property in SecondPass/ was blocked; tracing the cause revealed that all equivalence relations share this single skeleton.
 
-Cosmos/ — The active main line of development. It turns decisively to the carried M architecture.
+**Cosmos/** — The active main line. It turns decisively to the carried M architecture, replacing the (B , next) presentation by edge-family indexing and carrying container structure, the intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference as data.
 
-SecondPass/ — The second structural reorganisation. It introduced the MorphismObject / Unfolding framework, built the cross-universe cumulative hierarchy and the FinCatN tower, and concentrated the project's subst debt. Superseded by Cosmos/. Frozen for archival purposes.
+**SecondPass/** — The second structural reorganisation. It introduced the MorphismObject / Unfolding framework, built the cross-universe cumulative hierarchy and the FinCatN tower, and concentrated the project's subst debt. Superseded by Cosmos/. Frozen for archival purposes.
 
-InitialPass/ — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Frozen for archival purposes.
+**InitialPass/** — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Frozen for archival purposes.
 
-Prototype/ — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
+**Prototype/** — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
 
-ALMA 是基于类型论、范畴论、边族索引余归纳 M 型及余代数的形式化框架。项目核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
+ALMA 是一个建立在类型论、范畴论、边族索引 M 型与余代数之上的形式化框架。其核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
-项目结构划分为五个源码子树：一条活跃主线 Cosmos/，其基础结构 Base/，以及三个冻结的历史阶段 SecondPass/、InitialPass/ 与 Prototype/。
+项目结构划分为五个源码子树：
 
-Base/ —— 基础结构。在 SecondPass/ 唯一性证明受阻、回溯其原因时，发现所有等价关系共享一个索引余归纳骨架 Mᵢ（M 为其平凡索引特例），并组织为两轴退化格 Equivalence/。
+**Base/** —— 基础结构：索引余归纳骨架 Mᵢ 与两轴退化格Equivalence/。它起源于 SecondPass/ 中余极限泛性质唯一性证明受阻时的回溯：所有等价关系共享这一骨架。
 
-Cosmos/ —— 当前活跃开发的主线。彻底转向携带式 M 架构。
+**Cosmos/** —— 当前活跃主线。彻底转向携带式 M 架构，以边族索引取代(B , next) 表示，把容器结构、内禀范畴、态射对形状的变换、余代数展开与动态自我指涉全部携带为数据。
 
-SecondPass/ —— 第二次结构性重组。引入 MorphismObject / Unfolding 框架，构建跨宇宙累积层级与 FinCatN 塔，是项目 subst 债务的集中地。已被 Cosmos/ 取代。冻结存档。
+**SecondPass/** —— 第二次结构重组。引入 MorphismObject / Unfolding 框架，构建跨宇宙累积层级与 FinCatN 塔，集中了项目的 subst 债务。已被 Cosmos/ 取代。冻结存档。
 
-InitialPass/ —— 吸纳社区反馈后的结构性重组：将单体原型拆分为独立模块。冻结存档。
+**InitialPass/** —— 吸纳社区反馈后的结构重组：将单体原型拆分为独立模块。冻结存档。
 
-Prototype/ —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的“subst hell”问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
+**Prototype/** —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的"subst hell" 问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
 
 ## Motivation / 动机
 
@@ -48,21 +48,17 @@ The formalization has undergone three migrations across tools, each rooted in a 
 
 ## Key Contribution / 核心贡献
 
-The central construction of the formalization is the coinductive record Cosmos: it consolidates container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference into a single type, thereby granting philosophical thought a machine-checkable, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
+The ontological root of subst: when A is essentially determined by B at parameter p₀, yet is expressed independently, the misalignment between A's self-contained appearance and its instance-position must manifest as subst at every point of connection between A and B.
+
+The central construction of the formalization is Cosmos. It replaces the (B , next) presentation of indexed M-types with an edge-family-indexed M-type, so that no next function and no next-comm equation appear; container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference are all carried as data, thereby granting philosophical thought—an infinite, unbounded, dynamic and self-referential cosmology—a machine-checkable, subst-free, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
 
 The Equivalence/ sub-tree mirrors this convergence at the level of observation equivalence. All degenerations—ScaleInvariant, DiscreteEq, and their specialisations to group actions, linear dynamics, topological and manifold equivalences—are instances of a single indexed coinductive skeleton Mᵢ, whose central instance LayeredEqGen organises them into a two-axis lattice. This aligns the code structure with the paper's three fundamental features of the stable world-structure (distinguishability, continuous variation, transformation invariance).
 
-The ontological root of subst: when A is essentially determined by B at parameter p₀, yet is expressed independently, the misalignment between A's self-contained appearance and its instance-position must manifest as subst at every point of connection between A and B.
-
-The resolution is carried rather than propositional. The edge-indexed coinductive correspondence MCorr (Base/MCorr.agda) replaces index equalities and their transports by carried data: children are indexed directly by edges, and the fibre-wise adjunction FiberAdj aligns dependent fibres with no J whatsoever. On this basis the Cosmos/Carried/ sub-tree reconstructs the finite-tower colimit—its existence, the mediating triangle, and uniqueness up to bisimulation—with zero subst/cast, together with machine-checked negative boundaries: the stage embedding is injective but not surjective, so no global projection FMap exists, and the colimit legs are forward edge-following push simulations rather than child-surjective maps.
-
-形式化的核心构造是余归纳记录 Cosmos：它将容器结构、内禀范畴、态射对形状的变换、余代数展开及动态自我指涉收束于单一类型，使哲学思想获得机器可检验的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
-
-Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
-
 subst 的本体论根源：当 A 本质上由 B 在参数 p₀ 处决定，却被独立表达时，A 的自足外观与其实例位置之间的错位，必然在 A 与 B 的每个连接点上以 subst 的形式显露。
 
-subst 的消解是携带式的，而非命题式的。边索引化余归纳对应 MCorr（Base/MCorr.agda）以携带数据取代索引等式及其传输：子节点由边直接索引，纤维伴随 FiberAdj 无需 J 即对齐依赖纤维。在此之上，Cosmos/Carried/ 子树以零 subst/cast 重建有限塔余极限——存在性、中介三角律与互模拟意义下的唯一性——并附机检的否定性边界：层嵌入单射而非满射，故不存在全局投影 FMap；余极限的腿是沿边跟随的前向 push 互模拟，而非子节点满射映射。
+形式化的核心构造是 Cosmos。它以边族索引 M 型取代 (B , next) 索引 M 型表示，使 next 函数与 next-comm 交换等式不再出现；容器结构、内禀范畴、态射对形状的变换、余代数展开以及动态自我指涉，全部携带为数据，从而使哲学思想——无限、无界、动态且自我指涉的宇宙论——获得机器可检验的、无 subst 的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
+
+Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
 
 ## Dependencies & Build / 依赖与构建
 
