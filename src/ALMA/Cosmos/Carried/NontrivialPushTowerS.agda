@@ -26,18 +26,20 @@ module ALMA.Cosmos.Carried.NontrivialPushTowerS where
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Fin.Base using (Fin; inject₁; toℕ)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import Data.Fin.Properties using (toℕ-inject₁)
+open import Data.Nat.Properties using (+-comm)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open import ALMA.Cosmos.Carried.LimitSystemS
   using (n-at; natToFin; toℕ-natToFin)
+import ALMA.Cosmos.Carried.LimitSystemS as LS
 
 open SysEq
 
@@ -71,6 +73,7 @@ record LabeledFinTower (ℓ : Level) : Set (lsuc ℓ) where
 module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
   open LabeledFinTower T
+  open LS.LimitSystemS t embed-compat using (s∞; read-coh)
 
   ----------------------------------------------------------------------
   -- Stage systems: deterministic index dynamics, nontrivial labels.
@@ -176,3 +179,78 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- 由第 v 个代表元 natToFin v 处标签在阶段 v 诞生的规范线程。
   thread-at : (v : ℕ) → L v (natToFin v) → Thread v
   thread-at v a = mk v (natToFin v) (toℕ-natToFin v) a
+
+  ----------------------------------------------------------------------
+  -- Finest carried equivalence on threads: two threads are the same
+  -- ray when some forward iterates of them are the same full record.
+  -- Equality is never forced across two Fin positions at a common stage;
+  -- leg coherence uses t ≈ extend t, which holds by construction.
+  -- 线程上最细的携带等价：当两条线程的某前向迭代为同一整条记录时，二者
+  -- 为同一射线。绝不跨共同阶段的两个 Fin 位置强取等式；余锥相干使用
+  -- t ≈ extend t，由构造成立。
+
+  record _≈Thread_ {v : ℕ} (t u : Thread v) : Set (ℓ ⊔ lzero) where
+    field
+      dl   : ℕ
+      dr   : ℕ
+      same : extend^ dl t ≡ extend^ dr u
+  open _≈Thread_
+
+  -- Iterating a then b is iterating (a + b); definitional, induction on a.
+  -- 先迭代 a 次再 b 次即迭代 (a + b) 次；对 a 归纳，定义性成立。
+  extend^-comp : ∀ {v} (a b : ℕ) (t : Thread v)
+               → extend^ a (extend^ b t) ≡ extend^ (a + b) t
+  extend^-comp zero    b t = refl
+  extend^-comp (suc a) b t = cong extend (extend^-comp a b t)
+
+  iter-add-comm : ∀ {v} (a b : ℕ) (t : Thread v)
+                → extend^ (a + b) t ≡ extend^ (b + a) t
+  iter-add-comm a b t rewrite +-comm a b = refl
+
+  ≈Thread-refl : ∀ {v} {t : Thread v} → t ≈Thread t
+  ≈Thread-refl = record { dl = zero ; dr = zero ; same = refl }
+
+  ≈Thread-sym : ∀ {v} {t u : Thread v} → t ≈Thread u → u ≈Thread t
+  ≈Thread-sym p = record { dl = dr p ; dr = dl p ; same = sym (same p) }
+
+  ≈Thread-trans : ∀ {v} {t u w : Thread v}
+                → t ≈Thread u → u ≈Thread w → t ≈Thread w
+  ≈Thread-trans {u = u} p q = record
+    { dl = c + a
+    ; dr = b + d
+    ; same =
+        trans (sym (extend^-comp c a _))
+        (trans (cong (extend^ c) (same p))
+        (trans (extend^-comp c b u)
+        (trans (iter-add-comm c b u)
+        (trans (sym (extend^-comp b c u))
+        (trans (cong (extend^ b) (same q))
+               (extend^-comp b d _))))))
+    }
+    where
+    a = dl p ; b = dr p ; c = dl q ; d = dr q
+
+  ≈A∞ : (v : ℕ) → EqOn {ℓ = ℓ ⊔ lzero} (Thread v)
+  ≈A∞ v = record
+    { _≈_ = _≈Thread_
+    ; isEquivalence = record
+      { refl  = ≈Thread-refl
+      ; sym   = ≈Thread-sym
+      ; trans = ≈Thread-trans
+      }
+    }
+
+  ----------------------------------------------------------------------
+  -- Apex system: ℕ index with deterministic dynamics s∞, Thread labels,
+  -- singleton deterministic edges (Moore: edges carry no label).
+  -- 顶点系统：ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边
+  -- （Moore：边不携带标签）。
+
+  L∞ : SysEq lzero ℓ lzero (ℓ ⊔ lzero) lzero
+  L∞ = record
+    { I  = ℕ
+    ; A  = Thread
+    ; E  = λ v _ w → Σ (⊤ {lzero}) λ _ → w ≡ s∞ v
+    ; ≈A = ≈A∞
+    ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
+    }
