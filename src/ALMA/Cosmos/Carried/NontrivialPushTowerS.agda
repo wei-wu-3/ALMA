@@ -872,6 +872,72 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       triangle : (m : ℕ) → med-leg m ≈FM zlegFM m
       triangle m v = refl , λ t → tri-go m v t
 
+      -- Target-side ray coincidence: the stage-m canonical evaluation
+      -- family and the canonical eval∞ family agree pointwise, by
+      -- carrying both forward to their common stage (EqOn only, no
+      -- transport across fibres).
+      -- 目标侧射线重合：阶段 m 规范求值族与规范 eval∞ 族逐点一致，
+      -- 方法是把二者前向携带到共同阶段（仅用 EqOn，不跨纤维传输）。
+      zfwd : (k m w : ℕ)
+           → EqOn._≈_ (≈ZL w)
+               (zm (k + m) w (lab (k + m) w)) (zm m w (lab m w))
+      zfwd zero    m w = EqOn.refl (≈ZL w)
+      zfwd (suc k) m w =
+        EqOn.trans (≈ZL w) step (zfwd k m w)
+        where
+        eq : l-emb (k + m) w (lab (k + m) w) ≡ lab (suc (k + m)) w
+        eq = sym (lab-coh (k + m) w)
+        step : EqOn._≈_ (≈ZL w)
+                 (zm (suc (k + m)) w (lab (suc (k + m)) w))
+                 (zm (k + m) w (lab (k + m) w))
+        step =
+          EqOn.trans (≈ZL w)
+            (EqOn.sym (≈ZL w)
+               (EqOn.reflexive (≈ZL w)
+                  (cong (zm (suc (k + m)) w) eq)))
+            (zm-coh (k + m) w (lab (k + m) w))
+
+      zray-he : (m w : ℕ)
+              → EqOn._≈_ (≈ZL w) (zm m w (lab m w)) (eval∞ w)
+      zray-he m w =
+        EqOn.trans (≈ZL w)
+          (EqOn.sym (≈ZL w) (zfwd w m w))
+          (EqOn.trans (≈ZL w)
+             (EqOn.reflexive (≈ZL w)
+                (cong (λ k → zm k w (lab k w)) (+-comm w m)))
+             (zfwd m w w))
+
+      -- The stage-leg image of the canonical orbit is bisimilar to the
+      -- mediating-functor image of the colimit orbit.
+      -- 阶段腿在规范轨道上的像与 mediate 函子在余极限轨道上的像互模拟。
+      mutual
+        zlegray-go : (m v : ℕ)
+                   → _≈Mˢ_ (≈A Z) (≈E Z)
+                            (FMapˢ.mapFˢ (legF m) v (norbit m v))
+                            (FMapˢ.mapFˢ medF v (orbit∞ v))
+        zlegray-go m v ._≈Mˢ_.here-eq = zray-he m v
+        zlegray-go m v ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (zm m v (lab m v)) w)
+          , ( (λ _ → zlegray-go   m w)
+            , (λ _ → zlegray-go˘  m w) )
+
+        zlegray-go˘ : (m v : ℕ)
+                    → _≈Mˢ_ (≈A Z) (≈E Z)
+                             (FMapˢ.mapFˢ medF v (orbit∞ v))
+                             (FMapˢ.mapFˢ (legF m) v (norbit m v))
+        zlegray-go˘ m v ._≈Mˢ_.here-eq =
+          EqOn.sym (≈ZL v) (zray-he m v)
+        zlegray-go˘ m v ._≈Mˢ_.below-eq w =
+            idAdjˢ (≈E Z v (eval∞ v) w)
+          , ( (λ _ → zlegray-go˘  m w)
+            , (λ _ → zlegray-go   m w) )
+
+      zlegray : (m v : ℕ)
+              → _≈Mˢ_ (≈A Z) (≈E Z)
+                       (FMapˢ.mapFˢ (legF m) v (norbit m v))
+                       (FMapˢ.mapFˢ medF v (orbit∞ v))
+      zlegray = zlegray-go
+
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
     --
