@@ -35,8 +35,10 @@ open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
+open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn; _≈Mˢ_; idAdjˢ)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
+open import ALMA.Base.MCorrSetoidCat using (FMapˢ; FMˢ)
+open import ALMA.Cosmos.Carried.SeqColimitS using (Chainˢ)
 open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
 import ALMA.Cosmos.Carried.LimitSystemS as LS
 
@@ -167,7 +169,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- 全局 id v 处的最终标签：L _ v 的阶段标签化元素。载体内无 Fin 位置；
   -- extend 只改阶段并在固定 v 上应用 l-emb。
 
-  record Thread (v : ℕ) : Set (ℓ ⊔ lzero) where
+  record Thread (v : ℕ) : Set ℓ where
     inductive
     constructor mk
     field
@@ -192,7 +194,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- 最细携带等价：当某前向迭代作为整条记录重合时，两线程为同一射线。
   -- 仅由 ℕ 迭代算术与 cong 构造；标签始终处于同一 v 的 L _ v 中。
 
-  record _≈Thread_ {v : ℕ} (t u : Thread v) : Set (ℓ ⊔ lzero) where
+  record _≈Thread_ {v : ℕ} (t u : Thread v) : Set ℓ where
     field
       dl   : ℕ
       dr   : ℕ
@@ -231,7 +233,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     where
     a = dl p ; b = dr p ; c = dl q ; d = dr q
 
-  ≈A∞ : (v : ℕ) → EqOn {ℓ = ℓ ⊔ lzero} (Thread v)
+  ≈A∞ : (v : ℕ) → EqOn {ℓ = ℓ} (Thread v)
   ≈A∞ v = record
     { _≈_ = _≈Thread_
     ; isEquivalence = record
@@ -246,14 +248,26 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- singleton deterministic edges.
   -- 顶点系统：ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边。
 
-  L∞ : SysEq lzero (ℓ ⊔ lzero) lzero (ℓ ⊔ lzero) lzero
-  L∞ = record
+  -- Shared singleton-edge system over the fixed dynamics s∞. Every
+  -- stage and the apex differ only in the label fibre and its EqOn; the
+  -- index, edge fibre and edge EqOn are definitionally shared, so an
+  -- identity-index carried functor reuses the source fibre adjunction in
+  -- its map congruence with no edge transport.
+  -- 固定动力 s∞ 上共享单点边的系统。各阶段与顶点仅标签纤维及其 EqOn 不同；
+  -- 索引、边纤维与边 EqOn 定义性共享，故索引恒等的携带函子可在其 map 同余
+  -- 中直接复用源纤维伴随，无边传输。
+  nsys : (A₀ : ℕ → Set ℓ) → ((v : ℕ) → EqOn {ℓ = ℓ} (A₀ v))
+       → SysEq lzero ℓ lzero ℓ lzero
+  nsys A₀ ≈A₀ = record
     { I  = ℕ
-    ; A  = Thread
+    ; A  = A₀
     ; E  = λ v _ w → Σ (⊤ {lzero}) λ _ → w ≡ s∞ v
-    ; ≈A = ≈A∞
+    ; ≈A = ≈A₀
     ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
     }
+
+  L∞ : SysEq lzero ℓ lzero ℓ lzero
+  L∞ = nsys Thread ≈A∞
 
   ----------------------------------------------------------------------
   -- ℕ-indexed stage chain on which the colimit universal property lives.
@@ -270,13 +284,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- Fin、无 toℕ、无传输。上面的 Fin 塔是产生这种链的一种方式。
 
   NStage : (m : ℕ) → SysEq lzero ℓ lzero ℓ lzero
-  NStage m = record
-    { I  = ℕ
-    ; A  = L m
-    ; E  = λ v _ w → Σ (⊤ {lzero}) λ _ → w ≡ s∞ v
-    ; ≈A = λ v → propEqOn (L m v)
-    ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
-    }
+  NStage m = nsys (L m) (λ v → propEqOn (L m v))
 
   -- Identity-index layer relation between consecutive stages.
   -- 相邻阶段间索引恒等的层关系。
@@ -294,8 +302,77 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   Rl : ℕ → ℕ → Set lzero
   Rl v w = v ≡ w
 
-  Hl : (m v w : ℕ) → Rl v w → L m v → Thread w → Set (ℓ ⊔ lzero)
+  Hl : (m v w : ℕ) → Rl v w → L m v → Thread w → Set ℓ
   Hl m v .v refl a τ = τ ≈Thread mk m a
+
+  ----------------------------------------------------------------------
+  -- Identity-index deterministic carried functor between two nsys
+  -- systems. u is the identity; the canonical source child of w is w;
+  -- the fibre adjunction is the identity. The edge EqOn of any two nsys
+  -- systems is definitionally the same propEqOn on the singleton edge,
+  -- so the map congruence reuses the source bisimulation's adjunction
+  -- unchanged: no edge transport.
+  -- 两个 nsys 系统间索引恒等的确定性携带函子。u 为恒等；w 的规范源子节点
+  -- 即 w；纤维伴随为恒等。任意两 nsys 系统的边 EqOn 定义性同为单点边上的
+  -- propEqOn，故 map 同余直接复用源互模拟的伴随：无边传输。
+
+  idxFM : (A₀ : ℕ → Set ℓ) (≈A₀ : (v : ℕ) → EqOn {ℓ = ℓ} (A₀ v))
+          (A₁ : ℕ → Set ℓ) (≈A₁ : (v : ℕ) → EqOn {ℓ = ℓ} (A₁ v))
+          (sh : (v : ℕ) → A₀ v → A₁ v)
+          (shc : ∀ {v : ℕ} {a a' : A₀ v}
+               → EqOn._≈_ (≈A₀ v) a a'
+               → EqOn._≈_ (≈A₁ v) (sh v a) (sh v a'))
+          → FMˢ (nsys A₀ ≈A₀) (nsys A₁ ≈A₁)
+  idxFM A₀ ≈A₀ A₁ ≈A₁ sh shc = record
+    { mor        = fmor
+    ; shape-cong = λ e → shc e
+    ; map-cong   = go
+    }
+    where
+    fmor : FMapˢ (nsys A₀ ≈A₀) (nsys A₁ ≈A₁)
+    fmor = record
+      { u      = λ v → v
+      ; shape  = sh
+      ; childF = λ v _ w → w , refl
+      ; adjFˢ  = λ v a w → idAdjˢ (≈E (nsys A₁ ≈A₁) v (sh v a) w)
+      }
+    mutual
+      go : ∀ {v : ℕ} {t s : M A₀ (E (nsys A₀ ≈A₀)) v}
+         → _≈Mˢ_ ≈A₀ (≈E (nsys A₀ ≈A₀)) t s
+         → _≈Mˢ_ ≈A₁ (≈E (nsys A₁ ≈A₁))
+                  (FMapˢ.mapFˢ fmor v t) (FMapˢ.mapFˢ fmor v s)
+      go p ._≈Mˢ_.here-eq = shc (_≈Mˢ_.here-eq p)
+      go p ._≈Mˢ_.below-eq w =
+        let adj , fs = _≈Mˢ_.below-eq p w
+            fwd , bwd = fs
+        in adj , ((λ e₁ → go (fwd e₁)) , (λ e₂ → go (bwd e₂)))
+
+  -- Stage embedding FMˢ: identity index, l-emb on labels.
+  -- 阶段嵌入 FMˢ：索引恒等，标签经 l-emb。
+  embFM : (m : ℕ) → FMˢ (NStage m) (NStage (suc m))
+  embFM m =
+    idxFM (L m) (λ v → propEqOn (L m v))
+          (L (suc m)) (λ v → propEqOn (L (suc m) v))
+          (λ v a → l-emb m v a) (λ {v} e → cong (l-emb m v) e)
+
+  -- A propositional label equality maps to the same-ray relation at the
+  -- fixed stage.
+  -- 命题性标签等式映射为固定阶段处的同一射线关系。
+  leg-shc : ∀ {m v : ℕ} {a a' : L m v}
+          → a ≡ a' → mk m a ≈Thread mk m a'
+  leg-shc refl = ≈Thread-refl
+
+  -- Stage-to-apex leg FMˢ: identity index, label to its stage-m thread.
+  -- 阶段到顶点的腿 FMˢ：索引恒等，标签映为其阶段 m 线程。
+  legFM : (m : ℕ) → FMˢ (NStage m) L∞
+  legFM m =
+    idxFM (L m) (λ v → propEqOn (L m v)) Thread ≈A∞
+          (λ v a → mk m a) leg-shc
+
+  -- The ℕ-indexed nontrivial-fibre chain.
+  -- ℕ 索引非平凡纤维链。
+  nchain : Chainˢ lzero ℓ lzero ℓ lzero
+  nchain = record { X = NStage ; emb = embFM }
 
   ----------------------------------------------------------------------
   -- Canonical legs from a coherent global labelling.
@@ -354,7 +431,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- and the stage-m label are the same ray.
     -- refl 层见证处的标签对应：顶点线程与阶段 m 标签是同一射线。
     Hₘ : (m : ℕ) (x : Fin (n-at m)) (v : ℕ) → Rₘ m x v
-       → A (LStage m) x → Thread v → Set (ℓ ⊔ lzero)
+       → A (LStage m) x → Thread v → Set ℓ
     Hₘ m x .(toℕ x) refl a τ = τ ≈Thread mk m a
 
     -- The canonical leg at position x; every push stays at refl by
