@@ -2,22 +2,24 @@
 -- The wide subcategory of MCorrCatˢ on identity-index carried functors.
 --
 -- Objects are ℕ-indexed deterministic systems with a fixed successor
--- dynamics d : ℕ → ℕ; only the label fibre varies. A morphism is a
--- setoid carried functor FMˢ whose index map is the identity. Every
--- cocone leg in this category therefore follows the identity
--- trajectory, which is the range in which the push colimit mediating
--- functor is total and unique (the non-surjective index obstruction of
--- ColimitPolarity cannot arise). The category laws are those of
--- MCorrCatˢ on the underlying FMˢ; the index proof is propositional and
--- never participates in morphism equality, so no UIP is required.
+-- dynamics d : ℕ → ℕ; only the label fibre varies. A morphism is given
+-- just by a fibre map shape and its congruence; the index map, child
+-- map and edge adjunction are fixed (identity index, singleton child
+-- refl, identity fibre adjunction), so the underlying FMˢ has a
+-- definitionally identity index. Morphism equality is the pointwise
+-- label-tree bisimulation with no index path and no transport. This is
+-- the range in which the nchain push colimit mediating functor is total
+-- and unique: every cocone leg follows the identity trajectory, so the
+-- non-surjective index obstruction of ColimitPolarity cannot arise.
 --
 -- MCorrCatˢ 在“索引恒等”携带函子上的宽子范畴。
 --
--- 对象是以固定后继动力 d : ℕ → ℕ 的 ℕ 索引确定性系统，只有标签纤维可变；
--- 态射是索引映射为恒等的 setoid 携带函子 FMˢ。故本范畴中每条余锥腿都沿
--- 恒等轨迹，这正是 push 余极限 mediate 函子全且唯一的范围（不会出现
--- ColimitPolarity 的索引非满射障碍）。范畴律即底层 FMˢ 在 MCorrCatˢ
--- 中的律；索引见证是命题性的、不参与态射相等，故无需 UIP。
+-- 对象是以固定后继动力 d : ℕ → ℕ 的 ℕ 索引确定性系统，只有标签纤维可变。
+-- 态射仅由纤维映射 shape 及其同余给出；索引映射、子节点映射与边伴随均固定
+-- （索引恒等、单子节点 refl、恒等纤维伴随），故底层 FMˢ 的索引定义性为
+-- 恒等。态射相等是逐点标签树互模拟，不含索引路径、不含传输。这正是
+-- nchain push 余极限 mediate 函子全且唯一的范围：每条余锥腿沿恒等轨迹，
+-- 不会出现 ColimitPolarity 的索引非满射障碍。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -26,7 +28,6 @@ module ALMA.Cosmos.Carried.SameIndexCatS where
 
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong; trans)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Nat.Base using (ℕ)
@@ -34,12 +35,11 @@ open import Relation.Binary.Structures using (IsEquivalence)
 
 open import Categories.Category.Core using (Category)
 
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
-open import ALMA.Base.MCorrSetoidCat
-  using ( FMapˢ; FMˢ; idFMˢ; compFMˢ; _≈FM_
-        ; ≈FM-refl; ≈FM-sym; ≈FM-trans
-        ; ∘-resp-≈FM; assocFM; sym-assocFM
-        ; identityˡFM; identityʳFM; identity²FM )
+open import ALMA.Base.MCorr using (M)
+open import ALMA.Base.MCorrSetoid
+  using ( SysEq; EqOn; propEqOn; idAdjˢ; _≈Mˢ_
+        ; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans )
+open import ALMA.Base.MCorrSetoidCat using (FMapˢ; FMˢ)
 
 open SysEq
 
@@ -71,53 +71,93 @@ dsys d X = record
 
 module _ (d : ℕ → ℕ) {ℓ : Level} where
 
-  -- A morphism packages an FMˢ together with a pointwise identity index.
-  -- 态射打包一个 FMˢ 及逐点恒等索引见证。
-  record Idx⇒ (X Y : LabelSys ℓ) : Set ℓ where
-    field
-      mor  : FMˢ (dsys d X) (dsys d Y)
-      u≡id : (v : ℕ) → FMapˢ.u (FMˢ.mor mor) v ≡ v
-  open Idx⇒ public
-
   private
     s = dsys d
 
+  -- The generic identity-index FMˢ for a fibre map and its congruence.
+  -- 纤维映射及其同余对应的通用索引恒等 FMˢ。
+  idxFM : (X Y : LabelSys ℓ)
+          (sh : (v : ℕ) → A₀ X v → A₀ Y v)
+          (shc : ∀ {v : ℕ} {a a' : A₀ X v}
+               → EqOn._≈_ (≈A₀ X v) a a'
+               → EqOn._≈_ (≈A₀ Y v) (sh v a) (sh v a'))
+        → FMˢ (s X) (s Y)
+  idxFM X Y sh shc = record
+    { mor        = fmor
+    ; shape-cong = λ e → shc e
+    ; map-cong   = go
+    }
+    where
+    fmor : FMapˢ (s X) (s Y)
+    fmor = record
+      { u      = λ v → v
+      ; shape  = sh
+      ; childF = λ v _ w → w , refl
+      ; adjFˢ  = λ v a w → idAdjˢ (≈E (s Y) v (sh v a) w)
+      }
+    mutual
+      go : ∀ {v : ℕ} {t t' : M (A (s X)) (E (s X)) v}
+         → _≈Mˢ_ (≈A (s X)) (≈E (s X)) t t'
+         → _≈Mˢ_ (≈A (s Y)) (≈E (s Y))
+                  (FMapˢ.mapFˢ fmor v t) (FMapˢ.mapFˢ fmor v t')
+      go p ._≈Mˢ_.here-eq = shc (_≈Mˢ_.here-eq p)
+      go p ._≈Mˢ_.below-eq w =
+        let adj , fs = _≈Mˢ_.below-eq p w
+            fwd , bwd = fs
+        in adj , ((λ e₁ → go (fwd e₁)) , (λ e₂ → go (bwd e₂)))
+
+  -- A morphism is a fibre map and its congruence; the FMˢ is derived.
+  -- 态射即纤维映射及其同余；FMˢ 由此导出。
+  record Idx⇒ (X Y : LabelSys ℓ) : Set ℓ where
+    field
+      shape      : (v : ℕ) → A₀ X v → A₀ Y v
+      shape-cong : ∀ {v : ℕ} {a a' : A₀ X v}
+                 → EqOn._≈_ (≈A₀ X v) a a'
+                 → EqOn._≈_ (≈A₀ Y v) (shape v a) (shape v a')
+    mor : FMˢ (s X) (s Y)
+    mor = idxFM X Y shape shape-cong
+  open Idx⇒ public
+
   ----------------------------------------------------------------------
-  -- Identity and composition; the index proofs collapse to refl along
-  -- the identity maps.
-  -- 恒等与复合；索引见证沿恒等映射坍缩为 refl。
+  -- Identity and composition at the fibre-map level.
+  -- 纤维映射层面的恒等与复合。
 
   idxi : (X : LabelSys ℓ) → Idx⇒ X X
-  idxi X = record { mor = idFMˢ {X = s X} ; u≡id = λ _ → refl }
+  idxi X = record
+    { shape      = λ _ a → a
+    ; shape-cong = λ e → e
+    }
 
   compi : {X Y Z : LabelSys ℓ} → Idx⇒ Y Z → Idx⇒ X Y → Idx⇒ X Z
-  compi {X = X} g f = record { mor = compFMˢ (mor g) (mor f)
-                             ; u≡id = ucomp }
-    where
-    ucomp : (v : ℕ)
-          → FMapˢ.u (FMˢ.mor (compFMˢ (mor g) (mor f))) v ≡ v
-    ucomp v = trans (u≡id g (FMapˢ.u (FMˢ.mor (mor f)) v))
-                    (u≡id f v)
+  compi g f = record
+    { shape      = λ v a → shape g v (shape f v a)
+    ; shape-cong = λ e → shape-cong g (shape-cong f e)
+    }
 
   ----------------------------------------------------------------------
-  -- Morphism equality is behavioural equality of the underlying FMˢ.
-  -- 态射相等即底层 FMˢ 的行为相等。
+  -- Morphism equality: pointwise label-tree bisimulation, no path.
+  -- 态射相等：逐点标签树互模拟，无路径。
 
   _≈i_ : {X Y : LabelSys ℓ} → Idx⇒ X Y → Idx⇒ X Y → Set ℓ
-  f ≈i g = mor f ≈FM mor g
+  _≈i_ {X = X} {Y = Y} f g =
+    ∀ (v : ℕ) (t : M (A (s X)) (E (s X)) v)
+    → _≈Mˢ_ (≈A (s Y)) (≈E (s Y))
+             (FMapˢ.mapFˢ (FMˢ.mor (mor f)) v t)
+             (FMapˢ.mapFˢ (FMˢ.mor (mor g)) v t)
 
   ≈i-refl : {X Y : LabelSys ℓ} (f : Idx⇒ X Y) → f ≈i f
-  ≈i-refl {X = X} {Y = Y} f = ≈FM-refl {X = s X} {Y = s Y} (mor f)
+  ≈i-refl {Y = Y} f v t =
+    ≈Mˢ-refl (≈A (s Y)) (≈E (s Y))
+      (FMapˢ.mapFˢ (FMˢ.mor (mor f)) v t)
 
   ≈i-sym : {X Y : LabelSys ℓ} {f g : Idx⇒ X Y} → f ≈i g → g ≈i f
-  ≈i-sym {X = X} {Y = Y} {f = f} {g = g} p =
-    ≈FM-sym {X = s X} {Y = s Y} {f = mor f} {g = mor g} p
+  ≈i-sym {Y = Y} p v t =
+    ≈Mˢ-sym (≈A (s Y)) (≈E (s Y)) (p v t)
 
   ≈i-trans : {X Y : LabelSys ℓ} {f g h : Idx⇒ X Y}
            → f ≈i g → g ≈i h → f ≈i h
-  ≈i-trans {X = X} {Y = Y} {f = f} {g = g} {h = h} p q =
-    ≈FM-trans {X = s X} {Y = s Y}
-              {f = mor f} {g = mor g} {h = mor h} p q
+  ≈i-trans {Y = Y} p q v t =
+    ≈Mˢ-trans (≈A (s Y)) (≈E (s Y)) (p v t) (q v t)
 
   ≈i-isEquivalence : {X Y : LabelSys ℓ} → IsEquivalence (_≈i_ {X} {Y})
   ≈i-isEquivalence = record
@@ -126,15 +166,72 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     ; trans = λ {f g h} → ≈i-trans {f = f} {g = g} {h = h}
     }
 
+  ----------------------------------------------------------------------
+  -- Composition respects pointwise bisimilarity. The head labels are
+  -- forced by the two congruences; the child trees recurse guardedly.
+  -- 复合尊重逐点互模拟：头标签由两个同余强制，子树守卫递归。
   ∘-resp-≈i : {X Y Z : LabelSys ℓ}
               {F₁ F₂ : Idx⇒ X Y} {G₁ G₂ : Idx⇒ Y Z}
             → F₁ ≈i F₂ → G₁ ≈i G₂
             → compi G₁ F₁ ≈i compi G₂ F₂
   ∘-resp-≈i {X = X} {Y = Y} {Z = Z}
-            {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} eqF eqG =
-    ∘-resp-≈FM {X = s X} {Y = s Y} {Z = s Z}
-               {F₁ = mor F₁} {F₂ = mor F₂}
-               {G₁ = mor G₁} {G₂ = mor G₂} eqF eqG
+            {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} eqF eqG = go
+    where
+    mutual
+      go : (v : ℕ) (t : M (A (s X)) (E (s X)) v)
+         → _≈Mˢ_ (≈A (s Z)) (≈E (s Z))
+                  (FMapˢ.mapFˢ (FMˢ.mor (mor (compi G₁ F₁))) v t)
+                  (FMapˢ.mapFˢ (FMˢ.mor (mor (compi G₂ F₂))) v t)
+      go v t ._≈Mˢ_.here-eq =
+        EqOn.trans (≈A (s Z) v)
+          (shape-cong G₁ (_≈Mˢ_.here-eq (eqF v t)))
+          (_≈Mˢ_.here-eq
+            (eqG v (FMapˢ.mapFˢ (FMˢ.mor (mor F₂)) v t)))
+      go v t ._≈Mˢ_.below-eq w =
+          idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ d v))
+        , ( (λ e₁ → go w (M.below t w e₁))
+          , (λ e₂ → go˘ w (M.below t w e₂)) )
+
+      go˘ : (v : ℕ) (t : M (A (s X)) (E (s X)) v)
+          → _≈Mˢ_ (≈A (s Z)) (≈E (s Z))
+                   (FMapˢ.mapFˢ (FMˢ.mor (mor (compi G₂ F₂))) v t)
+                   (FMapˢ.mapFˢ (FMˢ.mor (mor (compi G₁ F₁))) v t)
+      go˘ v t ._≈Mˢ_.here-eq =
+        EqOn.trans (≈A (s Z) v)
+          (EqOn.sym (≈A (s Z) v)
+            (_≈Mˢ_.here-eq
+              (eqG v (FMapˢ.mapFˢ (FMˢ.mor (mor F₂)) v t))))
+          (EqOn.sym (≈A (s Z) v)
+            (shape-cong G₁ (_≈Mˢ_.here-eq (eqF v t))))
+      go˘ v t ._≈Mˢ_.below-eq w =
+          idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ d v))
+        , ( (λ e₁ → go˘ w (M.below t w e₁))
+          , (λ e₂ → go w (M.below t w e₂)) )
+
+  ----------------------------------------------------------------------
+  -- Associativity and identity hold definitionally at the fibre-map
+  -- level, hence by reflexivity.
+  -- 结合律与恒等律在纤维映射层面定义性成立，故由自反性给出。
+  assoc-i : {A B C D : LabelSys ℓ}
+            {f : Idx⇒ A B} {g : Idx⇒ B C} {h : Idx⇒ C D}
+          → compi (compi h g) f ≈i compi h (compi g f)
+  assoc-i {f = f} {g = g} {h = h} = ≈i-refl (compi (compi h g) f)
+
+  sym-assoc-i : {A B C D : LabelSys ℓ}
+                {f : Idx⇒ A B} {g : Idx⇒ B C} {h : Idx⇒ C D}
+              → compi h (compi g f) ≈i compi (compi h g) f
+  sym-assoc-i {f = f} {g = g} {h = h} = ≈i-refl (compi h (compi g f))
+
+  identityˡ-i : {X Y : LabelSys ℓ} {g : Idx⇒ X Y}
+              → compi (idxi Y) g ≈i g
+  identityˡ-i {g = g} = ≈i-refl g
+
+  identityʳ-i : {X Y : LabelSys ℓ} {g : Idx⇒ X Y}
+              → compi g (idxi X) ≈i g
+  identityʳ-i {g = g} = ≈i-refl g
+
+  identity²-i : {X : LabelSys ℓ} → compi (idxi X) (idxi X) ≈i idxi X
+  identity²-i {X = X} = ≈i-refl (idxi X)
 
   ----------------------------------------------------------------------
   -- The wide subcategory.
@@ -153,14 +250,12 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
                                 {F₁ = g} {F₂ = k}
                                 {G₁ = f} {G₂ = h} gk fh
     ; assoc     = λ {W} {X} {Y} {Z} {f} {g} {h} →
-                     assocFM {W = s W} {X = s X} {Y = s Y} {Z = s Z}
-                             {f = mor f} {g = mor g} {h = mor h}
+                     assoc-i {A = W} {B = X} {C = Y} {D = Z}
+                             {f = f} {g = g} {h = h}
     ; sym-assoc = λ {W} {X} {Y} {Z} {f} {g} {h} →
-                     sym-assocFM {W = s W} {X = s X} {Y = s Y} {Z = s Z}
-                                 {f = mor f} {g = mor g} {h = mor h}
-    ; identityˡ = λ {X} {Y} {f} →
-                     identityˡFM {X = s X} {Y = s Y} {f = mor f}
-    ; identityʳ = λ {X} {Y} {f} →
-                     identityʳFM {X = s X} {Y = s Y} {f = mor f}
-    ; identity² = λ {X} → identity²FM {X = s X}
+                     sym-assoc-i {A = W} {B = X} {C = Y} {D = Z}
+                                 {f = f} {g = g} {h = h}
+    ; identityˡ = λ {X} {Y} {f} → identityˡ-i {X} {Y} {g = f}
+    ; identityʳ = λ {X} {Y} {f} → identityʳ-i {X} {Y} {g = f}
+    ; identity² = λ {X} → identity²-i {X = X}
     }
