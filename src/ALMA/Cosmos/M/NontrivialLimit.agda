@@ -1,6 +1,5 @@
 ------------------------------------------------------------------------
 -- Non-triviality on the carried M base.
---
 -- Terminality gives only uniqueness of the mediating morphism
 -- (!-unique); it does not make a fibre total.  Totality is the explicit
 -- predicate AllBisim j, with Subterminal = every fibre total.  A carried
@@ -8,15 +7,14 @@
 -- fibres via mapR along r : R i j) that reflects bisimulation cannot
 -- send a separated source fibre into a total one.  The FinCat n tower
 -- supplies both the separated source (idN≉const0N) and the fact that
--- the terminal carrier is not subterminal.  All arguments are pure
--- contrapositives with no transport.
+-- the terminal carrier is not subterminal.
 --
 -- 携带式 M 底座上的非平凡性。
 -- 终性只给中介映射唯一性（!-unique），不使纤维全体；全体性是显式谓词
 -- AllBisim j，Subterminal 即每个纤维全体。反射互模拟的携带对应（索引
 -- 关系 R 上的 CosmosM⇒，经 mapR 沿 r : R i j 跨纤维映射）不能把分离源
 -- 纤维送入全体纤维。FinCat n 塔同时给出分离源（idN≉const0N）与终载体
--- 非亚终。全部论证为纯逆否，无传输。
+-- 非亚终。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -53,7 +51,6 @@ module _ {o h e s p : Level}
   -- Per-fibre totality and subterminal objects; explicit, never derived
   -- from terminality.
   -- 纤维全体性与亚终对象；显式假设，不由终性导出。
-  ----------------------------------------------------------------------
 
   AllBisim : (j : MO.I C FC) → Set (L ⊔ ℓd)
   AllBisim j =
@@ -73,7 +70,6 @@ module _ {o h e s p : Level}
   -- A carried map reflects bisimulation along r : R i j when bisimilar
   -- images at j force bisimilar sources at i.
   -- 携带映射沿 r : R i j 反射互模拟：j 处像互模拟则 i 处源互模拟。
-  ----------------------------------------------------------------------
 
   module _ {ℓr : Level}
            (R : MO.I C FC → MO.I C FC → Set ℓr)
@@ -113,7 +109,6 @@ module _ {o h e s p : Level}
   ----------------------------------------------------------------------
   -- Terminality is mediator uniqueness (!-unique), not fibre totality.
   -- 终性是中介映射唯一性（!-unique），非纤维全体性。
-  ----------------------------------------------------------------------
 
   record TerminalMediator {u : Level}
          (Xst : MO.I C FC → Set u)
@@ -154,7 +149,6 @@ module _ {o h e s p : Level}
 ------------------------------------------------------------------------
 -- FinCat n tower instantiation.
 -- FinCat n 塔实例化。
-------------------------------------------------------------------------
 
 module TowerInstance (m : ℕ) where
 

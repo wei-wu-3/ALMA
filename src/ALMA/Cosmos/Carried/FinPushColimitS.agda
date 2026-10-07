@@ -5,17 +5,15 @@
 -- coinductive ℕ limit L∞ of LimitSystemS along the graph of toℕ. Each
 -- leg factors through the embedding: the composite (emb-sim followed by
 -- the next leg) is rescoped by the pure witness combinators push-comp
--- and push-map to a leg over the direct graph relation. The only
--- equations are homogeneous Fin/ℕ witnesses; no dependent transport, no
--- K. The mediating simulation for a competing cocone and its uniqueness
--- are constructed separately.
+-- and push-map to a leg over the direct graph relation. The mediating
+-- simulation for a competing cocone and its uniqueness are constructed
+-- separately.
 --
 -- setoid 携带系统上 Fin 塔的规范 push 余锥。一步层嵌入 inject₁ 是前向
 -- PushSim（非 pull 态射）；规范腿沿 toℕ 之图把每个有限层送入 LimitSystemS
 -- 的余归纳 ℕ 极限 L∞。每条腿经嵌入分解：复合（emb-sim 再接下一层腿）由
--- 纯见证组合子 push-comp、push-map 重定域为直接图关系上的腿。仅有的等式
--- 是同质 Fin/ℕ 见证；无依赖传输、不用 K。竞争余锥的 mediate 模拟及其唯一
--- 性另行构造。
+-- 纯见证组合子 push-comp、push-map 重定域为直接图关系上的腿。竞争余锥的
+-- mediate 模拟及其唯一性另行构造。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

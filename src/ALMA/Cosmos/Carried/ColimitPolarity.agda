@@ -1,6 +1,5 @@
 ------------------------------------------------------------------------
 -- Polarity obstruction for a carried sequential-colimit leg.
---
 -- A deterministic carried morphism FMapˢ is a pull notion: its childF
 -- field supplies, for *every* target index v, a source index x in the
 -- graph of the index map (u x ≡ v), so u is necessarily surjective.
@@ -8,16 +7,14 @@
 -- non-surjectively — the bounded Fin (suc k) → ℕ inclusion misses the
 -- new top suc k — hence that inclusion cannot underlie any FMˢ leg.
 -- Non-trivial colimit legs are therefore forward simulations, not pull
--- morphisms. The only equalities are the carried graph witnesses on
--- indices; no dependent transport and no K are used.
+-- morphisms.
 --
 -- 携带式序列余极限腿的极性障碍。
---
 -- 确定性携带态射 FMapˢ 是 pull 概念：其 childF 字段对*每个*目标索引 v
 -- 给出处于索引映射之图中的源索引 x（u x ≡ v），故 u 必满。直接序列的
 -- 固定有限层到极限的嵌入不满——有界的 Fin (suc k) → ℕ 嵌入漏掉新末位
 -- suc k——故此嵌入不能承载任何 FMˢ 腿。非平凡余极限腿因而是前向模拟
--- 而非 pull 态射。仅有的等式是索引上被携带的图见证；无依赖传输、不用 K。
+-- 而非 pull 态射。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -32,8 +29,8 @@ open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Nat.Properties using (<-irrefl)
 open import Data.Fin.Base using (Fin; zero; toℕ)
 open import Data.Fin.Properties using (toℕ<n)
-open import Function.Base using (id)
 open import Data.Empty using (⊥)
+open import Function.Base using (id)
 open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality.Core using (sym; trans)
 

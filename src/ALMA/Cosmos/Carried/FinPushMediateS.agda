@@ -5,14 +5,12 @@
 -- index trajectory q satisfying q (s∞ v) ≡ stepZ (q v). The mediating
 -- forward simulation med follows the unique edges, generalised to an
 -- arbitrary target index and graph witness. Its target tree is the
--- unique deterministic tree up to _≈Mˢ_. Only homogeneous index
--- equations occur; no dependent transport, no K.
+-- unique deterministic tree up to _≈Mˢ_.
 --
 -- Fin push 余极限在确定性 setoid 系统中的泛性质。塔是确定性的（每节点
 -- 一条边），故竞争余锥即一个确定性系统（TrivDetˢ J stepZ）连同满足
 -- q (s∞ v) ≡ stepZ (q v) 的索引轨迹 q。mediate 前向模拟沿唯一边推进，
--- 并泛化到任意目标索引与图见证。其目标树在 _≈Mˢ_ 意义下唯一。仅出现
--- 同质索引等式；无依赖传输、不用 K。
+-- 并泛化到任意目标索引与图见证。其目标树在 _≈Mˢ_ 意义下唯一。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

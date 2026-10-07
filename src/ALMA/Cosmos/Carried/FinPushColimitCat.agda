@@ -8,14 +8,14 @@
 -- cocone's legs are consistent across stages; the mediating map sends v
 -- to the stage-v representative natToFin v, and its semiconjugacy uses
 -- only s∞ v ≤ v+1 and iterated inject₁. Uniqueness is pointwise at the
--- representatives. Homogeneous Fin/ℕ equations only; no transport, no K.
+-- representatives.
 --
 -- Fin push 余极限在确定性前向范畴 DetCat 中装配为 agda-categories 标准
 -- Colimit。形状 ωCat 是后继边上的自由范畴。第 m 层为 (Fin (n-at m),
 -- t m)，后继箭头为 inject₁（embed-compat 即半共轭）；余极限 apex 为
 -- (ℕ, s∞)，腿为 toℕ（read-coh 即半共轭）。竞争余锥的腿跨阶段一致；
 -- mediate 把 v 送到第 v 层代表 natToFin v，其半共轭仅用 s∞ v ≤ v+1 与
--- 迭代 inject₁。唯一性在代表处逐点成立。仅同质 Fin/ℕ 等式；无传输、不用 K。
+-- 迭代 inject₁。唯一性在代表处逐点成立。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

@@ -7,7 +7,6 @@ module Everything where
 -- 活跃主线
 
 import ALMA.Base.IndexedMType
-import ALMA.Base.Container
 import ALMA.Base.MCategory
 import ALMA.Base.MCorr  -- Carried correspondence kernel (zero subst / cast)
                         -- 携带式对应内核（零 subst / cast）
@@ -55,6 +54,8 @@ import ALMA.Cosmos.M.PermutedEmbedding
 import ALMA.Cosmos.M.ListCosmos
 
 import ALMA.Cosmos.Carried.SeqColimit
+import ALMA.Cosmos.Carried.SeqColimitS
+import ALMA.Cosmos.Carried.SeqColimitCat
 import ALMA.Cosmos.Carried.DetSys
 import ALMA.Cosmos.Carried.TrivProj
 import ALMA.Cosmos.Carried.FinNatUIP

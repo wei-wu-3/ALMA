@@ -85,7 +85,6 @@ src/
 ├── ALMA/
 │   ├── Base/                              Active main line — foundation
 │   │   ├── IndexedMType.agda
-│   │   ├── Container.agda
 │   │   ├── MCategory.agda
 │   │   ├── MCorr.agda                     Carried correspondence kernel
 │   │   ├── MCorrSetoid.agda               Setoid-parameterised kernel

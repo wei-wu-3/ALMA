@@ -120,7 +120,7 @@ _∘ᵢ_ g f = record
 record Fiber {i₁ a₁ b₁ i₂ a₂ b₂}
              {X : Mᵢ-Obj i₁ a₁ b₁} {Y : Mᵢ-Obj i₂ a₂ b₂}
              (x : I X) (i : I Y)
-  : Set (i₁ ⊔ a₁ ⊔ b₁ ⊔ i₂ ⊔ a₂ ⊔ b₂) where
+  : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) where
   field
     shp : A X x → A Y i
     pso : (ax : A X x) → B Y i (shp ax) → B X x ax
@@ -151,7 +151,7 @@ module FE {i₁ a₁ b₁ i₂ a₂ b₂}
           (x : I X) (i : I Y) where
 
   private
-    Fib : Set (i₁ ⊔ a₁ ⊔ b₁ ⊔ i₂ ⊔ a₂ ⊔ b₂)
+    Fib : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)
     Fib = Fiber {X = X} {Y = Y} x i
 
     shpᵢ : Fib → A X x → A Y i
@@ -162,7 +162,7 @@ module FE {i₁ a₁ b₁ i₂ a₂ b₂}
     psoᵢ φ = Fiber.pso φ
 
   record _≈sr_ (α β : Fib)
-    : Set (i₁ ⊔ a₁ ⊔ b₁ ⊔ i₂ ⊔ a₂ ⊔ b₂) where
+    : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) where
     field
       shape-eq : ∀ (ax : A X x)
                → shpᵢ α ax ≡ shpᵢ β ax
@@ -476,33 +476,16 @@ MᵢCat i a b = record
   ; _≈_       = Eq i a b
   ; id        = id₀ i a b
   ; _∘_       = comp₀ i a b
-  ; equiv     = λ {X} {Y} →
-                  Mᵢ-≈-isEquivalence
-                    {i₁ = i} {a₁ = a} {b₁ = b}
-                    {i₂ = i} {a₂ = a} {b₂ = b} {X = X} {Y = Y}
-  ; ∘-resp-≈  = λ {X} {Y} {Z} {f} {h} {g} {k} eqG eqF →
-                  ∘ᵢ-resp-≈
-                    {i₁ = i} {a₁ = a} {b₁ = b}
-                    {i₂ = i} {a₂ = a} {b₂ = b}
-                    {i₃ = i} {a₃ = a} {b₃ = b}
-                    {X = X} {Y = Y} {Z = Z}
-                    {F₁ = g} {F₂ = k} {G₁ = f} {G₂ = h} eqG eqF
-  ; assoc     = λ {W} {X} {Y} {Z} {f} {g} {h} →
-                  ∘ᵢ-assoc {i = i} {a = a} {b = b}
-                            {W = W} {X = X} {Y = Y} {Z = Z}
-                            {f = f} {g = g} {h = h}
-  ; sym-assoc = λ {W} {X} {Y} {Z} {f} {g} {h} →
-                  ∘ᵢ-sym-assoc {i = i} {a = a} {b = b}
-                                {W = W} {X = X} {Y = Y} {Z = Z}
-                                {f = f} {g = g} {h = h}
-  ; identityˡ = λ {X} {Y} {f} →
-                  ∘ᵢ-identityˡ {i = i} {a = a} {b = b}
-                                {X = X} {Y = Y} {f = f}
-  ; identityʳ = λ {X} {Y} {f} →
-                  ∘ᵢ-identityʳ {i = i} {a = a} {b = b}
-                                {X = X} {Y = Y} {f = f}
-  ; identity² = λ {X} →
-                  ∘ᵢ-identity² {i = i} {a = a} {b = b} {X = X}
+  ; equiv     = λ {X} {Y} → Mᵢ-≈-isEquivalence {X = X} {Y = Y}
+  ; ∘-resp-≈  = λ {X} {Y} {Z} {f} {h} {g} {k} → ∘ᵢ-resp-≈ {X = X} {Y = Y} {Z = Z}
+                  {F₁ = g} {F₂ = k} {G₁ = f} {G₂ = h}
+  ; assoc     = λ {W} {X} {Y} {Z} {f} {g} {h} → ∘ᵢ-assoc {W = W} {X = X} {Y = Y} {Z = Z}
+                  {f = f} {g = g} {h = h}
+  ; sym-assoc = λ {W} {X} {Y} {Z} {f} {g} {h} → ∘ᵢ-sym-assoc {W = W} {X = X} {Y = Y} {Z = Z}
+                  {f = f} {g = g} {h = h}
+  ; identityˡ = λ {X} {Y} {f} → ∘ᵢ-identityˡ {X = X} {Y = Y} {f = f}
+  ; identityʳ = λ {X} {Y} {f} → ∘ᵢ-identityʳ {X = X} {Y = Y} {f = f}
+  ; identity² = λ {X} → ∘ᵢ-identity² {X = X}
   }
 
 ------------------------------------------------------------------------

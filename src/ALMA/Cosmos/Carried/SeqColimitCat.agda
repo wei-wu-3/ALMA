@@ -25,20 +25,18 @@ module ALMA.Cosmos.Carried.SeqColimitCat where
 
 open import Agda.Primitive using (Level; lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (sym; cong; trans)
 open import Data.Nat.Base using (ℕ; zero; suc)
+open import Relation.Binary.PropositionalEquality.Core using (sym; cong; trans)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor using (Functor)
 
 open import ALMA.Base.MCorrSetoid using (SysEq)
 open import ALMA.Base.MCorrSetoidCat
-  using (MCorrCatˢ; FMˢ; idFMˢ; compFMˢ; _≈FM_; ≈FM-refl; ≈FM-sym
-        ; ≈FM-trans; ∘-resp-≈FM; assocFM; sym-assocFM
-        ; identityˡFM; identityʳFM)
+  using (MCorrCatˢ; FMˢ; idFMˢ; compFMˢ; _≈FM_; ≈FM-refl; ≈FM-sym; ≈FM-trans
+        ; ∘-resp-≈FM; assocFM; sym-assocFM; identityˡFM; identityʳFM)
 open import ALMA.Cosmos.Carried.SeqColimitS
-  using (Chainˢ; Coconeˢ; IsColimitˢ; Colimitˢ
-        ; X; emb; leg; coc; has; Apex)
+  using (Chainˢ; Coconeˢ; IsColimitˢ; Colimitˢ; X; emb; leg; coc; has; Apex)
 
 ------------------------------------------------------------------------
 -- Shape category: paths over successor edges; source is a parameter.
