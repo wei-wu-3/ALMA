@@ -35,10 +35,13 @@ open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn; _≈Mˢ_; idAdjˢ)
+open import ALMA.Base.MCorrSetoid
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_; idAdjˢ)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
-open import ALMA.Base.MCorrSetoidCat using (FMapˢ; FMˢ)
-open import ALMA.Cosmos.Carried.SeqColimitS using (Chainˢ)
+open import ALMA.Base.MCorrSetoidCat
+  using (FMapˢ; FMˢ; compFMˢ; _≈FM_)
+open import ALMA.Cosmos.Carried.SeqColimitS
+  using (Chainˢ; Coconeˢ; Limitˢ)
 open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
 import ALMA.Cosmos.Carried.LimitSystemS as LS
 
@@ -373,6 +376,71 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- ℕ 索引非平凡纤维链。
   nchain : Chainˢ lzero ℓ lzero ℓ lzero
   nchain = record { X = NStage ; emb = embFM }
+
+  -- Colimit apex existence data. The stage injection is the identity on
+  -- the global id and sends a stage-m label to its stage-m thread; it is
+  -- coherent definitionally. Every apex node v is represented at stage v.
+  -- 余极限顶点存在性数据。阶段注入在全局 id 上恒等，把阶段 m 标签送到其
+  -- 阶段 m 线程；相干性定义性成立。每个顶点节点 v 由阶段 v 代表。
+  nlimit : Limitˢ nchain
+  nlimit = record
+    { L         = L∞
+    ; inj-u     = λ _ v → v
+    ; inj-shape = λ m v a → mk m a
+    ; inj-coh   = λ _ _ → refl
+    ; rep       = λ v → v , v , refl
+    }
+
+  ----------------------------------------------------------------------
+  -- Canonical cocone. Embedding then the stage m+1 leg advances a thread
+  -- by one extend over the stage m leg; the two apex labels are the same
+  -- ray definitionally, and the singleton child trees agree coinductively.
+  -- The equality is behavioural (_≈FM_), never a label transport.
+  -- 规范余锥。先嵌入再走阶段 m+1 腿，相对阶段 m 腿只多一次 extend；两个
+  -- 顶点标签定义性为同一射线，单子树余归纳一致。相等是行为相等（_≈FM_），
+  -- 绝非标签传输。
+
+  -- One extend is the same ray (zero iterations on the left, one on the
+  -- right), definitionally.
+  -- 一次 extend 即同一射线（左侧零次迭代、右侧一次），定义性成立。
+  one-ray : ∀ (m v : ℕ) (a : L m v)
+          → mk (suc m) (l-emb m v a) ≈Thread mk m a
+  one-ray m v a = record { dl = zero ; dr = suc zero ; same = refl }
+
+  mutual
+    coh-go : ∀ (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+           → _≈Mˢ_ (≈A L∞) (≈E L∞)
+                    (FMapˢ.mapFˢ (FMˢ.mor
+                       (compFMˢ (legFM (suc m)) (embFM m))) v t)
+                    (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v t)
+    coh-go m v t ._≈Mˢ_.here-eq = one-ray m v (M.here t)
+    coh-go m v t ._≈Mˢ_.below-eq w =
+        idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v))
+      , ( (λ e₁ → coh-go m w (M.below t w e₁))
+        , (λ e₂ → coh-go˘ m w (M.below t w e₂)) )
+
+    coh-go˘ : ∀ (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+            → _≈Mˢ_ (≈A L∞) (≈E L∞)
+                     (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v t)
+                     (FMapˢ.mapFˢ (FMˢ.mor
+                        (compFMˢ (legFM (suc m)) (embFM m))) v t)
+    coh-go˘ m v t ._≈Mˢ_.here-eq =
+      EqOn.sym (≈A L∞ v) (one-ray m v (M.here t))
+    coh-go˘ m v t ._≈Mˢ_.below-eq w =
+        idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v))
+      , ( (λ e₁ → coh-go˘ m w (M.below t w e₁))
+        , (λ e₂ → coh-go m w (M.below t w e₂)) )
+
+  -- One-step cocone coherence at behavioural equality.
+  -- 行为相等下的一步余锥相干性。
+  leg-coh-one : (m : ℕ)
+              → compFMˢ (legFM (suc m)) (embFM m) ≈FM legFM m
+  leg-coh-one m v = refl , coh-go m v
+
+  -- The canonical cocone over nchain with apex L∞.
+  -- 以 L∞ 为顶点、nchain 上的规范余锥。
+  ncocone : Coconeˢ nchain L∞
+  ncocone = record { leg = legFM ; coh = leg-coh-one }
 
   ----------------------------------------------------------------------
   -- Canonical legs from a coherent global labelling.
