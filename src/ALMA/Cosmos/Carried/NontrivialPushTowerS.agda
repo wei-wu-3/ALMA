@@ -27,6 +27,7 @@ module ALMA.Cosmos.Carried.NontrivialPushTowerS where
 
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Data.Product.Base using (proj₁; proj₂)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
@@ -39,10 +40,11 @@ open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
-  using (SysEq; EqOn; propEqOn; _≈Mˢ_; idAdjˢ)
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_; ≈Mˢ-sym; ≈Mˢ-trans; idAdjˢ)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open import ALMA.Base.MCorrSetoidCat
-  using (FMapˢ; FMˢ; compFMˢ; _≈FM_)
+  using ( FMapˢ; FMˢ; compFMˢ; compFˢ; mapFˢ-comp
+        ; _≈FM_; relocateˢ; relocate-resp-≈Mˢ )
 open import ALMA.Cosmos.Carried.ColimitPolarity
   using (no-FM-nonsurjective)
 open import ALMA.Cosmos.Carried.SeqColimitS
@@ -937,6 +939,65 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                        (FMapˢ.mapFˢ (legF m) v (norbit m v))
                        (FMapˢ.mapFˢ medF v (orbit∞ v))
       zlegray = zlegray-go
+
+      -- Relative uniqueness on the canonical colimit orbit. Any total
+      -- functor h whose composites with every stage leg coincide with
+      -- the stage legs (the triangles) agrees with zmedFM at orbit∞.
+      -- Free fibre labels are not in any leg image and are therefore
+      -- outside the hypothesis; uniqueness is asserted only on the ray
+      -- the legs actually reach.
+      -- 规范余极限轨道上的相对唯一性。任何全函数函子 h，只要其与每条
+      -- 阶段腿的复合等于该阶段腿（三角），就在 orbit∞ 处与 zmedFM 一致。
+      -- 自由纤维标签不在任何腿的像中、超出假设范围，故唯一性仅陈述于
+      -- 腿实际到达的射线上。
+      unique-ray : (h : FMˢ L∞ Z)
+        (tr : (m : ℕ) → compFMˢ h (legFM m) ≈FM zlegFM m)
+        (v : ℕ)
+        → Σ (FMapˢ.u (FMˢ.mor h) v ≡ v)
+            (λ r → _≈Mˢ_ (≈A Z) (≈E Z)
+                     (relocateˢ r
+                        (FMapˢ.mapFˢ (FMˢ.mor h) v (orbit∞ v)))
+                     (FMapˢ.mapFˢ medF v (orbit∞ v)))
+      unique-ray h tr v = r , goal
+        where
+        hmor = FMˢ.mor h
+        fmor = FMˢ.mor (legFM v)
+        cf   = compFˢ hmor fmor
+        r    = proj₁ (tr v v)
+        hm   = proj₂ (tr v v)
+
+        legImg = FMapˢ.mapFˢ fmor v (norbit v v)
+        O    = orbit∞ v
+        ZLg  = FMapˢ.mapFˢ (legF v) v (norbit v v)
+        ZO   = FMapˢ.mapFˢ medF v (orbit∞ v)
+
+        c1 : _≈Mˢ_ (≈A Z) (≈E Z)
+               (FMapˢ.mapFˢ hmor v legImg) (FMapˢ.mapFˢ hmor v O)
+        c1 = FMˢ.map-cong h (legray-go v v)
+
+        c1r : _≈Mˢ_ (≈A Z) (≈E Z)
+                (relocateˢ r (FMapˢ.mapFˢ hmor v legImg))
+                (relocateˢ r (FMapˢ.mapFˢ hmor v O))
+        c1r = relocate-resp-≈Mˢ (≈A Z) (≈E Z) r c1
+
+        cmp : _≈Mˢ_ (≈A Z) (≈E Z)
+                (relocateˢ r (FMapˢ.mapFˢ cf v (norbit v v)))
+                (relocateˢ r (FMapˢ.mapFˢ hmor v legImg))
+        cmp = relocate-resp-≈Mˢ (≈A Z) (≈E Z) r
+                (mapFˢ-comp hmor fmor v (norbit v v))
+
+        p0 : _≈Mˢ_ (≈A Z) (≈E Z)
+               (relocateˢ r (FMapˢ.mapFˢ cf v (norbit v v))) ZLg
+        p0 = hm (norbit v v)
+
+        goal : _≈Mˢ_ (≈A Z) (≈E Z)
+                 (relocateˢ r (FMapˢ.mapFˢ hmor v O)) ZO
+        goal = ≈Mˢ-trans (≈A Z) (≈E Z)
+                 (≈Mˢ-trans (≈A Z) (≈E Z)
+                    (≈Mˢ-sym (≈A Z) (≈E Z) c1r)
+                    (≈Mˢ-trans (≈A Z) (≈E Z)
+                       (≈Mˢ-sym (≈A Z) (≈E Z) cmp) p0))
+                 (zlegray-go v v)
 
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
