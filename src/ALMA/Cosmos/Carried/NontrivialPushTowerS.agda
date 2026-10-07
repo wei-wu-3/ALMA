@@ -679,6 +679,107 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                               (orbit-of zl v) (zorbit v)
       mediate-unique zl he v = orb-bisim zl eval∞ he v
 
+      ------------------------------------------------------------------
+      -- Total-function FMˢ form. Because the index is shared (identity
+      -- trajectory), evaluation lands in the fibre at the SAME index, so
+      -- the shape maps are total and need no transport. These are the
+      -- components from which the fixed Colimitˢ is assembled.
+      -- 全函数 FMˢ 形式。索引共享（恒等轨迹），求值落在同一索引的纤维
+      -- 中，故 shape 映射为全函数且无需传输。它们是装配固定 Colimitˢ
+      -- 的组件。
+
+      -- Stage leg as a total setoid functor.
+      -- 全函数 setoid 函子形式的阶段腿。
+      legF : (m : ℕ) → FMapˢ (NStage m) Z
+      legF m = record
+        { u      = λ v → v
+        ; shape  = λ v a → zm m v a
+        ; childF = λ v _ w → w , refl
+        ; adjFˢ  = λ v a w → idAdjˢ (≈E Z v (zm m v a) w)
+        }
+
+      leg-shape-cong : (m : ℕ) → ∀ {v : ℕ} {a a' : L m v}
+                     → EqOn._≈_ (≈A (NStage m) v) a a'
+                     → EqOn._≈_ (≈ZL v) (zm m v a) (zm m v a')
+      leg-shape-cong m ea = EqOn.reflexive (≈ZL _) (cong (zm m _) ea)
+
+      leg-map-cong : (m : ℕ) → ∀ {v : ℕ}
+                       {t s : M (A (NStage m)) (E (NStage m)) v}
+                   → _≈Mˢ_ (≈A (NStage m)) (≈E (NStage m)) t s
+                   → _≈Mˢ_ (≈A Z) (≈E Z)
+                            (FMapˢ.mapFˢ (legF m) v t)
+                            (FMapˢ.mapFˢ (legF m) v s)
+      leg-map-cong m h ._≈Mˢ_.here-eq =
+        leg-shape-cong m (h ._≈Mˢ_.here-eq)
+      leg-map-cong m {v} h ._≈Mˢ_.below-eq w =
+        let adj , (fs , bs) = h ._≈Mˢ_.below-eq w
+        in adj
+         , ( (λ e₁ → leg-map-cong m (fs e₁))
+           , (λ e₂ → leg-map-cong m (bs e₂)) )
+
+      zlegFM : (m : ℕ) → FMˢ (NStage m) Z
+      zlegFM m = record
+        { mor        = legF m
+        ; shape-cong = leg-shape-cong m
+        ; map-cong   = leg-map-cong m
+        }
+
+      -- Evaluation is invariant under one forward extend, up to ≈ZL.
+      -- 求值在一次前向 extend 下不变（至 ≈ZL）。
+      eval-ext : ∀ {v : ℕ} (τ : Thread v)
+               → EqOn._≈_ (≈ZL v) (eval-ray (extend τ)) (eval-ray τ)
+      eval-ext {v} (mk m a) = zm-coh m v a
+
+      eval-ext^ : ∀ (k : ℕ) {v : ℕ} (τ : Thread v)
+                → EqOn._≈_ (≈ZL v) (eval-ray (extend^ k τ)) (eval-ray τ)
+      eval-ext^ zero    τ = EqOn.refl (≈ZL _)
+      eval-ext^ (suc k) τ =
+        EqOn.trans (≈ZL _) (eval-ext (extend^ k τ)) (eval-ext^ k τ)
+
+      -- Same-ray threads evaluate to setoid-equal labels.
+      -- 同一射线的线程求值为 setoid 相等的标签。
+      med-shape-cong : ∀ {v : ℕ} {τ τ' : Thread v}
+                     → τ ≈Thread τ'
+                     → EqOn._≈_ (≈ZL v) (eval-ray τ) (eval-ray τ')
+      med-shape-cong {v} {τ} {τ'} r =
+        EqOn.trans (≈ZL v)
+          (EqOn.sym (≈ZL v) (eval-ext^ dl0 τ))
+          (EqOn.trans (≈ZL v)
+             (EqOn.reflexive (≈ZL v) (cong eval-ray same0))
+             (eval-ext^ dr0 τ'))
+        where
+        dl0   = _≈Thread_.dl r
+        dr0   = _≈Thread_.dr r
+        same0 = _≈Thread_.same r
+
+      medF : FMapˢ L∞ Z
+      medF = record
+        { u      = λ v → v
+        ; shape  = λ v τ → eval-ray τ
+        ; childF = λ v _ w → w , refl
+        ; adjFˢ  = λ v τ w → idAdjˢ (≈E Z v (eval-ray τ) w)
+        }
+
+      med-map-cong : ∀ {v : ℕ} {t s : M (A L∞) (E L∞) v}
+                   → _≈Mˢ_ (≈A L∞) (≈E L∞) t s
+                   → _≈Mˢ_ (≈A Z) (≈E Z)
+                            (FMapˢ.mapFˢ medF v t)
+                            (FMapˢ.mapFˢ medF v s)
+      med-map-cong h ._≈Mˢ_.here-eq =
+        med-shape-cong (h ._≈Mˢ_.here-eq)
+      med-map-cong {v} h ._≈Mˢ_.below-eq w =
+        let adj , (fs , bs) = h ._≈Mˢ_.below-eq w
+        in adj
+         , ( (λ e₁ → med-map-cong (fs e₁))
+           , (λ e₂ → med-map-cong (bs e₂)) )
+
+      zmedFM : FMˢ L∞ Z
+      zmedFM = record
+        { mor        = medF
+        ; shape-cong = med-shape-cong
+        ; map-cong   = med-map-cong
+        }
+
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
     --
