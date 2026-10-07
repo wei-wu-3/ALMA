@@ -1,21 +1,22 @@
 ------------------------------------------------------------------------
--- Conditional non-triviality of a limit, on the carried M base.
--- A target fibre is trivial when its bisimulation is total; a
--- bisimulation-reflecting lift into a total target forces the source
--- to be total as well, so a genuinely separated source cannot have a
--- reflecting lift into a trivial target. Terminality supplies the
--- trivial target: any two mediating maps into the terminal M-Cosmos
--- have pointwise-bisimilar images. The separated source itself is not
--- rebuilt here: it is the M-tower witness idN ≉ const0N over FinCat n
--- (TowerSeparation), with the group-level precondition from
--- PermutationNonCommutative.
+-- Non-triviality on the carried M base.
 --
--- 在携带式 M 底座上的极限条件性非平凡性。目标纤维在其互模拟为全关
--- 系时平凡；向全目标的反射提升迫使源也全体，故真正分离的源不可能有
--- 向平凡目标的反射提升。终性给出平凡目标：任何两个到终 M-Cosmos 的
--- 中介映射其像逐点互模拟。被分离的“源”不在此重建：它是 FinCat n 上
--- 的 M 塔见证 idN ≉ const0N（TowerSeparation），群级前提由
--- PermutationNonCommutative 供给。
+-- Terminality gives only uniqueness of the mediating morphism
+-- (!-unique); it does not make a fibre total.  Totality is the explicit
+-- predicate AllBisim j, with Subterminal = every fibre total.  A carried
+-- correspondence (CosmosM⇒ over an index relation R, mapping across
+-- fibres via mapR along r : R i j) that reflects bisimulation cannot
+-- send a separated source fibre into a total one.  The FinCat n tower
+-- supplies both the separated source (idN≉const0N) and the fact that
+-- the terminal carrier is not subterminal.  All arguments are pure
+-- contrapositives with no transport.
+--
+-- 携带式 M 底座上的非平凡性。
+-- 终性只给中介映射唯一性（!-unique），不使纤维全体；全体性是显式谓词
+-- AllBisim j，Subterminal 即每个纤维全体。反射互模拟的携带对应（索引
+-- 关系 R 上的 CosmosM⇒，经 mapR 沿 r : R i j 跨纤维映射）不能把分离源
+-- 纤维送入全体纤维。FinCat n 塔同时给出分离源（idN≉const0N）与终载体
+-- 非亚终。全部论证为纯逆否，无传输。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -25,15 +26,18 @@ module ALMA.Cosmos.M.NontrivialLimit where
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Empty using (⊥)
+open import Data.Nat using (ℕ)
 open import Relation.Nullary using (¬_)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 
 open import ALMA.Cosmos.ContCategory using (ContCat)
-open import ALMA.Base.MCorrSetoid using (EqOn)
+open import ALMA.Base.MCorrSetoid using (EqOn; Morphˢ; propEqOn)
 open import ALMA.Cosmos.M.Object as MO
 open import ALMA.Cosmos.M.Terminal using (≈CosmosM-sym; ≈CosmosM-trans)
+open Morphˢ using (mapR)
+open import ALMA.Cosmos.M.TowerSeparation as TS
 
 module _ {o h e s p : Level}
          {C  : Category o h e}
@@ -46,15 +50,18 @@ module _ {o h e s p : Level}
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
 
   ----------------------------------------------------------------------
-  -- 1. Totality of a target fibre
-  -- 1. 目标纤维的全体性
+  -- Per-fibre totality and subterminal objects; explicit, never derived
+  -- from terminality.
+  -- 纤维全体性与亚终对象；显式假设，不由终性导出。
+  ----------------------------------------------------------------------
 
   AllBisim : (j : MO.I C FC) → Set (L ⊔ ℓd)
-  AllBisim j = ∀ (t u : MO.CosmosM C FC j)
-             → MO.≈CosmosM C FC ≈CD t u
+  AllBisim j =
+    ∀ (t u : MO.CosmosM C FC j) → MO.≈CosmosM C FC ≈CD t u
 
-  -- A total fibre has no distinguished pair.
-  -- 全纤维没有可区分对。
+  Subterminal : Set (L ⊔ ℓd)
+  Subterminal = ∀ (j : MO.I C FC) → AllBisim j
+
   no-distinguishing-pair : ∀ {j : MO.I C FC}
     → AllBisim j
     → ¬ Σ (MO.CosmosM C FC j) λ t →
@@ -63,61 +70,55 @@ module _ {o h e s p : Level}
   no-distinguishing-pair all (t , u , t≉u) = t≉u (all t u)
 
   ----------------------------------------------------------------------
-  -- 2. Reflection dichotomy for a limit lift
-  -- A lift REFLECTS bisimulation when bisimilar target images force
-  -- bisimilar sources -- the carried form of lift0-inj.
-  -- 2. 极限提升的反射二分
-  -- 提升在“目标像互模拟即迫使源互模拟”时反射互模拟——即携带式
-  -- lift0-inj。
+  -- A carried map reflects bisimulation along r : R i j when bisimilar
+  -- images at j force bisimilar sources at i.
+  -- 携带映射沿 r : R i j 反射互模拟：j 处像互模拟则 i 处源互模拟。
+  ----------------------------------------------------------------------
 
-  ReflectsBisim : ((j : MO.I C FC) → MO.CosmosM C FC j
-                 → MO.CosmosM C FC j) → Set (L ⊔ ℓd)
-  ReflectsBisim lift =
-    ∀ {j : MO.I C FC} (t u : MO.CosmosM C FC j)
-    → MO.≈CosmosM C FC ≈CD (lift j t) (lift j u)
-    → MO.≈CosmosM C FC ≈CD t u
+  module _ {ℓr : Level}
+           (R : MO.I C FC → MO.I C FC → Set ℓr)
+           (φ : MO.CosmosM⇒ C FC ≈CD R)
+         where
 
-  -- Reflection preserves separation; pure contrapositive, no transport.
-  -- 反射保持分离；纯逆否，无传输。
-  separation-survives : ∀ lift → ReflectsBisim lift
-    → ∀ {j : MO.I C FC} (t u : MO.CosmosM C FC j)
-    → ¬ MO.≈CosmosM C FC ≈CD t u
-    → ¬ MO.≈CosmosM C FC ≈CD (lift j t) (lift j u)
-  separation-survives lift refl-bisim t u t≉u eq =
-    t≉u (refl-bisim t u eq)
+    ReflectsBisimAt : ∀ {i j : MO.I C FC} → R i j → Set (L ⊔ ℓd)
+    ReflectsBisimAt {i = i} r =
+      ∀ (t u : MO.CosmosM C FC i)
+      → MO.≈CosmosM C FC ≈CD (mapR φ r t) (mapR φ r u)
+      → MO.≈CosmosM C FC ≈CD t u
 
-  -- Totality relates the images; reflection pulls the relation back to
-  -- the sources.
-  -- 全体性联系两像；反射把关系拉回源。
-  total-target-collapses : ∀ lift → ReflectsBisim lift
-    → (j : MO.I C FC) → AllBisim j
-    → ∀ (t u : MO.CosmosM C FC j)
-    → MO.≈CosmosM C FC ≈CD t u
-  total-target-collapses lift refl-bisim j all t u =
-    refl-bisim t u (all (lift j t) (lift j u))
+    -- Contrapositive: separation at the source survives the map.
+    -- 逆否：源处的分离在映射后保持。
+    separation-survives : ∀ {i j : MO.I C FC}
+      → (r : R i j) → ReflectsBisimAt r
+      → (t u : MO.CosmosM C FC i)
+      → ¬ MO.≈CosmosM C FC ≈CD t u
+      → ¬ MO.≈CosmosM C FC ≈CD (mapR φ r t) (mapR φ r u)
+    separation-survives r reflect t u t≉u eq =
+      t≉u (reflect t u eq)
 
-  -- A separated source pair cannot be lifted by a reflecting map into a
-  -- total target.
-  -- 分离的源对不能经反射映射提升到全目标。
-  no-nontrivial-limit : ∀ lift → ReflectsBisim lift
-    → (j : MO.I C FC) → AllBisim j
-    → (t u : MO.CosmosM C FC j)
-    → ¬ MO.≈CosmosM C FC ≈CD t u
-    → ⊥
-  no-nontrivial-limit lift refl-bisim j all t u t≉u =
-    t≉u (total-target-collapses lift refl-bisim j all t u)
+    no-reflecting-into-total : ∀ {i j : MO.I C FC}
+      → (r : R i j) → AllBisim j → ReflectsBisimAt r
+      → (t u : MO.CosmosM C FC i)
+      → ¬ MO.≈CosmosM C FC ≈CD t u → ⊥
+    no-reflecting-into-total r all reflect t u t≉u =
+      t≉u (reflect t u (all (mapR φ r t) (mapR φ r u)))
+
+    no-reflecting-into-subterminal : ∀ {i j : MO.I C FC}
+      → (r : R i j) → Subterminal → ReflectsBisimAt r
+      → (t u : MO.CosmosM C FC i)
+      → ¬ MO.≈CosmosM C FC ≈CD t u → ⊥
+    no-reflecting-into-subterminal r sub reflect t u t≉u =
+      no-reflecting-into-total r (sub _) reflect t u t≉u
 
   ----------------------------------------------------------------------
-  -- 3. Terminality supplies the trivial (collapsing) target
-  -- A candidate mediating map from γ into the terminal M-Cosmos,
-  -- carrying its commutation.
-  -- 3. 终性给出平凡（塌缩）目标
-  -- 从 γ 到终 M-Cosmos 的候选中介映射，携带其交换。
+  -- Terminality is mediator uniqueness (!-unique), not fibre totality.
+  -- 终性是中介映射唯一性（!-unique），非纤维全体性。
+  ----------------------------------------------------------------------
 
   record TerminalMediator {u : Level}
-      (Xst : MO.I C FC → Set u)
-      (γ   : MO.Coalgebra C FC u Xst)
-      : Set (L ⊔ ℓd ⊔ u) where
+         (Xst : MO.I C FC → Set u)
+         (γ   : MO.Coalgebra C FC u Xst)
+       : Set (L ⊔ ℓd ⊔ u) where
     field
       med      : ∀ (j : MO.I C FC) (x : Xst j) → MO.CosmosM C FC j
       med-comm : ∀ (j : MO.I C FC) (x : Xst j)
@@ -126,8 +127,6 @@ module _ {o h e s p : Level}
             (MO.ana C FC γ j x)
   open TerminalMediator public
 
-  -- Every terminal mediator is bisimilar to the anamorphism.
-  -- 每个终中介都与 anamorphism 互模拟。
   terminal-unique : ∀ {u : Level}
       {Xst : MO.I C FC → Set u}
       {γ   : MO.Coalgebra C FC u Xst}
@@ -139,11 +138,8 @@ module _ {o h e s p : Level}
       (MO.ana-unfold˘ C FC ≈CD (med m j x))
       (med-comm m j x)
 
-  -- Any two terminal mediators of the same coalgebra have pointwise-
-  -- bisimilar images, so a limit into the terminal M-Cosmos collapses
-  -- every cone to a single image.
-  -- 同一余代数的任意两个终中介其像逐点互模拟，故到终 M-Cosmos 的极限
-  -- 把每个锥塌缩为单一像。
+  -- Mediators of one coalgebra coincide pointwise.
+  -- 同一余代数的中介逐点重合。
   terminal-mediators-coincide : ∀ {u : Level}
       {Xst : MO.I C FC → Set u}
       {γ   : MO.Coalgebra C FC u Xst}
@@ -154,3 +150,37 @@ module _ {o h e s p : Level}
     ≈CosmosM-trans ≈CD
       (terminal-unique m j x)
       (≈CosmosM-sym ≈CD (terminal-unique n j x))
+
+------------------------------------------------------------------------
+-- FinCat n tower instantiation.
+-- FinCat n 塔实例化。
+------------------------------------------------------------------------
+
+module TowerInstance (m : ℕ) where
+
+  open TS.TowerSeparation m
+    using (Cn; TrivFC; i₁; treeId; treeC0; idN≉const0N)
+
+  private
+    ≈CDn : (i : MO.I Cn TrivFC) → EqOn (MO.A Cn TrivFC i)
+    ≈CDn _ = propEqOn _
+
+  -- The terminal carrier fibre at i₁ is not total.
+  -- i₁ 处的终载体纤维并非全体。
+  terminal-fibre-not-total
+    : ¬ AllBisim {C = Cn} {FC = TrivFC} ≈CDn i₁
+  terminal-fibre-not-total all =
+    idN≉const0N (all (treeId i₁) (treeC0 i₁))
+
+  -- No reflecting carried map leads from i₁ into a total fibre.
+  -- 不存在从 i₁ 指向全体纤维的反射携带映射。
+  tower-no-reflection-into-total
+    : ∀ {ℓr : Level}
+        (R : MO.I Cn TrivFC → MO.I Cn TrivFC → Set ℓr)
+        (φ : MO.CosmosM⇒ Cn TrivFC ≈CDn R)
+        (j : MO.I Cn TrivFC) (r : R i₁ j)
+    → AllBisim {C = Cn} {FC = TrivFC} ≈CDn j
+    → ¬ ReflectsBisimAt {C = Cn} {FC = TrivFC} ≈CDn R φ r
+  tower-no-reflection-into-total R φ j r all reflect =
+    no-reflecting-into-total {C = Cn} {FC = TrivFC} ≈CDn R φ r
+      all reflect (treeId i₁) (treeC0 i₁) idN≉const0N
