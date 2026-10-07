@@ -256,6 +256,48 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     }
 
   ----------------------------------------------------------------------
+  -- ℕ-indexed stage chain on which the colimit universal property lives.
+  --
+  -- Every stage shares the fixed apex dynamics s∞ and differs only in its
+  -- label fibre L m. The stage embedding is identity on the global id
+  -- (R = propositional equality, always refl), so labels across stages
+  -- share a fibre definitionally: no Fin, no toℕ, no transport. The Fin
+  -- tower above is one way to PRODUCE such a chain.
+  --
+  -- 余极限泛性质所在的 ℕ 索引阶段链。
+  -- 每个阶段共享固定顶点动力 s∞，仅标签纤维 L m 不同。阶段嵌入在全局 id
+  -- 上恒等（R 为命题相等，恒取 refl），故跨阶段标签定义性共享纤维：无
+  -- Fin、无 toℕ、无传输。上面的 Fin 塔是产生这种链的一种方式。
+
+  NStage : (m : ℕ) → SysEq lzero ℓ lzero ℓ lzero
+  NStage m = record
+    { I  = ℕ
+    ; A  = L m
+    ; E  = λ v _ w → Σ (⊤ {lzero}) λ _ → w ≡ s∞ v
+    ; ≈A = λ v → propEqOn (L m v)
+    ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
+    }
+
+  -- Identity-index layer relation between consecutive stages.
+  -- 相邻阶段间索引恒等的层关系。
+  Rn : ℕ → ℕ → Set lzero
+  Rn v w = v ≡ w
+
+  -- Label correspondence at the refl layer: the graph of l-emb at the
+  -- same global id.
+  -- refl 层处的标签对应：同一全局 id 上 l-emb 的图。
+  Hn : (m v w : ℕ) → Rn v w → L m v → L (suc m) w → Set ℓ
+  Hn m v .v refl a b = l-emb m v a ≡ b
+
+  -- Identity-index layer relation from a stage to the apex.
+  -- 阶段到顶点的索引恒等层关系。
+  Rl : ℕ → ℕ → Set lzero
+  Rl v w = v ≡ w
+
+  Hl : (m v w : ℕ) → Rl v w → L m v → Thread w → Set (ℓ ⊔ lzero)
+  Hl m v .v refl a τ = τ ≈Thread mk m a
+
+  ----------------------------------------------------------------------
   -- Canonical legs from a coherent global labelling.
   --
   -- lab (suc m) v is the forward image of lab m v under l-emb. The apex
@@ -327,3 +369,30 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       where
         edge : toℕ y ≡ s∞ (toℕ x)
         edge = trans (cong toℕ eq) (read-coh m x)
+
+    --------------------------------------------------------------------
+    -- ℕ-indexed chain: deterministic orbits, the identity-index stage
+    -- embedding, and the identity-index leg into the apex.
+    -- ℕ 索引链：确定性轨道、索引恒等的阶段嵌入与索引恒等的顶点腿。
+
+    norbit : (m v : ℕ) → M (A (NStage m)) (E (NStage m)) v
+    norbit m v .M.here      = lab m v
+    norbit m v .M.below w _ = norbit m w
+
+    -- Stage embedding: identity index, l-emb on labels.
+    -- 阶段嵌入：索引恒等，标签经 l-emb。
+    n-sim : (m v : ℕ)
+          → PushSimˢ (NStage m) (NStage (suc m)) Rn (Hn m) refl
+                      (norbit m v) (norbit (suc m) v)
+    n-sim m v .PushSimˢ.here-eq = sym (lab-coh m v)
+    n-sim m v .PushSimˢ.push w (_ , eq) =
+      w , ((tt , eq) , (refl , n-sim m w))
+
+    -- Leg into the apex: identity index, same-ray label correspondence.
+    -- 顶点腿：索引恒等，标签为同一射线对应。
+    nleg : (m v : ℕ)
+         → PushSimˢ (NStage m) L∞ Rl (Hl m) refl
+                     (norbit m v) (orbit∞ v)
+    nleg m v .PushSimˢ.here-eq = leg-here m v
+    nleg m v .PushSimˢ.push w (_ , eq) =
+      w , ((tt , eq) , (refl , nleg m w))
