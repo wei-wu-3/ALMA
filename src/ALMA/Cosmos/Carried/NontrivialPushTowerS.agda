@@ -26,15 +26,18 @@ module ALMA.Cosmos.Carried.NontrivialPushTowerS where
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Nat.Base using (ℕ; suc)
-open import Data.Fin.Base using (Fin; inject₁)
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Fin.Base using (Fin; inject₁; toℕ)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
+
+open import Data.Fin.Properties using (toℕ-inject₁)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
-open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
+open import ALMA.Cosmos.Carried.LimitSystemS
+  using (n-at; natToFin; toℕ-natToFin)
 
 open SysEq
 
@@ -127,3 +130,49 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     where
       edge : inject₁ y ≡ t (suc m) (inject₁ x)
       edge = trans (cong inject₁ eq) (sym (embed-compat m x))
+
+  ----------------------------------------------------------------------
+  -- Eventual label at position v, carried as a stage-tagged thread.
+  --
+  -- Rather than quotienting a direct-limit chain (which would force the
+  -- label across cl-suc by transport), the Fin position is carried as a
+  -- field alongside the label. extend writes inject₁ pos as the next
+  -- position field, so l-emb's output type matches definitionally; the
+  -- toℕ-pos ≡ v invariant is a plain propositional field used only in
+  -- proofs. No cast.
+  -- 位置 v 处的最终标签，以阶段标签化线程携带。
+  -- 不对直接极限链做商（那将迫使标签经传输穿过 cl-suc），而是把 Fin 位置
+  -- 作为字段与标签一同携带。extend 直接把 inject₁ pos 写为下一位置字段，
+  -- 故 l-emb 的输出类型定义性匹配；toℕ-pos ≡ v 不变量是仅用于证明的命题
+  -- 字段。无 cast。
+
+  record Thread (v : ℕ) : Set ℓ where
+    inductive
+    constructor mk
+    field
+      stage : ℕ
+      pos   : Fin (n-at stage)
+      pv    : toℕ pos ≡ v
+      tlabel : L stage pos
+  open Thread public
+
+  -- One forward step of a thread: position and label carried by inject₁
+  -- and l-emb respectively.
+  -- 线程的一步前向：位置与标签分别由 inject₁、l-emb 携带。
+  extend : ∀ {v} → Thread v → Thread v
+  extend (mk m pos pv a) =
+    mk (suc m) (inject₁ pos)
+       (trans (toℕ-inject₁ pos) pv)
+       (l-emb m pos a)
+
+  -- n-fold forward iteration; ordinary ℕ recursion, no index matching.
+  -- n 次前向迭代；普通 ℕ 递归，无索引匹配。
+  extend^ : ∀ {v} → ℕ → Thread v → Thread v
+  extend^ zero    t = t
+  extend^ (suc n) t = extend (extend^ n t)
+
+  -- Canonical thread born at stage v from the label at the v-th
+  -- representative natToFin v.
+  -- 由第 v 个代表元 natToFin v 处标签在阶段 v 诞生的规范线程。
+  thread-at : (v : ℕ) → L v (natToFin v) → Thread v
+  thread-at v a = mk v (natToFin v) (toℕ-natToFin v) a
