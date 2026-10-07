@@ -1,22 +1,24 @@
 ------------------------------------------------------------------------
--- Nontrivial-fibre Fin push tower, kernel slice.
+-- Nontrivial-fibre Fin push tower, kernel.
 -- The trivial-fibre tower (LimitSystemS / FinPushColimitS) uses
--- TrivDetˢ, whose label fibre is ⊤. This slice keeps the deterministic
--- index growth (Fin positions extended by inject₁, one deterministic
--- child per node) but replaces the label fibre by an arbitrary carried
--- family L m x with a forward label map l-emb into the next stage. The
--- one-step stage embedding is a PushSimˢ whose label correspondence is
--- the graph of l-emb: labels move by function passing, and the target
--- index/edge are returned as Σ witnesses by push, so no Fin-indexed
--- iteration, no transport, no K.
+-- TrivDetˢ, whose label fibre is ⊤. Here the deterministic Fin position
+-- dynamics is kept (positions extended by inject₁, one deterministic
+-- child per node) but labels are indexed by the STABLE GLOBAL ID ℕ, not
+-- by the dependent Fin position. A stage-m label at position x is
+-- L m (toℕ x); the forward label map l-emb m v stays at the same global
+-- id v, so its type mentions no Fin. The apex label Thread v is a
+-- stage-tagged element of L _ v; forward iteration changes only the
+-- stage, never a Fin index. Consequently labels cross stages purely by
+-- function passing: no Fin alignment, no transport, no K, no retraction.
 --
--- 非平凡纤维 Fin push 塔，内核切片。
--- 平凡纤维塔（LimitSystemS / FinPushColimitS）采用 TrivDetˢ，其标签纤维
--- 为 ⊤。本切片保持确定性索引增长（Fin 位置经 inject₁ 扩张，每节点一个确定
--- 性子节点），但把标签纤维换成任意携带族 L m x，以及进入下一阶段的前向标签
--- 映射 l-emb。一步阶段嵌入是 PushSimˢ，其标签对应即 l-emb 的图：标签经函数
--- 传递移动，目标索引/边由 push 以 Σ 见证返回，故无 Fin 索引迭代、无传输、
--- 不用 K。
+-- 非平凡纤维 Fin push 塔内核。
+-- 平凡纤维塔（LimitSystemS / FinPushColimitS）采用 TrivDetˢ，标签纤维为
+-- ⊤。此处保留确定性 Fin 位置动力（位置经 inject₁ 扩张，每节点一个确定
+-- 性子节点），但标签按稳定全局 id ℕ 索引，而非依赖的 Fin 位置。阶段 m
+-- 位置 x 处的标签为 L m (toℕ x)；前向标签映射 l-emb m v 停留在同一全局
+-- id v，故其类型不涉及 Fin。顶点标签 Thread v 是 L _ v 的阶段标签化元素；
+-- 前向迭代只改阶段，不改 Fin 索引。因此标签跨阶段纯由函数传递：无 Fin
+-- 对齐、无传输、不用 K、无需收缩。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -27,45 +29,39 @@ open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
+open import Data.Nat.Properties using (+-comm)
 open import Data.Fin.Base using (Fin; inject₁; toℕ)
+open import Data.Fin.Properties using (toℕ-inject₁)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
-
-open import Data.Fin.Properties using (toℕ-inject₁)
-open import Data.Nat.Properties using (+-comm)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
-open import ALMA.Cosmos.Carried.LimitSystemS
-  using (n-at; natToFin; toℕ-natToFin)
+open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
 import ALMA.Cosmos.Carried.LimitSystemS as LS
 
 open SysEq
 
 ------------------------------------------------------------------------
--- A deterministic labelled Fin tower.
+-- A deterministic Fin tower with labels indexed by global id.
 --
--- Stage m has positions Fin (n-at m), a deterministic transition t m,
--- and a label family L m over its positions. inject₁ adds one position
--- at each stage; l-emb carries a label at an old position into the next
--- stage. embed-compat is the deterministic-index compatibility;
--- label-emb-step states that carrying a label forward commutes with the
--- deterministic step (the label at a child is the carried-forward label
--- at the source child).
+-- t is the deterministic position transition; embed-compat is its
+-- compatibility with the one-position extension inject₁. L m v is the
+-- label at global id v as present at stage m (total over v; labels at
+-- not-yet-born positions are free). l-emb carries a label at global id v
+-- from stage m to stage m+1 at the SAME v.
 --
--- 确定性带标签 Fin 塔。
--- 第 m 阶段有位置 Fin (n-at m)、确定性转移 t m 与位置上的标签族 L m。
--- inject₁ 每阶段新增一个位置；l-emb 把旧位置标签携带到下一阶段。
--- embed-compat 是确定性索引相容性；label-emb-step 表明标签前向携带与确定性
--- 步进交换（子节点标签即源子节点标签的前向携带）。
+-- 标签按全局 id 索引的确定性 Fin 塔。
+-- t 为确定性位置转移；embed-compat 是其与单位置扩张 inject₁ 的相容性。
+-- L m v 是全局 id v 在阶段 m 的标签（对 v 全；未诞生位置的标签自由）。
+-- l-emb 把全局 id v 的标签从阶段 m 携带到阶段 m+1，v 不变。
 
 record LabeledFinTower (ℓ : Level) : Set (lsuc ℓ) where
   field
     t        : (m : ℕ) → Fin (n-at m) → Fin (n-at m)
-    L        : (m : ℕ) → Fin (n-at m) → Set ℓ
-    l-emb    : (m : ℕ) (x : Fin (n-at m))
-             → L m x → L (suc m) (inject₁ x)
+    L        : (m : ℕ) → ℕ → Set ℓ
+    l-emb    : (m v : ℕ) → L m v → L (suc m) v
     embed-compat :
       (m : ℕ) (x : Fin (n-at m))
       → t (suc m) (inject₁ x) ≡ inject₁ (t m x)
@@ -73,61 +69,58 @@ record LabeledFinTower (ℓ : Level) : Set (lsuc ℓ) where
 module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
   open LabeledFinTower T
-  open LS.LimitSystemS t embed-compat using (s∞; read-coh)
+  open LS.LimitSystemS t embed-compat using (s∞)
 
   ----------------------------------------------------------------------
-  -- Stage systems: deterministic index dynamics, nontrivial labels.
-  -- The edge fibre is the singleton proof y ≡ t m x (one child), exactly
-  -- as in TrivDetˢ, but the label fibre is L m x.
-  -- 阶段系统：确定性索引动力、非平凡标签。边纤维为单点证明 y ≡ t m x
-  -- （唯一子节点），与 TrivDetˢ 相同，但标签纤维为 L m x。
+  -- Stage systems. Labels are pulled from the global-id family via toℕ;
+  -- the edge fibre is the singleton proof y ≡ t m x (one child).
+  -- 阶段系统。标签经 toℕ 取自全局 id 族；边纤维为单点证明 y ≡ t m x
+  -- （唯一子节点）。
 
   LStage : (m : ℕ) → SysEq lzero ℓ lzero ℓ lzero
   LStage m = record
     { I  = Fin (n-at m)
-    ; A  = L m
+    ; A  = λ x → L m (toℕ x)
     ; E  = λ x _ y → Σ (⊤ {lzero}) λ _ → y ≡ t m x
-    ; ≈A = λ x → propEqOn (L m x)
+    ; ≈A = λ x → propEqOn (L m (toℕ x))
     ; ≈E = λ x _ y → propEqOn (Σ (⊤ {lzero}) λ _ → y ≡ t m x)
     }
 
-  -- Deterministic orbit tree at position x, with a label at every node.
-  -- 位置 x 处的确定性轨道树，每节点带标签。
-  orbit : (m : ℕ) (x : Fin (n-at m)) (lab : ∀ y → L m y)
+  -- Deterministic orbit under a global labelling (lab by global id).
+  -- 全局标签族（按全局 id）下的确定性轨道。
+  orbit : (m : ℕ) (x : Fin (n-at m)) (lab : ∀ v → L m v)
         → M (A (LStage m)) (E (LStage m)) x
-  orbit m x lab .M.here                = lab x
-  orbit m x lab .M.below y _           = orbit m y lab
+  orbit m x lab .M.here      = lab (toℕ x)
+  orbit m x lab .M.below y _ = orbit m y lab
 
   ----------------------------------------------------------------------
-  -- One-step index embedding.
-  -- 一步索引嵌入。
+  -- One-step index embedding and the graph label correspondence.
+  -- 一步索引嵌入与图标签对应。
 
   R-emb : (m : ℕ) → Fin (n-at m) → Fin (n-at (suc m)) → Set lzero
   R-emb m x y = inject₁ x ≡ y
 
-  -- Label correspondence is the graph of l-emb: a source label a is
-  -- related exactly to its carried image l-emb m x a.
-  -- 标签对应即 l-emb 的图：源标签 a 恰与其携带像 l-emb m x a 相关。
+  -- At y = inject₁ x the two positions share global id toℕ x, so the
+  -- label correspondence is the graph of l-emb m (toℕ x): no Fin in its
+  -- type.
+  -- 在 y = inject₁ x 处两位置共享全局 id toℕ x，故标签对应即
+  -- l-emb m (toℕ x) 的图：类型中无 Fin。
   H-emb : (m : ℕ) (x : Fin (n-at m)) (y : Fin (n-at (suc m)))
         → R-emb m x y
         → A (LStage m) x → A (LStage (suc m)) y → Set ℓ
-  H-emb m x .(inject₁ x) refl a b = l-emb m x a ≡ b
+  H-emb m x .(inject₁ x) refl a b rewrite toℕ-inject₁ x =
+    l-emb m (toℕ x) a ≡ b
 
-  -- The embedding as a forward simulation. lab₁ is the total labelling
-  -- of the next stage (the new top position carries free data); coh
-  -- states it agrees with l-emb on every old position. The source edge
-  -- (unique child y = t m x) is pushed to inject₁ y, justified by
-  -- embed-compat; the child label correspondence is again coh.
-  -- 嵌入作为前向模拟。lab₁ 是下一阶段的全标签族（新顶点位置携带自由
-  -- 数据）；coh 表明它在每个旧位置上与 l-emb 一致。源边（唯一子节点
-  -- y = t m x）被推到 inject₁ y，由 embed-compat 见证；子节点标签对应
-  -- 仍由 coh 给出。
-  emb-sim : (m : ℕ) (lab : ∀ y → L m y) (lab₁ : ∀ z → L (suc m) z)
-          → (coh : ∀ y → l-emb m y (lab y) ≡ lab₁ (inject₁ y))
+  -- The embedding as a forward simulation. lab₁ is the next-stage
+  -- global labelling, coherent with lab under l-emb.
+  -- 嵌入作为前向模拟。lab₁ 是下一阶段全局标签族，与 lab 经 l-emb 相干。
+  emb-sim : (m : ℕ) (lab : ∀ v → L m v) (lab₁ : ∀ v → L (suc m) v)
+          → (coh : ∀ v → l-emb m v (lab v) ≡ lab₁ v)
           → (x : Fin (n-at m))
           → PushSimˢ (LStage m) (LStage (suc m)) (R-emb m) (H-emb m)
                       refl (orbit m x lab) (orbit (suc m) (inject₁ x) lab₁)
-  emb-sim m lab lab₁ coh x .PushSimˢ.here-eq = coh x
+  emb-sim m lab lab₁ coh x .PushSimˢ.here-eq rewrite toℕ-inject₁ x =
+    coh (toℕ x)
   emb-sim m lab lab₁ coh x .PushSimˢ.push y (_ , eq) =
     inject₁ y , ((tt , edge) , (refl , emb-sim m lab lab₁ coh y))
     where
@@ -135,59 +128,36 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       edge = trans (cong inject₁ eq) (sym (embed-compat m x))
 
   ----------------------------------------------------------------------
-  -- Eventual label at position v, carried as a stage-tagged thread.
-  --
-  -- Rather than quotienting a direct-limit chain (which would force the
-  -- label across cl-suc by transport), the Fin position is carried as a
-  -- field alongside the label. extend writes inject₁ pos as the next
-  -- position field, so l-emb's output type matches definitionally; the
-  -- toℕ-pos ≡ v invariant is a plain propositional field used only in
-  -- proofs. No cast.
-  -- 位置 v 处的最终标签，以阶段标签化线程携带。
-  -- 不对直接极限链做商（那将迫使标签经传输穿过 cl-suc），而是把 Fin 位置
-  -- 作为字段与标签一同携带。extend 直接把 inject₁ pos 写为下一位置字段，
-  -- 故 l-emb 的输出类型定义性匹配；toℕ-pos ≡ v 不变量是仅用于证明的命题
-  -- 字段。无 cast。
+  -- Eventual label at global id v: a stage-tagged element of L _ v.
+  -- There is no Fin position in the carrier; extend changes only the
+  -- stage and applies l-emb at the fixed v.
+  -- 全局 id v 处的最终标签：L _ v 的阶段标签化元素。载体内无 Fin 位置；
+  -- extend 只改阶段并在固定 v 上应用 l-emb。
 
-  record Thread (v : ℕ) : Set ℓ where
+  record Thread (v : ℕ) : Set (ℓ ⊔ lzero) where
     inductive
     constructor mk
     field
-      stage : ℕ
-      pos   : Fin (n-at stage)
-      pv    : toℕ pos ≡ v
-      tlabel : L stage pos
+      stage  : ℕ
+      tlabel : L stage v
   open Thread public
 
-  -- One forward step of a thread: position and label carried by inject₁
-  -- and l-emb respectively.
-  -- 线程的一步前向：位置与标签分别由 inject₁、l-emb 携带。
   extend : ∀ {v} → Thread v → Thread v
-  extend (mk m pos pv a) =
-    mk (suc m) (inject₁ pos)
-       (trans (toℕ-inject₁ pos) pv)
-       (l-emb m pos a)
+  extend {v} (mk m a) = mk (suc m) (l-emb m v a)
 
-  -- n-fold forward iteration; ordinary ℕ recursion, no index matching.
-  -- n 次前向迭代；普通 ℕ 递归，无索引匹配。
   extend^ : ∀ {v} → ℕ → Thread v → Thread v
   extend^ zero    t = t
   extend^ (suc n) t = extend (extend^ n t)
 
-  -- Canonical thread born at stage v from the label at the v-th
-  -- representative natToFin v.
-  -- 由第 v 个代表元 natToFin v 处标签在阶段 v 诞生的规范线程。
-  thread-at : (v : ℕ) → L v (natToFin v) → Thread v
-  thread-at v a = mk v (natToFin v) (toℕ-natToFin v) a
+  thread-at : (v : ℕ) (m : ℕ) → L m v → Thread v
+  thread-at v m a = mk m a
 
   ----------------------------------------------------------------------
-  -- Finest carried equivalence on threads: two threads are the same
-  -- ray when some forward iterates of them are the same full record.
-  -- Equality is never forced across two Fin positions at a common stage;
-  -- leg coherence uses t ≈ extend t, which holds by construction.
-  -- 线程上最细的携带等价：当两条线程的某前向迭代为同一整条记录时，二者
-  -- 为同一射线。绝不跨共同阶段的两个 Fin 位置强取等式；余锥相干使用
-  -- t ≈ extend t，由构造成立。
+  -- Finest carried equivalence: two threads are the same ray when some
+  -- forward iterates coincide as full records. Built from ℕ iteration
+  -- arithmetic and cong only; labels always live in L _ v at the same v.
+  -- 最细携带等价：当某前向迭代作为整条记录重合时，两线程为同一射线。
+  -- 仅由 ℕ 迭代算术与 cong 构造；标签始终处于同一 v 的 L _ v 中。
 
   record _≈Thread_ {v : ℕ} (t u : Thread v) : Set (ℓ ⊔ lzero) where
     field
@@ -196,8 +166,6 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       same : extend^ dl t ≡ extend^ dr u
   open _≈Thread_
 
-  -- Iterating a then b is iterating (a + b); definitional, induction on a.
-  -- 先迭代 a 次再 b 次即迭代 (a + b) 次；对 a 归纳，定义性成立。
   extend^-comp : ∀ {v} (a b : ℕ) (t : Thread v)
                → extend^ a (extend^ b t) ≡ extend^ (a + b) t
   extend^-comp zero    b t = refl
@@ -241,12 +209,11 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     }
 
   ----------------------------------------------------------------------
-  -- Apex system: ℕ index with deterministic dynamics s∞, Thread labels,
-  -- singleton deterministic edges (Moore: edges carry no label).
-  -- 顶点系统：ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边
-  -- （Moore：边不携带标签）。
+  -- Apex system: ℕ index, deterministic dynamics s∞, Thread labels,
+  -- singleton deterministic edges.
+  -- 顶点系统：ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边。
 
-  L∞ : SysEq lzero ℓ lzero (ℓ ⊔ lzero) lzero
+  L∞ : SysEq lzero (ℓ ⊔ lzero) lzero (ℓ ⊔ lzero) lzero
   L∞ = record
     { I  = ℕ
     ; A  = Thread
