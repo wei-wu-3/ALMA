@@ -46,7 +46,7 @@ open Morphˢ
 record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
              (X : SysEq i a b ℓa ℓe)
              (Y : SysEq j c d ℓc ℓd)
-       : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓa ⊔ ℓe ⊔ ℓc ⊔ ℓd) where
+       : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓe ⊔ ℓd) where
   field
     u      : I X → I Y
     shape  : (x : I X) → A X x → A Y (u x)
@@ -176,6 +176,26 @@ private
              → _≈Mˢ_ ≈A ≈E (relocate (trans r s) t)
                            (relocate s (relocate r t))
   ≈rel-compˢ ≈A ≈E ≡refl ≡refl t = ≈Mˢ-refl ≈A ≈E t
+
+------------------------------------------------------------------------
+-- Public re-export: relocating both trees along the same index
+-- equality preserves the carried bisimulation.
+-- 公开重导出：沿同一索引等式 relocate 两棵树保持携带互模拟。
+relocate-resp-≈Mˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
+                 {E : (x : I) (a : A x) (y : I) → Set b}
+                 (≈A : (x : I) → EqOn {ℓ = ℓa} (A x))
+                 (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
+                 {x y : I} (r : x ≡ y) {t s : M A E x}
+             → _≈Mˢ_ ≈A ≈E t s
+             → _≈Mˢ_ ≈A ≈E (relocate r t) (relocate r s)
+relocate-resp-≈Mˢ = ≈rel-respˢ
+
+-- Public alias for the index relocation of an M-tree.
+-- M-树索引重定位的公开别名。
+relocateˢ : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
+               {E : (x : I) (a : A x) (y : I) → Set b} {x y : I}
+           → x ≡ y → M A E x → M A E y
+relocateˢ = relocate
 
 ------------------------------------------------------------------------
 -- Behavioural equivalence of deterministic carried morphisms.
