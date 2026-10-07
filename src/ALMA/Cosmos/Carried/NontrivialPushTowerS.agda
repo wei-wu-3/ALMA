@@ -547,6 +547,31 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     nleg m v .PushSimˢ.push w (_ , eq) =
       w , ((tt , eq) , (refl , nleg m w))
 
+    -- FMˢ-bisimulation form of nleg: the image of the canonical stage
+    -- orbit under legFM m is bisimilar to the apex orbit orbit∞.
+    -- nleg 的 FMˢ 互模拟形式：legFM m 下规范阶段轨道的像与顶点轨道
+    -- orbit∞ 互模拟。
+    mutual
+      legray-go : (m v : ℕ)
+                → _≈Mˢ_ (≈A L∞) (≈E L∞)
+                         (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v (norbit m v))
+                         (orbit∞ v)
+      legray-go m v ._≈Mˢ_.here-eq = ≈Thread-sym (leg-here m v)
+      legray-go m v ._≈Mˢ_.below-eq w =
+          idAdjˢ (≈E L∞ v (mk m (lab m v)) w)
+        , ( (λ _ → legray-go   m w)
+          , (λ _ → legray-go˘  m w) )
+
+      legray-go˘ : (m v : ℕ)
+                 → _≈Mˢ_ (≈A L∞) (≈E L∞)
+                          (orbit∞ v)
+                          (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v (norbit m v))
+      legray-go˘ m v ._≈Mˢ_.here-eq = leg-here m v
+      legray-go˘ m v ._≈Mˢ_.below-eq w =
+          idAdjˢ (≈E L∞ v (mk v (lab v v)) w)
+        , ( (λ _ → legray-go˘  m w)
+          , (λ _ → legray-go   m w) )
+
     --------------------------------------------------------------------
     -- Same-index nontrivial mediating simulation.
     --
