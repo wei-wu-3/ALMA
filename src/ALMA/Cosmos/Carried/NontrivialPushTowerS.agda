@@ -541,3 +541,135 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     nleg m v .PushSimˢ.here-eq = leg-here m v
     nleg m v .PushSimˢ.push w (_ , eq) =
       w , ((tt , eq) , (refl , nleg m w))
+
+    --------------------------------------------------------------------
+    -- Same-index nontrivial mediating simulation.
+    --
+    -- A competing cocone over the SAME index and dynamics (identity
+    -- trajectory) carries an arbitrary label family ZL with its own
+    -- EqOn, together with per-stage evaluation maps zm that are stable
+    -- under l-emb. Every layer witness is then refl, so labels pass from
+    -- a stage to the target purely by function application at a shared
+    -- ℕ index: no fibre transport. The target fibre is non-trivial;
+    -- uniqueness is relative to pointwise label agreement (carried
+    -- data), never the automatic refl of the ⊤-fibre case.
+    --
+    -- 同索引非平凡 mediate 模拟。
+    -- 同一索引与动力（恒等轨迹）上的竞争余锥携带任意标签族 ZL 及其
+    -- EqOn，以及在 l-emb 下稳定的逐阶段求值映射 zm。所有层见证均为
+    -- refl，故标签在共享 ℕ 索引上纯由函数作用传递：无纤维传输。目标
+    -- 纤维非平凡；唯一性相对逐点标签一致（作为数据携带），绝非 ⊤ 纤维
+    -- 情形下自动的 refl。
+
+    module SameIndexMediate
+      {z : Level}
+      (ZL  : ℕ → Set z)
+      (≈ZL : (v : ℕ) → EqOn {ℓ = z} (ZL v))
+      (zm  : (m v : ℕ) → L m v → ZL v)
+      (zm-coh : (m v : ℕ) (a : L m v)
+              → EqOn._≈_ (≈ZL v)
+                  (zm (suc m) v (l-emb m v a)) (zm m v a))
+      where
+
+      -- Target system: same ℕ index and s∞ dynamics, ZL labels.
+      -- 目标系统：同一 ℕ 索引与 s∞ 动力，标签为 ZL。
+      Z : SysEq lzero z lzero z lzero
+      Z = record
+        { I  = ℕ
+        ; A  = ZL
+        ; E  = λ v _ w → Σ (⊤ {lzero}) λ _ → w ≡ s∞ v
+        ; ≈A = ≈ZL
+        ; ≈E = λ v _ w → propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v)
+        }
+
+      -- Deterministic orbit induced by a label family.
+      -- 标签族诱导的确定性轨道。
+      orbit-of : (zl : (v : ℕ) → ZL v) (v : ℕ)
+               → M (A Z) (E Z) v
+      orbit-of zl v .M.here      = zl v
+      orbit-of zl v .M.below w _ = orbit-of zl w
+
+      -- Canonical evaluation of the thread born at v.
+      -- v 处诞生线程的规范求值。
+      eval∞ : (v : ℕ) → ZL v
+      eval∞ v = zm v v (lab v v)
+
+      zorbit : (v : ℕ) → M (A Z) (E Z) v
+      zorbit = orbit-of eval∞
+
+      -- Stage-m target orbit and the identity-index label relation.
+      -- 阶段 m 目标轨道与索引恒等标签关系。
+      zorbit-stage : (m v : ℕ) → M (A Z) (E Z) v
+      zorbit-stage m = orbit-of (λ v → zm m v (lab m v))
+
+      Rz : ℕ → ℕ → Set lzero
+      Rz v w = v ≡ w
+
+      Hz : (m v w : ℕ) → Rz v w → L m v → ZL w → Set z
+      Hz m v .v refl a b = EqOn._≈_ (≈ZL v) b (zm m v a)
+
+      -- Each stage leg as a forward simulation into Z.
+      -- 每条阶段腿作为到 Z 的前向模拟。
+      zleg : (m v : ℕ)
+           → PushSimˢ (NStage m) Z Rz (Hz m) refl
+                       (norbit m v) (zorbit-stage m v)
+      zleg m v .PushSimˢ.here-eq = EqOn.refl (≈ZL v)
+      zleg m v .PushSimˢ.push w (_ , eq) =
+        w , ((tt , eq) , (refl , zleg m w))
+
+      -- Evaluation of an arbitrary stage-tagged thread at its own index.
+      -- 任意阶段标签化线程在其自身索引处的求值。
+      eval-ray : ∀ {v : ℕ} → Thread v → ZL v
+      eval-ray {v} (mk m a) = zm m v a
+
+      H∞ : (v w : ℕ) → Rz v w → Thread v → ZL w → Set z
+      H∞ v .v refl τ b = EqOn._≈_ (≈ZL v) b (eval-ray τ)
+
+      -- The mediating simulation from the apex to Z.
+      -- 从顶点到 Z 的 mediate 模拟。
+      zmed : (v : ℕ)
+           → PushSimˢ L∞ Z Rz H∞ refl (orbit∞ v) (zorbit v)
+      zmed v .PushSimˢ.here-eq = EqOn.refl (≈ZL v)
+      zmed v .PushSimˢ.push w (_ , eq) =
+        w , ((tt , eq) , (refl , zmed w))
+
+      -- Relative uniqueness: pointwise label agreement (explicit data)
+      -- between two deterministic orbit families gives a bisimulation.
+      -- This is not automatic: for a non-trivial fibre the agreement
+      -- must be supplied at every node.
+      -- 相对唯一性：两个确定性轨道族逐点标签一致（显式数据）即给出互
+      -- 模拟。它不是自动的：非平凡纤维下，一致必须在每个节点显式给出。
+      mutual
+        orb-bisim : (zl₁ zl₂ : (v : ℕ) → ZL v)
+                  → (he : (v : ℕ) → EqOn._≈_ (≈ZL v) (zl₁ v) (zl₂ v))
+                  → (v : ℕ)
+                  → _≈Mˢ_ (≈A Z) (≈E Z)
+                           (orbit-of zl₁ v) (orbit-of zl₂ v)
+        orb-bisim zl₁ zl₂ he v ._≈Mˢ_.here-eq = he v
+        orb-bisim zl₁ zl₂ he v ._≈Mˢ_.below-eq w =
+            idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v))
+          , ( (λ _ → orb-bisim zl₁ zl₂ he w)
+            , (λ _ → orb-bisim˘ zl₁ zl₂ he w) )
+
+        orb-bisim˘ : (zl₁ zl₂ : (v : ℕ) → ZL v)
+                   → (he : (v : ℕ) → EqOn._≈_ (≈ZL v) (zl₁ v) (zl₂ v))
+                   → (v : ℕ)
+                   → _≈Mˢ_ (≈A Z) (≈E Z)
+                            (orbit-of zl₂ v) (orbit-of zl₁ v)
+        orb-bisim˘ zl₁ zl₂ he v ._≈Mˢ_.here-eq =
+          EqOn.sym (≈ZL v) (he v)
+        orb-bisim˘ zl₁ zl₂ he v ._≈Mˢ_.below-eq w =
+            idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s∞ v))
+          , ( (λ _ → orb-bisim˘ zl₁ zl₂ he w)
+            , (λ _ → orb-bisim zl₁ zl₂ he w) )
+
+      -- Any competing label family pointwise equal to the canonical
+      -- evaluation induces the same target tree up to _≈Mˢ_.
+      -- 任何与规范求值逐点相等的竞争标签族诱导 _≈Mˢ_ 意义下相同的
+      -- 目标树。
+      mediate-unique : (zl : (v : ℕ) → ZL v)
+                     → (he : (v : ℕ) → EqOn._≈_ (≈ZL v) (zl v) (eval∞ v))
+                     → (v : ℕ)
+                     → _≈Mˢ_ (≈A Z) (≈E Z)
+                              (orbit-of zl v) (zorbit v)
+      mediate-unique zl he v = orb-bisim zl eval∞ he v
