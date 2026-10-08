@@ -209,6 +209,42 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
           , (λ e₂ → go w (M.below t w e₂)) )
 
   ----------------------------------------------------------------------
+  -- Pointwise lifting. Head equations in the target's own setoid (any
+  -- setoid, not only a propositional fibre) give morphism bisimilarity;
+  -- child trees recurse guardedly along the identity index.
+  -- 逐点提升。目标自身 setoid（任意 setoid，不限于命题纤维）中的头部
+  -- 等式给出态射互模拟；子树沿恒等索引守卫递归。
+  pointwise-i : {X Y : LabelSys ℓ} (f g : Idx⇒ X Y)
+    → (∀ (v : ℕ) (a : A₀ X v)
+        → EqOn._≈_ (≈A₀ Y v) (shape f v a) (shape g v a))
+    → f ≈i g
+  pointwise-i {X = X} {Y = Y} f g eq v t = go v t
+    where
+    edgeAdj : (v w : ℕ) → _
+    edgeAdj v w = idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ d v))
+    mutual
+      go : (v : ℕ) (u : M (A (s X)) (E (s X)) v)
+         → _≈Mˢ_ (≈A (s Y)) (≈E (s Y))
+                  (FMapˢ.mapFˢ (FMˢ.mor (mor f)) v u)
+                  (FMapˢ.mapFˢ (FMˢ.mor (mor g)) v u)
+      go v u ._≈Mˢ_.here-eq = eq v (M.here u)
+      go v u ._≈Mˢ_.below-eq w =
+        edgeAdj v w
+          , ( (λ e → go w (M.below u w e))
+            , (λ e → go˘ w (M.below u w e)) )
+
+      go˘ : (v : ℕ) (u : M (A (s X)) (E (s X)) v)
+          → _≈Mˢ_ (≈A (s Y)) (≈E (s Y))
+                   (FMapˢ.mapFˢ (FMˢ.mor (mor g)) v u)
+                   (FMapˢ.mapFˢ (FMˢ.mor (mor f)) v u)
+      go˘ v u ._≈Mˢ_.here-eq =
+        EqOn.sym (≈A (s Y) v) (eq v (M.here u))
+      go˘ v u ._≈Mˢ_.below-eq w =
+        edgeAdj v w
+          , ( (λ e → go˘ w (M.below u w e))
+            , (λ e → go w (M.below u w e)) )
+
+  ----------------------------------------------------------------------
   -- Associativity and identity hold definitionally at the fibre-map
   -- level, hence by reflexivity.
   -- 结合律与恒等律在纤维映射层面定义性成立，故由自反性给出。
