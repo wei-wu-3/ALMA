@@ -40,15 +40,25 @@ open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
-  using (SysEq; EqOn; propEqOn; _≈Mˢ_; ≈Mˢ-sym; ≈Mˢ-trans; idAdjˢ)
+  using ( SysEq; EqOn; propEqOn; _≈Mˢ_
+        ; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans; idAdjˢ )
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open import ALMA.Base.MCorrSetoidCat
   using ( FMapˢ; FMˢ; compFMˢ; compFˢ; mapFˢ-comp
         ; _≈FM_; relocateˢ; relocate-resp-≈Mˢ )
 open import ALMA.Cosmos.Carried.ColimitPolarity
   using (no-FM-nonsurjective)
+open import Categories.Category.Core using (Category)
+open import Categories.Functor using (Functor)
 open import ALMA.Cosmos.Carried.SeqColimitS
   using (Chainˢ; Coconeˢ; Limitˢ)
+open import ALMA.Cosmos.Carried.SeqColimitCat
+  using (Chain⇒; ωCat; _∘ch_)
+import ALMA.Cosmos.Carried.SeqColimitCat as SQC
+open import ALMA.Cosmos.Carried.SameIndexCatS
+  using ( LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
+        ; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
+        ; assoc-i; identityˡ-i; identityʳ-i; SameIndexCat )
 open import ALMA.Cosmos.Carried.LimitSystemS using (n-at)
 import ALMA.Cosmos.Carried.LimitSystemS as LS
 
@@ -1106,6 +1116,293 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         -- 索引恒等 mediate 的完整行为唯一性。
         unique-full : hFM ≈FM zmedFM
         unique-full v = refl , λ t → uniq v t
+
+    --------------------------------------------------------------------
+    -- Standard agda-categories Colimit of nchain in SameIndexCat.
+    --
+    -- The stage systems and the apex are LabelSys over the fixed dynamics
+    -- s∞; the embeddings and legs are Idx⇒ (definitionally identity
+    -- index). A competing cocone supplies per-stage fibre maps zm and
+    -- one-step coherence, which is exactly SameIndexMediate data; the
+    -- mediator is eval-ray and FullUniqueness gives initiality on every
+    -- total apex tree. This is the positive Colimit, confined to the
+    -- identity-index wide subcategory where the polarity obstruction of
+    -- Route 2 cannot arise.
+    --
+    -- SameIndexCat 中 nchain 的 agda-categories 标准 Colimit。
+    -- 阶段系统与顶点是固定动力 s∞ 上的 LabelSys；嵌入与腿是 Idx⇒（定义性
+    -- 索引恒等）。竞争余锥提供逐阶段纤维映射 zm 与一步相干性，恰为
+    -- SameIndexMediate 数据；mediate 为 eval-ray，FullUniqueness 给出每棵
+    -- 全总顶点树上的初始性。这是限制在索引恒等宽子范畴内的正面 Colimit，
+    -- Route 2 的极性障碍在此不会出现。
+
+    private
+      cat = SameIndexCat s∞ {ℓ = ℓ}
+
+      reflc : ∀ {X Y : LabelSys ℓ} {f : Idx⇒ s∞ X Y} → _≈i_ s∞ f f
+      reflc {f = f} = ≈i-refl s∞ {ℓ = ℓ} f
+
+      symc : ∀ {X Y : LabelSys ℓ} {f g : Idx⇒ s∞ X Y}
+           → _≈i_ s∞ f g → _≈i_ s∞ g f
+      symc {f = f} {g = g} p = ≈i-sym s∞ {ℓ = ℓ} {f = f} {g = g} p
+
+      transc : ∀ {X Y : LabelSys ℓ} {f g h : Idx⇒ s∞ X Y}
+             → _≈i_ s∞ f g → _≈i_ s∞ g h → _≈i_ s∞ f h
+      transc {f = f} {g = g} {h = h} p q =
+        ≈i-trans s∞ {ℓ = ℓ} {f = f} {g = g} {h = h} p q
+
+      respc : ∀ {X Y Z : LabelSys ℓ}
+                {F₁ F₂ : Idx⇒ s∞ X Y} {G₁ G₂ : Idx⇒ s∞ Y Z}
+            → _≈i_ s∞ F₁ F₂ → _≈i_ s∞ G₁ G₂
+            → _≈i_ s∞ (compi s∞ G₁ F₁) (compi s∞ G₂ F₂)
+      respc {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q =
+        ∘-resp-≈i s∞ {ℓ = ℓ} {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q
+
+    stageLS : ℕ → LabelSys ℓ
+    stageLS m = record { A₀ = L m ; ≈A₀ = λ v → propEqOn (L m v) }
+
+    apexLS : LabelSys ℓ
+    apexLS = record { A₀ = Thread ; ≈A₀ = ≈A∞ }
+
+    embIdx : (m : ℕ) → Idx⇒ s∞ (stageLS m) (stageLS (suc m))
+    embIdx m = record
+      { shape      = λ v a → l-emb m v a
+      ; shape-cong = λ {v} e → cong (l-emb m v) e
+      }
+
+    legIdx : (m : ℕ) → Idx⇒ s∞ (stageLS m) apexLS
+    legIdx m = record
+      { shape      = λ v a → mk m a
+      ; shape-cong = λ {v} {a} {a'} e → leg-shc e
+      }
+
+    fold-emb : ∀ {m n : ℕ} → Chain⇒ m n
+             → Idx⇒ s∞ (stageLS m) (stageLS n)
+    fold-emb SQC.stop          = idxi s∞ (stageLS _)
+    fold-emb (SQC.step {n = n} p) = compi s∞ (embIdx n) (fold-emb p)
+
+    fold-hom : ∀ {m y n : ℕ} (g : Chain⇒ y n) (f : Chain⇒ m y)
+             → _≈i_ s∞ (fold-emb (g ∘ch f))
+                       (compi s∞ (fold-emb g) (fold-emb f))
+    fold-hom {m} {y} {.y} SQC.stop f =
+      symc {X = stageLS m} {Y = stageLS y}
+           {f = compi s∞ (idxi s∞ (stageLS y)) (fold-emb f)}
+           {g = fold-emb f}
+           (reflc {f = compi s∞ (idxi s∞ (stageLS y)) (fold-emb f)})
+    fold-hom {m} {y} {.(suc t)} (SQC.step {n = t} g) f =
+      transc {X = stageLS m} {Y = stageLS (suc t)}
+        {f = compi s∞ (embIdx t) (fold-emb (g ∘ch f))}
+        {g = compi s∞ (embIdx t)
+               (compi s∞ (fold-emb g) (fold-emb f))}
+        {h = compi s∞ (compi s∞ (embIdx t) (fold-emb g)) (fold-emb f)}
+        (respc {X = stageLS m} {Y = stageLS t} {Z = stageLS (suc t)}
+           {F₁ = fold-emb (g ∘ch f)}
+           {F₂ = compi s∞ (fold-emb g) (fold-emb f)}
+           {G₁ = embIdx t} {G₂ = embIdx t}
+           (fold-hom g f) (reflc {f = embIdx t}))
+        (reflc {f = compi s∞ (embIdx t)
+                  (compi s∞ (fold-emb g) (fold-emb f))})
+
+    fold-resp-i : ∀ {m n : ℕ} {p q : Chain⇒ m n}
+                → p ≡ q → _≈i_ s∞ (fold-emb p) (fold-emb q)
+    fold-resp-i {p = p} refl = reflc {f = fold-emb p}
+
+    chainFun : Functor ωCat cat
+    chainFun = record
+      { F₀          = stageLS
+      ; F₁          = fold-emb
+      ; identity    = λ {m} → reflc {f = fold-emb {m = m} SQC.stop}
+      ; homomorphism = λ {m y n f g} → fold-hom g f
+      ; F-resp-≈    = λ {m n p q} eq → fold-resp-i {p = p} {q = q} eq
+      }
+
+    open import Categories.Diagram.Cocone chainFun
+    open import Categories.Category.Construction.Cocones chainFun
+      using (Cocones)
+    open import Categories.Object.Initial Cocones
+    open import Categories.Diagram.Colimit chainFun using (Colimit)
+
+    -- One-step and path coherence of the canonical legs.
+    -- 规范腿的一步与路径相干性。
+    one-coh-i : (m : ℕ)
+              → _≈i_ s∞ (compi s∞ (legIdx (suc m)) (embIdx m)) (legIdx m)
+    one-coh-i m v t = coh-go m v t
+
+    leg-path : ∀ {m n : ℕ} (p : Chain⇒ m n)
+             → _≈i_ s∞ (compi s∞ (legIdx n) (fold-emb p)) (legIdx m)
+    leg-path {m} {.m} SQC.stop =
+      reflc {f = compi s∞ (legIdx m) (idxi s∞ (stageLS m))}
+    leg-path {m} {.(suc t)} (SQC.step {n = t} p) =
+      transc {X = stageLS m} {Y = apexLS}
+        {f = compi s∞ (legIdx (suc t))
+               (compi s∞ (embIdx t) (fold-emb p))}
+        {g = compi s∞ (compi s∞ (legIdx (suc t)) (embIdx t)) (fold-emb p)}
+        {h = legIdx m}
+        (reflc {f = compi s∞ (legIdx (suc t))
+                  (compi s∞ (embIdx t) (fold-emb p))})
+        (transc {X = stageLS m} {Y = apexLS}
+           {f = compi s∞ (compi s∞ (legIdx (suc t)) (embIdx t)) (fold-emb p)}
+           {g = compi s∞ (legIdx t) (fold-emb p)}
+           {h = legIdx m}
+           (respc {X = stageLS m} {Y = stageLS t} {Z = apexLS}
+              {F₁ = fold-emb p} {F₂ = fold-emb p}
+              {G₁ = compi s∞ (legIdx (suc t)) (embIdx t)} {G₂ = legIdx t}
+              (reflc {f = fold-emb p}) (one-coh-i t))
+           (leg-path p))
+
+    nCocone : Cocone
+    nCocone = record
+      { coapex = record { ψ = legIdx ; commute = λ {m n} p → leg-path p } }
+
+    -- Every restricted cocone factors uniquely through the apex.
+    -- 每个受限余锥唯一地经顶点因子分解。
+    module _ (K : Cocone) where
+
+      ψK : (m : ℕ) → Idx⇒ s∞ (stageLS m) (Cocone.N K)
+      ψK = Cocone.ψ K
+
+      private
+        N  = Cocone.N K
+        ZL = LabelSys.A₀ N
+        ≈ZL = LabelSys.≈A₀ N
+
+        zm : (m v : ℕ) → L m v → ZL v
+        zm m v a = Idx⇒.shape (ψK m) v a
+
+        zm-coh : (m v : ℕ) (a : L m v)
+               → EqOn._≈_ (≈ZL v)
+                   (zm (suc m) v (l-emb m v a)) (zm m v a)
+        zm-coh m v a =
+          _≈Mˢ_.here-eq
+            (Cocone.commute K (SQC.succ {m = m}) v (stage-ray m v a))
+
+      module Q = SameIndexMediate ZL ≈ZL zm zm-coh
+
+      medArr : Idx⇒ s∞ apexLS N
+      medArr = record
+        { shape      = λ v τ → Q.eval-ray τ
+        ; shape-cong = Q.med-shape-cong
+        }
+
+      med-comm : ∀ {m : ℕ}
+               → _≈i_ s∞ (compi s∞ medArr (legIdx m)) (ψK m)
+      med-comm {m} v t = Q.tri-go m v t
+
+      mkMediate : Cocone⇒ nCocone K
+      mkMediate = record { arr = medArr ; commute = λ {m} → med-comm {m} }
+
+      unique : (f⇒ : Cocone⇒ nCocone K)
+             → _≈i_ s∞ medArr (Cocone⇒.arr f⇒)
+      unique f⇒ = unique-i
+        where
+        farr : Idx⇒ s∞ apexLS N
+        farr = Cocone⇒.arr f⇒
+
+        H  : (v : ℕ) → Thread v → ZL v
+        H = Idx⇒.shape farr
+
+        Hc : ∀ {v : ℕ} {τ τ' : Thread v}
+           → τ ≈Thread τ'
+           → EqOn._≈_ (≈ZL v) (H v τ) (H v τ')
+        Hc = Idx⇒.shape-cong farr
+
+        -- Constructor form of farr; Idx⇒ eta makes farr ≡ farr′, and the
+        -- latter unfolds under the category composition instead of
+        -- staying stuck on the neutral Cocone⇒ projection.
+        -- farr 的构造式；Idx⇒ 的 eta 使 farr ≡ farr′，后者在范畴复合下
+        -- 可归约，不会卡在中性的 Cocone⇒ 投影上。
+        farr′ : Idx⇒ s∞ apexLS N
+        farr′ = record { shape = H ; shape-cong = Hc }
+
+        tr : (m v : ℕ) (t : M (A (NStage m)) (E (NStage m)) v)
+           → _≈Mˢ_ (≈A (dsys s∞ N)) (≈E (dsys s∞ N))
+                    (FMapˢ.mapFˢ (FMˢ.mor (Q.mkHFM H Hc)) v
+                       (FMapˢ.mapFˢ (FMˢ.mor (legFM m)) v t))
+                    (FMapˢ.mapFˢ (Q.legF m) v t)
+        -- Re-home the neutral category composite (stuck on the Cocone⇒
+        -- projection) onto the constructor composite, at the _≈i_ layer
+        -- where identity/associativity are definitional; then read the
+        -- triangle pointwise. Idx⇒ eta and the fact that mapF data depends
+        -- only on the shape make both reindexings reflexive.
+        -- 在 _≈i_ 层（恒等/结合均定义性成立）把卡在 Cocone⇒ 投影上的中性
+        -- 范畴复合归位到构造式复合，再逐点读取三角。Idx⇒ 的 eta 以及 mapF
+        -- 数据只依赖 shape，使两处重索引均为自反。
+        legEta : (m : ℕ)
+               → _≈i_ s∞ (Cocone.ψ nCocone m) (legIdx m)
+        legEta m = reflc {f = legIdx m}
+
+        fEta : _≈i_ s∞ farr farr′
+        fEta = reflc {f = farr′}
+
+        -- commute reads  arr ∘ leg ≈ ψK  (composite on the left).
+        -- commute 读作 arr ∘ leg ≈ ψK（复合在左）。
+        rdx : (m : ℕ)
+            → _≈i_ s∞ (Category._∘_ cat farr (Cocone.ψ nCocone m))
+                      (compi s∞ farr′ (legIdx m))
+        rdx m = respc {X = stageLS m} {Y = apexLS} {Z = N}
+                  {F₁ = Cocone.ψ nCocone m} {F₂ = legIdx m}
+                  {G₁ = farr} {G₂ = farr′}
+                  (legEta m) fEta
+
+        tri : (m : ℕ)
+            → _≈i_ s∞ (compi s∞ farr′ (legIdx m)) (ψK m)
+        tri m =
+          transc {X = stageLS m} {Y = N}
+            {f = compi s∞ farr′ (legIdx m)}
+            {g = Category._∘_ cat farr (Cocone.ψ nCocone m)}
+            {h = ψK m}
+            (symc {X = stageLS m} {Y = N}
+               {f = Category._∘_ cat farr (Cocone.ψ nCocone m)}
+               {g = compi s∞ farr′ (legIdx m)}
+               (rdx m))
+            (Cocone⇒.commute f⇒ {m})
+
+        tr m v t =
+          ≈Mˢ-trans ≈AZ ≈EZ
+            (≈Mˢ-trans ≈AZ ≈EZ c1 (≈Mˢ-sym ≈AZ ≈EZ c2))
+            (≈Mˢ-trans ≈AZ ≈EZ (tri m v t) leg-b)
+          where
+          ≈AZ = ≈A (dsys s∞ N)
+          ≈EZ = ≈E (dsys s∞ N)
+          hmor = FMˢ.mor (Q.mkHFM H Hc)
+          fmor = FMˢ.mor (legFM m)
+          compFMor = compFˢ hmor fmor
+          compImg = FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor (compi s∞ farr′ (legIdx m)))) v t
+          tgtImg = FMapˢ.mapFˢ (Q.legF m) v t
+
+          -- nested two-map image ≈ single composite image.
+          -- 嵌套两次 mapF 的像 ≈ 单一复合像。
+          c1 : _≈Mˢ_ ≈AZ ≈EZ
+                 (FMapˢ.mapFˢ hmor v (FMapˢ.mapFˢ fmor v t))
+                 (FMapˢ.mapFˢ compFMor v t)
+          c1 = ≈Mˢ-sym ≈AZ ≈EZ (mapFˢ-comp hmor fmor v t)
+
+          -- compi fibre map and the kernel composite agree pointwise.
+          -- compi 纤维映射与内核复合逐点一致。
+          c2 : _≈Mˢ_ ≈AZ ≈EZ compImg (FMapˢ.mapFˢ compFMor v t)
+          c2 = ≈Mˢ-refl ≈AZ ≈EZ (FMapˢ.mapFˢ compFMor v t)
+
+          leg-b : _≈Mˢ_ ≈AZ ≈EZ
+                    (FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor (ψK m))) v t) tgtImg
+          leg-b = ≈Mˢ-refl ≈AZ ≈EZ tgtImg
+
+        module QF = Q.FullUniqueness H Hc tr
+
+        unique-i : _≈i_ s∞ medArr farr
+        unique-i v t =
+          ≈Mˢ-sym (≈A (dsys s∞ N)) (≈E (dsys s∞ N))
+            (proj₂ (QF.unique-full v) t)
+
+    nColimit : Colimit
+    nColimit = record
+      { initial = record
+        { ⊥ = nCocone
+        ; ⊥-is-initial = record
+          { ! = λ {K} → mkMediate K
+          ; !-unique = λ {K} f⇒ → unique K f⇒
+          }
+        }
+      }
 
     --------------------------------------------------------------------
     -- Route 2 (negative): the total-function Colimit is a pull notion.
