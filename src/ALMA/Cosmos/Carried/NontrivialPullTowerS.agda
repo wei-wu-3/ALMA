@@ -36,7 +36,14 @@ open import ALMA.Base.MCorrSetoid
   using (SysEq; EqOn; propEqOn; idAdjˢ; _≈Mˢ_)
 open import ALMA.Base.MCorrSetoidCat using (FMapˢ)
 open import ALMA.Cosmos.Carried.SameIndexCatS
-  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_)
+  using ( LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
+        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i )
+
+open import Categories.Category.Core using (Category)
+open import Categories.Functor using (Functor)
+open import ALMA.Cosmos.Carried.SeqColimitCat
+  using (Chain⇒; stop; step; ωCat)
+import ALMA.Cosmos.Carried.SeqColimitCat as SQC
 
 open SysEq
 
@@ -195,3 +202,116 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       (λ v a → l-proj m v (at a (suc m)))
       (λ v a → at a m)
       (λ v a → coh a m)
+
+  ----------------------------------------------------------------------
+  -- The cochain is the ω-chain functor on the opposite shape category:
+  -- an ω^op arrow m→n is a forward path Chain⇒ n m, mapped to iterated
+  -- restrictions from stage m down to stage n.
+  --
+  -- 余链即对偶形状范畴上的 ω 链函子：ω^op 箭头 m→n 是一条前向路径
+  -- Chain⇒ n m，被映为从阶段 m 向下到阶段 n 的迭代限制。
+  private
+    cat = SameIndexCat s {ℓ = ℓ}
+
+    reflc : ∀ {X Y : LabelSys ℓ} {f : Idx⇒ s X Y} → _≈i_ s f f
+    reflc {f = f} = ≈i-refl s {ℓ = ℓ} f
+
+    symc : ∀ {X Y : LabelSys ℓ} {f g : Idx⇒ s X Y}
+         → _≈i_ s f g → _≈i_ s g f
+    symc {f = f} {g = g} p = ≈i-sym s {ℓ = ℓ} {f = f} {g = g} p
+
+    transc : ∀ {X Y : LabelSys ℓ} {f g h : Idx⇒ s X Y}
+           → _≈i_ s f g → _≈i_ s g h → _≈i_ s f h
+    transc {f = f} {g = g} {h = h} p q =
+      ≈i-trans s {ℓ = ℓ} {f = f} {g = g} {h = h} p q
+
+    respc : ∀ {X Y Z : LabelSys ℓ}
+              {F₁ F₂ : Idx⇒ s X Y} {G₁ G₂ : Idx⇒ s Y Z}
+          → _≈i_ s F₁ F₂ → _≈i_ s G₁ G₂
+          → _≈i_ s (compi s G₁ F₁) (compi s G₂ F₂)
+    respc {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q =
+      ∘-resp-≈i s {ℓ = ℓ} {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q
+
+  -- Iterated restriction along a backward path.
+  -- 沿反向路径迭代限制。
+  fold-res : {n m : ℕ} → Chain⇒ n m → Idx⇒ s (stageLS m) (stageLS n)
+  fold-res stop            = idxi s (stageLS _)
+  fold-res (step {n = k} p) = compi s (fold-res p) (resIdx k)
+
+  -- Folding a composite path is composing the folded restrictions.
+  -- 折叠复合路径等于复合折叠后的限制。
+  fold-res-comp : {x y z : ℕ} (f : Chain⇒ y x) (g : Chain⇒ z y)
+    → _≈i_ s (fold-res (f SQC.∘ch g))
+             (compi s (fold-res g) (fold-res f))
+  fold-res-comp {y = y} {z = z} f g = go f
+    where
+    go : ∀ {k : ℕ} (p : Chain⇒ y k)
+       → _≈i_ s (fold-res (p SQC.∘ch g))
+                (compi s (fold-res g) (fold-res p))
+    go stop =
+      reflc {X = stageLS y} {Y = stageLS z} {f = fold-res g}
+    go (step {n = k} p) =
+      transc {X = stageLS (suc k)} {Y = stageLS z}
+        {f = compi s (fold-res (p SQC.∘ch g)) (resIdx k)}
+        {g = compi s (compi s (fold-res g) (fold-res p)) (resIdx k)}
+        {h = compi s (fold-res g) (compi s (fold-res p) (resIdx k))}
+        (respc {X = stageLS (suc k)} {Y = stageLS k} {Z = stageLS z}
+               {F₁ = resIdx k} {F₂ = resIdx k}
+               {G₁ = fold-res (p SQC.∘ch g)}
+               {G₂ = compi s (fold-res g) (fold-res p)}
+               (reflc {X = stageLS (suc k)} {Y = stageLS k}
+                      {f = resIdx k})
+               (go p))
+        (reflc {X = stageLS (suc k)} {Y = stageLS z}
+               {f = compi s (fold-res g)
+                            (compi s (fold-res p) (resIdx k))})
+
+  private
+    ωOp : Category lzero lzero lzero
+    ωOp = Category.op ωCat
+
+    subst-resp : ∀ {n m} {p q : Chain⇒ n m} → p ≡ q
+               → _≈i_ s (fold-res p) (fold-res q)
+    subst-resp {n = n} {m = m} {p = p} refl =
+      reflc {X = stageLS m} {Y = stageLS n} {f = fold-res p}
+
+  cochainFun : Functor ωOp cat
+  cochainFun = record
+    { F₀          = stageLS
+    ; F₁          = λ {A} {B} p → fold-res p
+    ; identity    = reflc {f = idxi s (stageLS _)}
+    ; homomorphism = λ {X} {Y} {Z} {f} {g} → fold-res-comp f g
+    ; F-resp-≈    = λ {_ _ p q} eq → subst-resp {p = p} {q = q} eq
+    }
+
+  -- Path-level cone coherence: F₁ p ∘ projLeg m ≈ projLeg n.
+  -- 路径级锥相干：F₁ p ∘ projLeg m ≈ projLeg n。
+  projPath : {n m : ℕ} (p : Chain⇒ n m)
+    → _≈i_ s (compi s (fold-res p) (projLeg m)) (projLeg n)
+  projPath {n = n} stop =
+    reflc {X = apexLS} {Y = stageLS n}
+          {f = compi s (idxi s (stageLS n)) (projLeg n)}
+  projPath {n = n} (step {n = k} p) =
+    transc {X = apexLS} {Y = stageLS n}
+      {f = compi s (compi s (fold-res p) (resIdx k)) (projLeg (suc k))}
+      {g = compi s (fold-res p) (projLeg k)}
+      {h = projLeg n}
+      (respc {X = apexLS} {Y = stageLS k} {Z = stageLS n}
+             {F₁ = compi s (resIdx k) (projLeg (suc k))}
+             {F₂ = projLeg k}
+             {G₁ = fold-res p} {G₂ = fold-res p}
+             (cone-coh k)
+             (reflc {X = stageLS k} {Y = stageLS n} {f = fold-res p}))
+      (projPath p)
+
+  open import Categories.Diagram.Cone cochainFun
+
+  -- The limit cone: apex LimLabel, projections projLeg.
+  -- 极限锥：顶点 LimLabel，投影 projLeg。
+  nCone : Cone
+  nCone = record
+    { apex = record
+      { ψ       = projLeg
+      ; commute = λ {X} {Y} f → projPath f
+      }
+    }
