@@ -25,11 +25,14 @@ module ALMA.Cosmos.Carried.NontrivialPullTowerS where
 
 open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans; _≢_)
 open import Relation.Binary.Structures using (IsEquivalence)
-open import Data.Nat.Base using (ℕ; suc)
-open import Data.Unit.Polymorphic.Base using (⊤)
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Data.Empty.Polymorphic using (⊥; ⊥-elim)
+import Data.Empty
+open import Relation.Nullary.Negation using (¬_)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
@@ -390,3 +393,92 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     cone-thread : {N : LabelSys ℓ} (K : PCone N) (v : ℕ)
                 (a : LabelSys.A₀ N v) → LimLabel v
     cone-thread K v a = Idx⇒.shape (mediate K) v a
+
+  ----------------------------------------------------------------------
+  -- Pull dual obstruction (negative). If the root 0 has no compatible
+  -- thread through the tower, the bisimulation limit cone is not
+  -- terminal. Take a dead apex labelled only at 0 (everywhere else
+  -- empty). No total label-tree is rooted anywhere, so the bisimulation
+  -- cone commute is vacuously true regardless of the leg heads; yet a
+  -- mediator into the limit apex would have to produce a LimLabel at 0,
+  -- which is empty. Hypotheses: every stage is inhabited at 0, the
+  -- dynamics leaves 0, and no compatible thread exists there.
+  --
+  -- pull 对偶障碍（否定性）。若根 0 没有穿过塔的相容线程，则双模拟极限
+  -- 锥非终。取仅在 0 有标签（余处皆空）的死顶点：任何地方都没有全总标签
+  -- 树，故双模拟锥相干与腿头部无关地空洞成立；但进入极限顶点的
+  -- mediate 必须在 0 处给出 LimLabel，而其为空。假设：各阶段在 0 处有人、
+  -- 动力离开 0、该处无相容线程。
+  module NoThreadObstruction
+    (b     : (m : ℕ) → L m 0)
+    (d0≢0  : s 0 ≢ 0)
+    (no-thread : ¬ LimLabel 0)
+    where
+
+    -- Fibre of the dead apex: inhabited only at 0.
+    -- 死顶点的纤维：仅在 0 处有人。
+    deadA : ℕ → Set ℓ
+    deadA zero    = ⊤ {ℓ}
+    deadA (suc _) = ⊥ {ℓ}
+
+    -- Dead apex: labelled only at 0.
+    -- 死顶点：仅在 0 处有标签。
+    Ndead : LabelSys ℓ
+    Ndead = record
+      { A₀  = deadA
+      ; ≈A₀ = λ w → propEqOn (deadA w)
+      }
+
+    private sysN = sYS Ndead
+
+    noA0 : (w : ℕ) → w ≢ 0 → deadA w → ⊥ {ℓ}
+    noA0 zero   ne tt = Data.Empty.⊥-elim (ne refl)
+    noA0 (suc _) _ ()
+
+    -- No total label-tree is rooted at any index.
+    -- 任何索引处都没有全总标签树。
+    no-tree : (w : ℕ) → M (A sysN) (E sysN) w → ⊥ {ℓ}
+    no-tree zero t =
+      noA0 (s 0) d0≢0 (M.here (M.below t (s 0) (tt , refl)))
+    no-tree (suc _) t = ⊥-elim (M.here t)
+
+    -- Leg heads exist at 0 (b) and are impossible elsewhere.
+    -- 腿头部在 0 处为 b，余处不可能。
+    legShape : (m w : ℕ) → deadA w → L m w
+    legShape m zero tt = b m
+    legShape m (suc _) ()
+
+    legCong : (m : ℕ) {w : ℕ} {a a' : deadA w}
+            → a ≡ a' → legShape m w a ≡ legShape m w a'
+    legCong m {zero} {tt} {tt} refl = refl
+    legCong m {suc _} {()}
+
+    ψK : (m : ℕ) → Idx⇒ s Ndead (stageLS m)
+    ψK m = record { shape = legShape m ; shape-cong = legCong m }
+
+    -- Any two morphisms out of the dead apex are bisimulation-equal,
+    -- since the pointwise quantification is over no trees.
+    -- 从死顶点出发的任意两个态射互模拟相等，因逐点量化的树集为空。
+    vacuous-i : {Y : LabelSys ℓ} (f g : Idx⇒ s Ndead Y) → _≈i_ s f g
+    vacuous-i f g w t with no-tree w t
+    ... | ()
+
+    -- A perfectly valid bisimulation cone over the dead apex.
+    -- 死顶点上完全合法的双模拟锥。
+    deadCone : Cone
+    deadCone = record
+      { apex = record
+        { ψ       = ψK
+        ; commute = λ {X} {Y} f →
+                      vacuous-i (compi s (fold-res f) (ψK X)) (ψK Y)
+        }
+      }
+
+    -- No mediator from the dead cone into the canonical limit cone:
+    -- its head at 0 would be a compatible thread, assumed absent.
+    -- 不存在从死锥到规范极限锥的 mediate：其在 0 处的头部将是一条相容
+    -- 线程，而假设其不存在。
+    no-mediate : Cone⇒ deadCone nCone → ⊥ {ℓ}
+    no-mediate mk =
+      Data.Empty.⊥-elim
+        (no-thread (Idx⇒.shape (Cone⇒.arr mk) 0 tt))
