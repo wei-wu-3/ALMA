@@ -426,3 +426,73 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       nColimCocone : Cocone
       nColimCocone = record
         { coapex = record { ψ = inj ; commute = λ {m n} p → injPath p } }
+
+      ------------------------------------------------------------------
+      -- Pointwise cocones and the mediating functor.  A competing
+      -- cocone is a coapex Z with legs ψ m : X m ⇒ Z and one-step
+      -- coherence ψ (suc m) (e m a) ≈ ψ m a, all in the fibre setoids.
+      -- The mediator reads the stage-0 value; uniqueness is pointwise,
+      -- so neither function extensionality nor transport is used.
+      --
+      -- 逐点余锥与 mediate 函子。竞争余锥由余顶点 Z、腿 ψ m : X m ⇒ Z
+      -- 与一步相干 ψ (suc m)(e m a) ≈ ψ m a 组成，均在纤维 setoid 中。
+      -- mediate 读取阶段 0 的值；唯一性为逐点，故不用函数外延性与传输。
+      record PFCocone (Z : LabelSys ℓ) : Set (lsuc ℓ) where
+        field
+          ψc  : (m : ℕ) → Idx⇒ s (X₀ m) Z
+          coh : (m v : ℕ) (a : fibre m v)
+              → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                          (Idx⇒.shape (ψc (suc m)) v (fwd m v a))
+                          (Idx⇒.shape (ψc m) v a)
+      open PFCocone
+
+      -- ψ m applied to the forward orbit of a stage-0 seed is ψ 0.
+      -- ψ m 作用于阶段 0 种子的前向轨道等于 ψ 0。
+      k-fwd : {Z : LabelSys ℓ} (K : PFCocone Z)
+              (m v : ℕ) (x : fibre 0 v)
+            → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                        (Idx⇒.shape (ψc K m) v (orbit0 m v x))
+                        (Idx⇒.shape (ψc K 0) v x)
+      k-fwd {Z = Z} K zero    v x = EqOn.refl (LabelSys.≈A₀ Z v)
+      k-fwd {Z = Z} K (suc m) v x =
+        EqOn.trans (LabelSys.≈A₀ Z v)
+          (coh K m v (orbit0 m v x))
+          (k-fwd K m v x)
+
+      -- The mediator: project the family to stage 0 and apply ψ 0.
+      -- mediate：把族投影到阶段 0 再作用 ψ 0。
+      mediate : {Z : LabelSys ℓ} (K : PFCocone Z)
+              → Idx⇒ s apexLS Z
+      mediate K = record
+        { shape      = λ v τ → Idx⇒.shape (ψc K 0) v (at τ 0)
+        ; shape-cong = λ eq → Idx⇒.shape-cong (ψc K 0) (eq 0)
+        }
+
+      -- Factorisation: mediate ∘ inj m ≈h ψ m.
+      -- 因子分解：mediate ∘ inj m 逐点等于 ψ m。
+      triangle : {Z : LabelSys ℓ} (K : PFCocone Z) (m v : ℕ)
+                   (a : fibre m v)
+               → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                           (Idx⇒.shape (ψc K 0) v (root m v a))
+                           (Idx⇒.shape (ψc K m) v a)
+      triangle {Z = Z} K m v a =
+        EqOn.trans (LabelSys.≈A₀ Z v)
+          (EqOn.sym (LabelSys.≈A₀ Z v) (k-fwd K m v (root m v a)))
+          (Idx⇒.shape-cong (ψc K m) (fwd-root m v a))
+
+      -- Any other factorising mediator is pointwise equal to mediate.
+      -- 任何其他可因子分解的 mediate 与本 mediate 逐点相等。
+      unique : {Z : LabelSys ℓ} (h : Idx⇒ s apexLS Z) (K : PFCocone Z)
+             → ((m v : ℕ) (a : fibre m v)
+                → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                            (Idx⇒.shape h v (fam-of v (root m v a)))
+                            (Idx⇒.shape (ψc K m) v a))
+             → (v : ℕ) (τ : Fam v)
+             → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                         (Idx⇒.shape h v τ)
+                         (Idx⇒.shape (ψc K 0) v (at τ 0))
+      unique {Z = Z} h K ht v τ =
+        EqOn.trans (LabelSys.≈A₀ Z v)
+          (EqOn.sym (LabelSys.≈A₀ Z v)
+             (Idx⇒.shape-cong h (λ m → fam-orbit m v τ)))
+          (ht 0 v (at τ 0))
