@@ -1,0 +1,232 @@
+------------------------------------------------------------------------
+-- Standard colimit of a forward ω-chain with propositional fibres.
+--
+-- This is the growing-chain branch of the zero-transport direct-limit
+-- dichotomy.  Each stage fibre is a plain set with propositional
+-- equality (propEqOn); the forward map emb m need not be injective or
+-- surjective.  The direct-limit element Thread v is a stage-tagged
+-- fibre element: the birth stage is an ordinary field, so comparing two
+-- threads never compares across fibres -- eventual coincidence is stated
+-- as propositional equality of the whole stage-tagged records, with the
+-- ℕ iteration arithmetic carried on the record, not on a fibre.  Hence
+-- no transport, no K, no function extensionality.
+--
+-- The arbitrary-setoid, born-at-0 branch (compatible families) lives in
+-- ChainColimitS; the two branches exhaust the zero-transport direct
+-- limits under the boundary established there.
+--
+-- 命题纤维前向 ω-链的标准余极限（增长链支）。
+--
+-- 这是零传输直接极限二分的增长链支。每阶段纤维是带命题相等
+-- （propEqOn）的普通集合；前向映射 emb m 不必单射或满射。直接极限
+-- 元素 Thread v 是带阶段标签的纤维元素：诞生阶段是普通字段，故比较两个
+-- 线程从不跨纤维——最终重合陈述为整条阶段标签记录的命题相等，ℕ 迭代
+-- 算术承载在记录上而非纤维上。因此无传输、不用 K、不用函数外延性。
+--
+-- 任意 setoid、诞生于 0 的一支（相容族）在 ChainColimitS；两支穷尽了
+-- 该处所确立边界下的零传输直接极限。
+------------------------------------------------------------------------
+
+{-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
+
+module ALMA.Cosmos.Carried.ChainColimitPropS where
+
+open import Agda.Primitive using (Level; lzero; lsuc)
+open import Agda.Builtin.Equality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality.Core
+  using (sym; trans; cong)
+open import Data.Nat.Base using (ℕ; zero; suc; _+_)
+open import Data.Nat.Properties using (+-comm)
+
+open import ALMA.Base.MCorrSetoid using (EqOn; propEqOn)
+open import ALMA.Cosmos.Carried.SameIndexCatS
+  using (LabelSys; Idx⇒; idxi; compi; _≈i_
+        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
+        ; pointwise-i)
+
+open import Categories.Category.Core using (Category)
+open import Categories.Functor using (Functor)
+open import ALMA.Cosmos.Carried.SeqColimitCat
+  using (Chain⇒; stop; step; ωCat; _∘ch_)
+import ALMA.Cosmos.Carried.SeqColimitCat as SQC
+
+module _ (d : ℕ → ℕ) {ℓ : Level} where
+
+  ----------------------------------------------------------------------
+  -- A growing chain: stage label sets L m v and a forward map emb m.
+  -- Stage setoids are propositional.
+  -- 增长链：阶段标签集 L m v 与前向映射 emb m。阶段 setoid 为命题的。
+  record ChainProp : Set (lsuc ℓ) where
+    field
+      L₀  : (m v : ℕ) → Set ℓ
+      emb : (m v : ℕ) → L₀ m v → L₀ (suc m) v
+
+  module Build (C : ChainProp) where
+
+    open ChainProp C
+
+    private
+      s = d
+
+    -- Stage label system with propositional fibre equality.
+    -- 命题纤维相等的阶段标签系统。
+    stageLS : ℕ → LabelSys ℓ
+    stageLS m = record { A₀ = L₀ m ; ≈A₀ = λ v → propEqOn (L₀ m v) }
+
+    -- Forward identity-index arrow.
+    -- 前向索引恒等箭头。
+    embIdx : (m : ℕ) → Idx⇒ s (stageLS m) (stageLS (suc m))
+    embIdx m = record
+      { shape      = λ v a → emb m v a
+      ; shape-cong = λ {v} e → cong (emb m v) e
+      }
+
+    --------------------------------------------------------------------
+    -- Direct-limit element: a stage-tagged fibre element.
+    -- 直接极限元素：带阶段标签的纤维元素。
+    record Thread (v : ℕ) : Set ℓ where
+      inductive
+      constructor mk
+      field
+        stage  : ℕ
+        tlabel : L₀ stage v
+    open Thread public
+
+    -- One forward step at the fixed label v.
+    -- 固定标签 v 上的一步前向。
+    extend : {v : ℕ} → Thread v → Thread v
+    extend {v} (mk m a) = mk (suc m) (emb m v a)
+
+    extend^ : {v : ℕ} → ℕ → Thread v → Thread v
+    extend^ zero    t = t
+    extend^ (suc n) t = extend (extend^ n t)
+
+    -- Eventual coincidence: some forward iterates coincide as records.
+    -- 最终重合：某前向迭代作为记录重合。
+    record _≈Thread_ {v : ℕ} (t u : Thread v) : Set ℓ where
+      field
+        dl   : ℕ
+        dr   : ℕ
+        same : extend^ dl t ≡ extend^ dr u
+    open _≈Thread_
+
+    extend^-comp : {v : ℕ} (a b : ℕ) (t : Thread v)
+                 → extend^ a (extend^ b t) ≡ extend^ (a + b) t
+    extend^-comp zero    b t = refl
+    extend^-comp (suc a) b t = cong extend (extend^-comp a b t)
+
+    iter-add-comm : {v : ℕ} (a b : ℕ) (t : Thread v)
+                  → extend^ (a + b) t ≡ extend^ (b + a) t
+    iter-add-comm a b t rewrite +-comm a b = refl
+
+    ≈Thread-refl : {v : ℕ} {t : Thread v} → t ≈Thread t
+    ≈Thread-refl = record { dl = zero ; dr = zero ; same = refl }
+
+    ≈Thread-sym : {v : ℕ} {t u : Thread v} → t ≈Thread u → u ≈Thread t
+    ≈Thread-sym p = record { dl = dr p ; dr = dl p ; same = sym (same p) }
+
+    ≈Thread-trans : {v : ℕ} {t u w : Thread v}
+                  → t ≈Thread u → u ≈Thread w → t ≈Thread w
+    ≈Thread-trans {u = u} p q = record
+      { dl = c + a
+      ; dr = b + r
+      ; same =
+          trans (sym (extend^-comp c a _))
+          (trans (cong (extend^ c) (same p))
+          (trans (extend^-comp c b u)
+          (trans (iter-add-comm c b u)
+          (trans (sym (extend^-comp b c u))
+          (trans (cong (extend^ b) (same q))
+                 (extend^-comp b r _))))))
+      }
+      where
+      a = dl p ; b = dr p ; c = dl q ; r = dr q
+
+    ≈A∞ : (v : ℕ) → EqOn (Thread v)
+    ≈A∞ v = record
+      { _≈_ = _≈Thread_
+      ; isEquivalence = record
+        { refl  = ≈Thread-refl
+        ; sym   = ≈Thread-sym
+        ; trans = ≈Thread-trans
+        }
+      }
+
+    -- Colimit apex label system.
+    -- 余极限顶点标签系统。
+    apexLS : LabelSys ℓ
+    apexLS = record { A₀ = Thread ; ≈A₀ = ≈A∞ }
+
+    -- Injection: tag a stage element with its birth stage.
+    -- 注入：用诞生阶段标签化阶段元素。
+    legIdx : (m : ℕ) → Idx⇒ s (stageLS m) apexLS
+    legIdx m = record
+      { shape      = λ v a → mk m a
+      ; shape-cong = λ {v} {a} {a'} e →
+          record { dl = zero ; dr = zero
+                 ; same = cong (λ x → mk m x) e }
+      }
+
+    --------------------------------------------------------------------
+    -- Chain as a functor ω → SameIndexCat.
+    -- 链作为 ω → SameIndexCat 函子。
+    private
+      cat : Category (lsuc ℓ) ℓ ℓ
+      cat = SameIndexCat s {ℓ = ℓ}
+
+      reflc : {X Y : LabelSys ℓ} {f : Idx⇒ s X Y} → _≈i_ s f f
+      reflc {f = f} = ≈i-refl s {ℓ = ℓ} f
+      symc : {X Y : LabelSys ℓ} {f g : Idx⇒ s X Y}
+           → _≈i_ s f g → _≈i_ s g f
+      symc {f = f} {g = g} p = ≈i-sym s {ℓ = ℓ} {f = f} {g = g} p
+      transc : {X Y : LabelSys ℓ} {f g h : Idx⇒ s X Y}
+             → _≈i_ s f g → _≈i_ s g h → _≈i_ s f h
+      transc {f = f} {g = g} {h = h} p q =
+        ≈i-trans s {ℓ = ℓ} {f = f} {g = g} {h = h} p q
+      respc : {X Y Z : LabelSys ℓ}
+                {F₁ F₂ : Idx⇒ s X Y} {G₁ G₂ : Idx⇒ s Y Z}
+            → _≈i_ s F₁ F₂ → _≈i_ s G₁ G₂
+            → _≈i_ s (compi s G₁ F₁) (compi s G₂ F₂)
+      respc {X = X} {Y = Y} {Z = Z}
+            {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q =
+        ∘-resp-≈i s {ℓ = ℓ} {X = X} {Y = Y} {Z = Z}
+                    {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q
+
+    fold-emb : {m n : ℕ} → Chain⇒ m n
+             → Idx⇒ s (stageLS m) (stageLS n)
+    fold-emb SQC.stop          = idxi s (stageLS _)
+    fold-emb (SQC.step {n = n} p) = compi s (embIdx n) (fold-emb p)
+
+    fold-hom : {m y n : ℕ} (g : Chain⇒ y n) (f : Chain⇒ m y)
+             → _≈i_ s (fold-emb (g ∘ch f))
+                       (compi s (fold-emb g) (fold-emb f))
+    fold-hom {m} {y} {.y} SQC.stop f =
+      symc {X = stageLS m} {Y = stageLS y}
+           {f = compi s (idxi s (stageLS y)) (fold-emb f)}
+           {g = fold-emb f}
+           (reflc {f = compi s (idxi s (stageLS y)) (fold-emb f)})
+    fold-hom {m} {y} {.(suc t)} (SQC.step {n = t} g) f =
+      transc {X = stageLS m} {Y = stageLS (suc t)}
+        {f = compi s (embIdx t) (fold-emb (g ∘ch f))}
+        {g = compi s (embIdx t) (compi s (fold-emb g) (fold-emb f))}
+        {h = compi s (compi s (embIdx t) (fold-emb g)) (fold-emb f)}
+        (respc {X = stageLS m} {Y = stageLS t} {Z = stageLS (suc t)}
+           {F₁ = fold-emb (g ∘ch f)}
+           {F₂ = compi s (fold-emb g) (fold-emb f)}
+           {G₁ = embIdx t} {G₂ = embIdx t}
+           (fold-hom g f) (reflc {f = embIdx t}))
+        (reflc {f = compi s (embIdx t)
+                  (compi s (fold-emb g) (fold-emb f))})
+
+    fold-resp-i : {m n : ℕ} {p q : Chain⇒ m n} → p ≡ q
+                → _≈i_ s (fold-emb p) (fold-emb q)
+    fold-resp-i {p = p} refl = reflc {f = fold-emb p}
+
+    chainFun : Functor ωCat cat
+    chainFun = record
+      { F₀          = stageLS
+      ; F₁          = fold-emb
+      ; identity    = λ {m} → reflc {f = fold-emb {m = m} SQC.stop}
+      ; homomorphism = λ {m y n f g} → fold-hom g f
+      ; F-resp-≈    = λ {m n p q} eq → fold-resp-i {p = p} {q = q} eq
+      }
