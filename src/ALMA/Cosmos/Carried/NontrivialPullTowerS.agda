@@ -315,3 +315,67 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       ; commute = λ {X} {Y} f → projPath f
       }
     }
+
+  ----------------------------------------------------------------------
+  -- Pointwise (strong) pull limit. Cone coherence is a pointwise head
+  -- equation, readable at a single label: no total tree, no transport.
+  -- The compatible-family apex is terminal among such cones; mediator
+  -- uniqueness is the pointwise apex setoid (no function extensionality).
+  --
+  -- 逐点（强）pull 极限。锥相干是逐点头部等式，可在单个标签处读出，无需
+  -- 全总树、无传输。相容族顶点在此类锥中终；mediate 唯一性为顶点逐点
+  -- setoid（无需函数外延）。
+  module PLimit where
+
+    -- A pointwise pull cone over N.
+    -- N 上的逐点 pull 锥。
+    record PCone (N : LabelSys ℓ) : Set (lsuc ℓ) where
+      field
+        ψ   : (m : ℕ) → Idx⇒ s N (stageLS m)
+        coh : (m : ℕ) (v : ℕ) (a : LabelSys.A₀ N v)
+            → l-proj m v (Idx⇒.shape (ψ (suc m)) v a)
+            ≡ Idx⇒.shape (ψ m) v a
+    open PCone public
+
+    -- Pointwise head equality of two identity-index morphisms.
+    -- 两个同索引态射的逐点头部相等。
+    _≈h_ : {X Y : LabelSys ℓ} (f g : Idx⇒ s X Y) → Set ℓ
+    _≈h_ {X = X} f g =
+      (v : ℕ) (a : LabelSys.A₀ X v)
+      → Idx⇒.shape f v a ≡ Idx⇒.shape g v a
+
+    -- The canonical pointwise limit cone.
+    -- 规范逐点极限锥。
+    nPCone : PCone apexLS
+    nPCone = record
+      { ψ   = projLeg
+      ; coh = λ m v a → coh a m
+      }
+
+    -- Leg heads form a compatible family, hence a mediator into apex.
+    -- 各腿头部构成相容族，从而给出进入顶点的 mediate。
+    mediate : {N : LabelSys ℓ} (K : PCone N) → Idx⇒ s N apexLS
+    mediate K = record
+      { shape      = λ v a → record
+        { at  = λ m → Idx⇒.shape (ψ K m) v a
+        ; coh = λ m → coh K m v a
+        }
+      ; shape-cong = λ {v} {a} {b} e m →
+                       Idx⇒.shape-cong (ψ K m) e
+      }
+
+    -- Factorisation: projLeg m ∘ mediate ≈h ψ K m, definitionally.
+    -- 因子分解：projLeg m ∘ mediate 逐点等于 ψ K m，定义性成立。
+    triangle : {N : LabelSys ℓ} (K : PCone N) (m : ℕ)
+             → _≈h_ (compi s (projLeg m) (mediate K)) (ψ K m)
+    triangle K m v a = refl
+
+    -- Uniqueness in the pointwise apex setoid.
+    -- 顶点逐点 setoid 下的唯一性。
+    unique : {N : LabelSys ℓ} (h : Idx⇒ s N apexLS) (K : PCone N)
+           → ((m : ℕ) → _≈h_ (compi s (projLeg m) h) (ψ K m))
+           → (v : ℕ) (a : LabelSys.A₀ N v)
+           → EqOn._≈_ (LabelSys.≈A₀ apexLS v)
+                       (Idx⇒.shape h v a)
+                       (Idx⇒.shape (mediate K) v a)
+    unique h K ht v a m = ht m v a
