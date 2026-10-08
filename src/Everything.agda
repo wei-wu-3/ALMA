@@ -75,6 +75,7 @@ import ALMA.Cosmos.Carried.SameIndexCatS
 import ALMA.Cosmos.Carried.NontrivialPushTowerS
 import ALMA.Cosmos.Carried.NontrivialPullTowerS
 import ALMA.Cosmos.Carried.ChainColimitS
+import ALMA.Cosmos.Carried.ChainColimitPropS
 
 ------------------------------------------------------------------------
 -- Frozen archives
