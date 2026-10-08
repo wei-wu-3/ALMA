@@ -22,15 +22,11 @@ open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (_×_; proj₁; proj₂)
 open import Data.Product.Properties using (Σ-≡,≡→≡)
-open import Relation.Binary.PropositionalEquality.Core
-  using (sym; trans; cong; cong₂; subst)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (subst-subst-sym; module ≡-Reasoning)
-open ≡-Reasoning
+open import Relation.Binary.PropositionalEquality.Core using (sym; trans; cong; cong₂; subst)
+open import Relation.Binary.PropositionalEquality.Properties using (subst-subst-sym)
 
 open import ALMA.Base.IndexedMType using (Mᵢ)
-open import ALMA.Base.Equivalence.Core
-  using (LayeredEqGen; IndexedLayeredEq; LayeredEq)
+open import ALMA.Base.Equivalence.Core using (LayeredEqGen; IndexedLayeredEq; LayeredEq)
 
 ------------------------------------------------------------------------
 -- Preservation of LayeredEqGen under a compatible map

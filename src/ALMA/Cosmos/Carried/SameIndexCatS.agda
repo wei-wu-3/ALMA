@@ -26,7 +26,7 @@
 
 module ALMA.Cosmos.Carried.SameIndexCatS where
 
-open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)

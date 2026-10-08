@@ -34,11 +34,9 @@
 module ALMA.Cosmos.M.MorphismCorrespondence where
 
 open import Agda.Primitive using (lzero)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; toℕ)
-  renaming (zero to fzero; suc to fsuc)
+open import Data.Fin.Base using (Fin; toℕ) renaming (zero to fzero; suc to fsuc)
 open import Data.Product.Base using (Σ; _,_; proj₁)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Relation.Nullary.Negation using (¬_)

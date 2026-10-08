@@ -25,7 +25,7 @@ module ALMA.Base.MCorrSetoidPush where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid using (SysEq; EqOn)
@@ -65,11 +65,11 @@ open PushSimˢ public
 
 EqH : {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
     → (x v : I X) → x ≡ v → A X x → A X v → Set ℓa
-EqH X x .x ≡refl a b = EqOn._≈_ (≈A X x) a b
+EqH X x .x refl a b = EqOn._≈_ (≈A X x) a b
 
 push-refl : {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
           → {x : I X} (t : M (A X) (E X) x)
-          → PushSimˢ X X (λ (y z : I X) → y ≡ z) (EqH X) ≡refl t t
+          → PushSimˢ X X (λ (y z : I X) → y ≡ z) (EqH X) refl t t
 push-refl X {x = x} t .here-eq = EqOn.refl (≈A X x)
 push-refl X {x = x} t .push y e =
-  y , e , ≡refl , push-refl X (M.below t y e)
+  y , e , refl , push-refl X (M.below t y e)

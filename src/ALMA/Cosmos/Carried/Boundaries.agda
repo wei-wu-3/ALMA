@@ -25,7 +25,7 @@
 
 module ALMA.Cosmos.Carried.Boundaries where
 
-open import Agda.Primitive using (Level; lzero; _⊔_)
+open import Agda.Primitive using (lzero; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Product.Base using (_×_)
@@ -36,7 +36,7 @@ open import Data.Nat.Properties
 open import Data.Fin.Base using (Fin; zero; toℕ; inject₁; fromℕ)
 open import Data.Fin.Properties
   using (toℕ<n; toℕ-inject₁; toℕ-fromℕ; toℕ-injective)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Data.Unit.Polymorphic.Base using (tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 open import Relation.Nullary.Negation using (¬_)
 

@@ -28,7 +28,7 @@
 module ALMA.Cosmos.M.ListSwap where
 
 open import Agda.Primitive using (lzero)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
@@ -126,7 +126,7 @@ private
 
   swapSum-invol : ∀ {n} (z : Fin 2 ⊎ Fin n) → swapSum (swapSum z) ≡ z
   swapSum-invol (inj₁ i) = cong inj₁ (opposite-involutive i)
-  swapSum-invol (inj₂ k) = ≡refl
+  swapSum-invol (inj₂ k) = refl
 
 -- Shape n is a plain natural number, so the case split is ordinary Nat
 -- matching: at n = 2 the permutation is opposite (definitional); at
@@ -143,7 +143,7 @@ swap01 (suc (suc (suc n))) i = join 2 (suc n) (swapSum (splitAt 2 i))
 -- swap01 的命题对合；无 Fin 构造子索引匹配。
 swap01-invol : ∀ {n : ℕ} (p : Fin n) → swap01 n (swap01 n p) ≡ p
 swap01-invol {zero}              ()
-swap01-invol {suc zero}          i = ≡refl
+swap01-invol {suc zero}          i = refl
 swap01-invol {suc (suc zero)}    i = opposite-involutive i
 swap01-invol {suc (suc (suc n))} i =
   begin
@@ -197,21 +197,21 @@ private
   ρof : (ℓ : LData) (n : ℕ) → Fin n → ℕ
   ρof ℓ n i = MO.CosmosData.pts ℓ n i
 
-  -- p₁ and p₂ are independent variables, so matching ip with ≡refl is
+  -- p₁ and p₂ are independent variables, so matching ip with refl is
   -- the J rule (generalises a neutral index), not K.
-  -- p₁、p₂ 为独立变量，故用 ≡refl 匹配 ip 是 J 规则（一般化中性索引），
+  -- p₁、p₂ 为独立变量，故用 refl 匹配 ip 是 J 规则（一般化中性索引），
   -- 而非 K。
   castTo : ∀ {n m : ℕ} (ℓ : LData) (ρ : Fin n → ℕ) {p₁ p₂ : Fin n}
          → p₁ ≡ p₂
          → (tt , m) ≡ (F₀ (MO.CosmosData.uf ℓ) (tt , n) , ρ p₂)
          → (tt , m) ≡ (F₀ (MO.CosmosData.uf ℓ) (tt , n) , ρ p₁)
-  castTo ℓ ρ ≡refl eq = eq
+  castTo ℓ ρ refl eq = eq
 
   edgeJ : ∀ {n m : ℕ} (ℓ : LData) (ρ : Fin n → ℕ) {p₁ p₂ : Fin n}
         → (ip : p₁ ≡ p₂)
         → (eq : (tt , m) ≡ (F₀ (MO.CosmosData.uf ℓ) (tt , n) , ρ p₂))
         → (p₁ , castTo ℓ ρ ip eq) ≡ (p₂ , eq)
-  edgeJ ℓ ρ ≡refl eq = ≡refl
+  edgeJ ℓ ρ refl eq = refl
 
   -- Conditional proof irrelevance for ⊤ × ℕ, used only in this ℕ/Fin
   -- example: ℕ has decidable equality, so UIP holds here as a theorem
@@ -271,7 +271,7 @@ private
 
 swapGen : GenDet C₀ ListFC (idF {C = ShapeCat C₀ ListFC})
 GenDet.σ   swapGen _ d = σlabel d
-GenDet.pb  swapGen v = v , ≡refl
+GenDet.pb  swapGen v = v , refl
 GenDet.adj swapGen (tt , n) d (tt , m) = swapAdj {n = n} {m = m} d
 
 ------------------------------------------------------------------------
@@ -292,10 +292,10 @@ swapFMˢ = genFMˢ C₀ ListFC (idF {C = ShapeCat C₀ ListFC}) swapGen
 
 private
   e0 : LE (tt , 2) dList (tt , 0)
-  e0 = fzero , ≡refl
+  e0 = fzero , refl
 
   e1 : LE (tt , 2) (σlabel dList) (tt , 0)
-  e1 = fsuc fzero , ≡refl
+  e1 = fsuc fzero , refl
 
 private
   adjAt : FiberAdjˢ (propEqOn (LE (tt , 2) (σlabel dList) (tt , 0)))
@@ -306,7 +306,7 @@ private
   fwd = FiberAdjˢ.to adjAt
 
 swap-sends-0→1 : fwd e0 ≡ e1
-swap-sends-0→1 = ≡refl
+swap-sends-0→1 = refl
 
 -- The forward edge leaving child shape 0 carries position 1, never
 -- position 0: the relabelling is not the identity on edges.

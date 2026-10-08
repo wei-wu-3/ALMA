@@ -19,10 +19,10 @@
 
 module ALMA.Cosmos.Carried.LimitSystemS where
 
-open import Agda.Primitive using (Level; lzero; _⊔_)
+open import Agda.Primitive using (Level; lzero)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_; z≤n; s≤s)
+open import Data.Nat.Base using (ℕ; zero; suc; _≤_)
 open import Data.Nat.Properties
   using (≤-pred; ≤-refl; m≤n⇒m≤1+n; m≤n⇒m<n∨m≡n; n≤0⇒n≡0; m≥n⇒m⊓n≡n)
 open import Data.Fin.Base using (Fin; zero; suc; toℕ; inject₁)
@@ -32,7 +32,7 @@ open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn; _≈Mˢ_; idAdjˢ)
+open import ALMA.Base.MCorrSetoid using (SysEq; propEqOn; _≈Mˢ_; idAdjˢ)
 open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
 

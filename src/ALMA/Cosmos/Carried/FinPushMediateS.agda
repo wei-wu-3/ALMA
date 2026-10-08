@@ -17,7 +17,7 @@
 
 module ALMA.Cosmos.Carried.FinPushMediateS where
 
-open import Agda.Primitive using (Level; lzero; _⊔_)
+open import Agda.Primitive using (Level; lzero)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; suc)

@@ -17,7 +17,7 @@
 
 module ALMA.Base.DetCat where
 
-open import Agda.Primitive using (Level; _⊔_; lsuc)
+open import Agda.Primitive using (Level; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 
@@ -50,17 +50,6 @@ open DM
 _≈DM_ : ∀ {i : Level} {X Y : DetSys i} → DM X Y → DM X Y → Set i
 _≈DM_ f g = ∀ x → q f x ≡ q g x
 
-≈DM-refl : ∀ {i : Level} {X Y : DetSys i} {f : DM X Y} → f ≈DM f
-≈DM-refl _ = refl
-
-≈DM-sym : ∀ {i : Level} {X Y : DetSys i} {f g : DM X Y}
-        → f ≈DM g → g ≈DM f
-≈DM-sym eq x = sym (eq x)
-
-≈DM-trans : ∀ {i : Level} {X Y : DetSys i} {f g h : DM X Y}
-          → f ≈DM g → g ≈DM h → f ≈DM h
-≈DM-trans e₁ e₂ x = trans (e₁ x) (e₂ x)
-
 -- Identity.
 -- 恒等。
 idDM : ∀ {i : Level} (X : DetSys i) → DM X X
@@ -74,12 +63,6 @@ compDM {X = X} {Y = Y} {Z = Z} g f = record
   { q   = λ x → q g (q f x)
   ; coh = λ x → trans (cong (q g) (coh f x)) (coh g (q f x))
   }
-
-∘-resp-≈DM : ∀ {i : Level} {X Y Z : DetSys i}
-           {g h : DM Y Z} {f k : DM X Y}
-         → g ≈DM h → f ≈DM k → compDM g f ≈DM compDM h k
-∘-resp-≈DM {g = g} {h = h} {f = f} {k = k} eg ef x =
-  trans (cong (q g) (ef x)) (eg (q k x))
 
 assocDM : ∀ {i : Level} {W X Y Z : DetSys i}
           (h : DM Y Z) (g : DM X Y) (f : DM W X)

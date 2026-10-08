@@ -20,7 +20,7 @@
 module ALMA.Cosmos.M.CoalgCat where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 
 open import Categories.Category.Core using (Category)
@@ -97,13 +97,13 @@ module _ {o h e s p : Level}
       ; _≈_       = _≈Coalg_
       ; id        = λ {X} → idCoalg X
       ; _∘_       = λ {X Y Z} g f → compCoalg {X = X} {Y = Y} {Z = Z} g f
-      ; assoc     = λ {_ _ _ _} {_ _ _} i x → ≡refl
-      ; sym-assoc = λ {_ _ _ _} {_ _ _} i x → ≡refl
-      ; identityˡ = λ {_ _} {f} i x → ≡refl
-      ; identityʳ = λ {_ _} {f} i x → ≡refl
-      ; identity² = λ {_} i x → ≡refl
+      ; assoc     = λ {_ _ _ _} {_ _ _} i x → refl
+      ; sym-assoc = λ {_ _ _ _} {_ _ _} i x → refl
+      ; identityˡ = λ {_ _} {f} i x → refl
+      ; identityʳ = λ {_ _} {f} i x → refl
+      ; identity² = λ {_} i x → refl
       ; equiv     = record
-        { refl  = λ {_} i x → ≡refl
+        { refl  = λ {_} i x → refl
         ; sym   = λ {_ _} e i x → sym (e i x)
         ; trans = λ {_ _ _} e₁ e₂ i x → trans (e₁ i x) (e₂ i x)
         }

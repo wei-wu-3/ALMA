@@ -2,23 +2,21 @@
 -- Witness rescoping for forward edge-following simulations. A PushSim
 -- over layer relation R and label correspondence H is pushed to one
 -- over R' and H' by pure functions: fR relabels the layer witness and
--- fH relabels each label witness. No equation, no transport — the
--- simulation structure is reused as-is. This is the function-passing
+-- fH relabels each label witness. This is the function-passing
 -- combinator that aligns a composite cocone leg (whose layer witness is
 -- a Sigma) with a direct leg (whose witness is a projection).
 --
 -- 前向边跟随模拟的见证重定域。层关系 R、标签对应 H 上的 PushSim 经纯函数
--- 推到 R'、H'：fR 重标层见证，fH 重标每个标签见证。无等式、无传输——模拟
--- 结构原样复用。这是把复合余锥腿（层见证为 Σ）与直接腿（见证为投影）对齐
--- 的函数传递组合子。
+-- 推到 R'、H'：fR 重标层见证，fH 重标每个标签见证。这是把复合余锥腿
+-- （层见证为 Σ）与直接腿（见证为投影）对齐的函数传递组合子。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Base.MCorrSetoidPushMap where
 
-open import Agda.Primitive using (Level; _⊔_)
-open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Primitive using (Level)
+open import Agda.Builtin.Sigma using (_,_)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid using (SysEq)

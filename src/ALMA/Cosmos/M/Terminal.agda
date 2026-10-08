@@ -2,7 +2,7 @@
 -- Terminality of the M-Cosmos (carried, zero-subst). Self-reference is
 -- native to M, so the terminal coalgebra vocabulary is directly that of
 -- Cosmos/M/Object: ana γ gives the anamorphism from any one-step state
--- coalgebra (matching the edge (p , ≡refl) constructively);
+-- coalgebra (matching the edge (p , refl) constructively);
 -- unfold-coalgebra is the canonical coalgebra on CosmosM (label = head,
 -- child = step); ana-unfold / ana-unfold˘ show ana of it is the
 -- identity up to ≈CosmosM. This module is the canonical namespace for
@@ -10,7 +10,7 @@
 --
 -- M-Cosmos 的终性（携带式，零 subst）。自指为 M 内建，故终余代数词表
 -- 直接就是 Cosmos/M/Object 的词表：ana γ 从任意一步状态余代数给出
--- anamorphism（构造性匹配边 (p , ≡refl)）；unfold-coalgebra 是
+-- anamorphism（构造性匹配边 (p , refl)）；unfold-coalgebra 是
 -- CosmosM 上的典范余代数（label 取头部、child 取 step）；
 -- ana-unfold / ana-unfold˘ 表明对其取 ana 在 ≈CosmosM 下双向为恒等。
 -- 本模块是 M 底座 CoalgCat / Lambek 迁移的规范命名空间。

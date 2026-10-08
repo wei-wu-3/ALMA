@@ -30,7 +30,7 @@
 module ALMA.Cosmos.M.PermutedEmbedding where
 
 open import Agda.Primitive using (lzero)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Product.Base using (proj₁)
@@ -88,8 +88,8 @@ ufId : Functor (ShapeCat C2 TwoFC) C2
 ufId = record
   { F₀           = proj₁
   ; F₁           = proj₁
-  ; identity     = ≡refl
-  ; homomorphism = ≡refl
+  ; identity     = refl
+  ; homomorphism = refl
   ; F-resp-≈     = λ p → p
   }
 
@@ -109,8 +109,8 @@ sw w0 = w1
 sw w1 = w0
 
 sw-invol : ∀ (s : Two) → sw (sw s) ≡ s
-sw-invol w0 = ≡refl
-sw-invol w1 = ≡refl
+sw-invol w0 = refl
+sw-invol w1 = refl
 
 sw-moves-w0 : sw w0 ≢ w0
 sw-moves-w0 = w1≢w0

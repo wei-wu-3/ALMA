@@ -22,7 +22,6 @@
 
 module ALMA.Cosmos.Carried.FinProj where
 
-open import Agda.Primitive using (lzero)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat using (ℕ; zero; suc; _⊓_)
 open import Data.Nat.Properties using (m≥n⇒m⊓n≡n; <⇒≤pred)

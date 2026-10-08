@@ -32,8 +32,7 @@ open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Product.Base using (proj₁; _,_)
 open import Data.Container.Core using (Container)
 open import Function.Base using (id)
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; cong) renaming (refl to ≡refl)
+open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; cong)
 open import Relation.Nullary.Negation using (¬_)
 
 open import Categories.Category.Core using (Category)
@@ -155,13 +154,13 @@ private
 
   adjη : ∀ {n m} d (e : SE (tt , n) d (tt , m))
        → froAdj d (toAdj d e) ≡ e
-  adjη d (inj₁ x , eq) = ≡refl
-  adjη d (inj₂ x , eq) = ≡refl
+  adjη d (inj₁ x , eq) = refl
+  adjη d (inj₂ x , eq) = refl
 
   adjε : ∀ {n m} d (e : SE (tt , n) (σlabel d) (tt , m))
        → toAdj d (froAdj d e) ≡ e
-  adjε d (inj₁ x , eq) = ≡refl
-  adjε d (inj₂ x , eq) = ≡refl
+  adjε d (inj₁ x , eq) = refl
+  adjε d (inj₂ x , eq) = refl
 
   flipAdj : ∀ {n m} (d : SData)
           → FiberAdjˢ (propEqOn (SE (tt , n) (σlabel d) (tt , m)))
@@ -181,7 +180,7 @@ private
 
 flipGen : GenDet C₀ SumFC (idF {C = ShapeCat C₀ SumFC})
 GenDet.σ   flipGen _ d = σlabel d
-GenDet.pb  flipGen v = v , ≡refl
+GenDet.pb  flipGen v = v , refl
 GenDet.adj flipGen (tt , n) d (tt , m) = flipAdj {n = n} {m = m} d
 
 ------------------------------------------------------------------------
@@ -204,10 +203,10 @@ flipFMˢ = genFMˢ C₀ SumFC (idF {C = ShapeCat C₀ SumFC}) flipGen
 
 private
   e0 : SE (tt , 1) dStd (tt , 0)
-  e0 = inj₁ zero , ≡refl
+  e0 = inj₁ zero , refl
 
   e1 : SE (tt , 1) (σlabel dStd) (tt , 0)
-  e1 = inj₂ zero , ≡refl
+  e1 = inj₂ zero , refl
 
   adjAt : FiberAdjˢ (propEqOn (SE (tt , 1) (σlabel dStd) (tt , 0)))
                     (propEqOn (SE (tt , 1) dStd (tt , 0)))
@@ -217,7 +216,7 @@ private
   fwd = FiberAdjˢ.to adjAt
 
 flip-sends-0→1 : fwd e0 ≡ e1
-flip-sends-0→1 = ≡refl
+flip-sends-0→1 = refl
 
 flip-nonidentity : ¬ (proj₁ (fwd e0) ≡ inj₁ zero)
 flip-nonidentity ()

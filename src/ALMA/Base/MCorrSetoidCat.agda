@@ -22,7 +22,7 @@ module ALMA.Base.MCorrSetoidCat where
 
 open import Agda.Primitive using (Level; _⊔_; lsuc)
 open import Agda.Builtin.Sigma using (Σ; _,_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Product.Base using (proj₁)
 open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
@@ -32,7 +32,7 @@ open import Categories.Category.Core using (Category)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
-  using (SysEq; EqOn; FiberAdjˢ; Stepˢ; Morphˢ; idAdjˢ; compAdjˢ; shapeᴿ; child
+  using (SysEq; EqOn; FiberAdjˢ; Morphˢ; idAdjˢ; compAdjˢ; shapeᴿ; child
         ; edge-adj; _≈Mˢ_; here-eq; below-eq; ≈Mˢ-refl; ≈Mˢ-sym; ≈Mˢ-trans)
 
 open SysEq
@@ -73,14 +73,14 @@ record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
   -- Deterministic map as a relation-general Morphˢ along the graph of u.
   -- 确定性映射作为沿 u 之图的关系泛化 Morphˢ。
   asMorphˢ : Morphˢ X Y (λ (x : I X) (v : I Y) → u x ≡ v)
-  asMorphˢ .Morphˢ.step {x = x} {y = .(u x)} ≡refl = record
+  asMorphˢ .Morphˢ.step {x = x} {y = .(u x)} refl = record
     { shapeᴿ   = shape x
     ; child    = childF x
     ; edge-adj = adjFˢ x
     }
 
   mapFˢ : (x : I X) → M (A X) (E X) x → M (A Y) (E Y) (u x)
-  mapFˢ x t = Morphˢ.mapR asMorphˢ ≡refl t
+  mapFˢ x t = Morphˢ.mapR asMorphˢ refl t
 
 open FMapˢ public
 
@@ -93,7 +93,7 @@ idFˢ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe}
 idFˢ {X = X} = record
   { u      = λ x → x
   ; shape  = λ _ a → a
-  ; childF = λ x _ v → v , ≡refl
+  ; childF = λ x _ v → v , refl
   ; adjFˢ  = λ x a v → idAdjˢ (≈E X x a v)
   }
 
@@ -135,21 +135,21 @@ compFˢ {X = X} {Y = Y} {Z = Z} g f = record
                 (FMapˢ.adjFˢ g (uf x) (shapef x a) w)
 
 ------------------------------------------------------------------------
--- Subst-free relocation along a propositional index equality; at ≡refl
+-- Subst-free relocation along a propositional index equality; at refl
 -- it is the identity, so every round-trip / congruence lemma collapses
 -- to carried bisimulation reflexivity.
--- 沿命题索引等式的零 subst 重定位；在 ≡refl 处为恒等，故所有往返/
+-- 沿命题索引等式的零 subst 重定位；在 refl 处为恒等，故所有往返/
 -- 同余引理都坍缩为携带式互模拟自反。
 
 private
   relocate : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
                {E : (x : I) (a : A x) (y : I) → Set b} {x y : I}
            → x ≡ y → M A E x → M A E y
-  relocate ≡refl t = t
+  relocate refl t = t
 
   trans-refl-≡ : ∀ {ℓ} {A : Set ℓ} {x y : A} (p : x ≡ y)
-               → trans p ≡refl ≡ p
-  trans-refl-≡ ≡refl = ≡refl
+               → trans p refl ≡ p
+  trans-refl-≡ refl = refl
 
   ≈rel-respˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
                  {E : (x : I) (a : A x) (y : I) → Set b}
@@ -158,7 +158,7 @@ private
                  {x y : I} (r : x ≡ y) {t s : M A E x}
              → _≈Mˢ_ ≈A ≈E t s
              → _≈Mˢ_ ≈A ≈E (relocate r t) (relocate r s)
-  ≈rel-respˢ ≈A ≈E ≡refl p = p
+  ≈rel-respˢ ≈A ≈E refl p = p
 
   ≈rel-roundˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
                   {E : (x : I) (a : A x) (y : I) → Set b}
@@ -166,7 +166,7 @@ private
                   (≈E : (x : I) (a : A x) (y : I) → EqOn {ℓ = ℓe} (E x a y))
                   {x y : I} (r : x ≡ y) (t : M A E x)
               → _≈Mˢ_ ≈A ≈E (relocate (sym r) (relocate r t)) t
-  ≈rel-roundˢ ≈A ≈E ≡refl t = ≈Mˢ-refl ≈A ≈E t
+  ≈rel-roundˢ ≈A ≈E refl t = ≈Mˢ-refl ≈A ≈E t
 
   ≈rel-compˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
                  {E : (x : I) (a : A x) (y : I) → Set b}
@@ -175,7 +175,7 @@ private
                  {x y z : I} (r : x ≡ y) (s : y ≡ z) (t : M A E x)
              → _≈Mˢ_ ≈A ≈E (relocate (trans r s) t)
                            (relocate s (relocate r t))
-  ≈rel-compˢ ≈A ≈E ≡refl ≡refl t = ≈Mˢ-refl ≈A ≈E t
+  ≈rel-compˢ ≈A ≈E refl refl t = ≈Mˢ-refl ≈A ≈E t
 
 ------------------------------------------------------------------------
 -- Public re-export: relocating both trees along the same index
@@ -199,11 +199,11 @@ relocateˢ = relocate
 
 ------------------------------------------------------------------------
 -- Behavioural equivalence of deterministic carried morphisms.
--- The index functions agree; after matching that ≡refl the two image
+-- The index functions agree; after matching that refl the two image
 -- trees share an index and are related by ≈Mˢ. In every category law
--- the index component is definitionally ≡refl.
--- 确定性携带态射的行为等价。索引函数一致；匹配该 ≡refl 后两棵像树
--- 共享索引，由 ≈Mˢ 相关。所有范畴律中索引分量定义性地为 ≡refl。
+-- the index component is definitionally refl.
+-- 确定性携带态射的行为等价。索引函数一致；匹配该 refl 后两棵像树
+-- 共享索引，由 ≈Mˢ 相关。所有范畴律中索引分量定义性地为 refl。
 
 module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
          {X : SysEq i a b ℓa ℓe} {Y : SysEq j c d ℓc ℓd} where
@@ -220,7 +220,7 @@ module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
 
   ≈Fˢ-refl : (f : FMapˢ X Y) → f ≈Fˢ f
   ≈Fˢ-refl f x =
-      ≡refl
+      refl
     , λ t → ≈Mˢ-refl (≈A Y) (≈E Y) (FMapˢ.mapFˢ f x t)
 
   ≈Fˢ-sym : {f g : FMapˢ X Y} → f ≈Fˢ g → g ≈Fˢ f
@@ -279,9 +279,9 @@ module Fusionˢ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
             → _≈Mˢ_ (≈A Z) (≈E Z)
                      (Morphˢ.mapR asC (trans (cong ug rf) rg) t)
                      (Morphˢ.mapR asG rg (Morphˢ.mapR asF rf t))
-    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} refl refl t
       .here-eq = EqOn.refl (≈A Z (ug (uf x)))
-    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+    fusionˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} refl refl t
       .below-eq w =
         idAdjˢ (≈E Z (ug (uf x))
                      (shapeg (uf x) (shapef x (M.here t))) w)
@@ -302,9 +302,9 @@ module Fusionˢ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
              → _≈Mˢ_ (≈A Z) (≈E Z)
                       (Morphˢ.mapR asG rg (Morphˢ.mapR asF rf t))
                       (Morphˢ.mapR asC (trans (cong ug rf) rg) t)
-    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} refl refl t
       .here-eq = EqOn.refl (≈A Z (ug (uf x)))
-    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} ≡refl ≡refl t
+    fusion˘ˢ {x = x} {y = .(uf x)} {z = .(ug (uf x))} refl refl t
       .below-eq w =
         idAdjˢ (≈E Z (ug (uf x))
                      (shapeg (uf x) (shapef x (M.here t))) w)
@@ -328,7 +328,7 @@ mapFˢ-comp : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
            → _≈Mˢ_ (≈A Z) (≈E Z)
                     (FMapˢ.mapFˢ (compFˢ gm fm) x t)
                     (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
-mapFˢ-comp gm fm x t = Fusionˢ.fusionˢ gm fm ≡refl ≡refl t
+mapFˢ-comp gm fm x t = Fusionˢ.fusionˢ gm fm refl refl t
 
 mapFˢ-comp˘ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                 {X : SysEq i a b ℓa ℓe}
@@ -339,7 +339,7 @@ mapFˢ-comp˘ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
             → _≈Mˢ_ (≈A Z) (≈E Z)
                      (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
                      (FMapˢ.mapFˢ (compFˢ gm fm) x t)
-mapFˢ-comp˘ gm fm x t = Fusionˢ.fusion˘ˢ gm fm ≡refl ≡refl t
+mapFˢ-comp˘ gm fm x t = Fusionˢ.fusion˘ˢ gm fm refl refl t
 
 ------------------------------------------------------------------------
 -- The identity tree map is the identity up to carried bisimulation.
@@ -391,7 +391,7 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
              → _≈Mˢ_ (≈A Y) (≈E Y)
                       (Morphˢ.mapR asF r t)
                       (relocate r (mapf x t))
-    mapR-rel {x = x} ≡refl t =
+    mapR-rel {x = x} refl t =
       ≈Mˢ-refl (≈A Y) (≈E Y) (mapf x t)
 
     mapR-rel˘ : ∀ {x : I X} {v : I Y} (r : uf x ≡ v)
@@ -399,7 +399,7 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
               → _≈Mˢ_ (≈A Y) (≈E Y)
                       (relocate r (mapf x t))
                       (Morphˢ.mapR asF r t)
-    mapR-rel˘ {x = x} ≡refl t =
+    mapR-rel˘ {x = x} refl t =
       ≈Mˢ-refl (≈A Y) (≈E Y) (mapf x t)
 
     mapR-r-eq : ∀ {x : I X} {v : I Y} {r r' : uf x ≡ v}
@@ -407,7 +407,7 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
               → _≈Mˢ_ (≈A Y) (≈E Y)
                       (Morphˢ.mapR asF r t)
                       (Morphˢ.mapR asF r' t)
-    mapR-r-eq {x = x} {r = z} {r' = .z} ≡refl t =
+    mapR-r-eq {x = x} {r = z} {r' = .z} refl t =
       ≈Mˢ-refl (≈A Y) (≈E Y) (Morphˢ.mapR asF z t)
 
     mapR-cross : ∀ {x₁ x₀ : I X} {v : I Y}
@@ -416,14 +416,14 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
                → _≈Mˢ_ (≈A Y) (≈E Y)
                       (Morphˢ.mapR asF r₀ (relocate d s₁))
                       (Morphˢ.mapR asF (trans (cong uf d) r₀) s₁)
-    mapR-cross {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .here-eq =
+    mapR-cross {x₁ = z} {x₀ = .z} refl refl s₁ .here-eq =
       EqOn.refl (≈A Y (uf z))
-    mapR-cross {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .below-eq w =
+    mapR-cross {x₁ = z} {x₀ = .z} refl refl s₁ .below-eq w =
         idAdjˢ (≈E Y (uf z) (FMapˢ.shape f z (M.here s₁)) w)
       , ( (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
-                 in mapR-cross ≡refl r' (M.below s₁ x' e))
+                 in mapR-cross refl r' (M.below s₁ x' e))
         , (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
-                 in mapR-cross˘ ≡refl r' (M.below s₁ x' e)) )
+                 in mapR-cross˘ refl r' (M.below s₁ x' e)) )
 
     mapR-cross˘ : ∀ {x₁ x₀ : I X} {v : I Y}
                     (d : x₁ ≡ x₀) (r₀ : uf x₀ ≡ v)
@@ -431,14 +431,14 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
                 → _≈Mˢ_ (≈A Y) (≈E Y)
                       (Morphˢ.mapR asF (trans (cong uf d) r₀) s₁)
                       (Morphˢ.mapR asF r₀ (relocate d s₁))
-    mapR-cross˘ {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .here-eq =
+    mapR-cross˘ {x₁ = z} {x₀ = .z} refl refl s₁ .here-eq =
       EqOn.refl (≈A Y (uf z))
-    mapR-cross˘ {x₁ = z} {x₀ = .z} ≡refl ≡refl s₁ .below-eq w =
+    mapR-cross˘ {x₁ = z} {x₀ = .z} refl refl s₁ .below-eq w =
         idAdjˢ (≈E Y (uf z) (FMapˢ.shape f z (M.here s₁)) w)
       , ( (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
-                 in mapR-cross˘ ≡refl r' (M.below s₁ x' e))
+                 in mapR-cross˘ refl r' (M.below s₁ x' e))
         , (λ q → let x' , e , r' = FMapˢ.pullFˢ f z (M.here s₁) w q
-                 in mapR-cross ≡refl r' (M.below s₁ x' e)) )
+                 in mapR-cross refl r' (M.below s₁ x' e)) )
 
 ------------------------------------------------------------------------
 -- Deterministic carried setoid functor. Beyond the operational
@@ -567,7 +567,7 @@ module _ {i a b ℓa ℓe : Level}
                     (≈Mˢ-trans (≈A Z) (≈E Z)
                        (CongIdxˢ.mapR-r-eq (FMˢ.mor G₁)
                           (sym (trans-refl-≡ cg)) s1)
-                       (CongIdxˢ.mapR-cross˘ (FMˢ.mor G₁) rF ≡refl s1))))
+                       (CongIdxˢ.mapR-cross˘ (FMˢ.mor G₁) rF refl s1))))
               (≈Mˢ-trans (≈A Z) (≈E Z)
                 (≈rel-respˢ (≈A Z) (≈E Z) rG
                    {t = b1}
@@ -580,8 +580,8 @@ module _ {i a b ℓa ℓe : Level}
 
 ------------------------------------------------------------------------
 -- Category laws, all at behavioural equality; the index components
--- are definitionally ≡refl, so no index transport is used.
--- 范畴律，全部建立在行为相等上；索引分量定义性地为 ≡refl，故不使用
+-- are definitionally refl, so no index transport is used.
+-- 范畴律，全部建立在行为相等上；索引分量定义性地为 refl，故不使用
 -- 索引传输。
 
 module _ {i a b ℓa ℓe : Level}
@@ -594,7 +594,7 @@ module _ {i a b ℓa ℓe : Level}
     h0 = FMˢ.mor h
 
   assocFM : compFMˢ (compFMˢ h g) f ≈FM compFMˢ h (compFMˢ g f)
-  assocFM x = ≡refl , λ t →
+  assocFM x = refl , λ t →
     let lhs→c =
           ≈Mˢ-trans (≈A Z) (≈E Z)
             (mapFˢ-comp (compFˢ h0 g0) f0 x t)
@@ -623,13 +623,13 @@ module _ {i a b ℓa ℓe : Level}
     f0 = FMˢ.mor f
 
   identityˡFM : compFMˢ idFMˢ f ≈FM f
-  identityˡFM x = ≡refl , λ t →
+  identityˡFM x = refl , λ t →
     ≈Mˢ-trans (≈A Y) (≈E Y)
       (mapFˢ-comp idFˢ f0 x t)
       (mapFˢ-id (FMapˢ.u f0 x) (FMapˢ.mapFˢ f0 x t))
 
   identityʳFM : compFMˢ f idFMˢ ≈FM f
-  identityʳFM x = ≡refl , λ t →
+  identityʳFM x = refl , λ t →
     ≈Mˢ-trans (≈A Y) (≈E Y)
       (mapFˢ-comp f0 idFˢ x t)
       (FMˢ.map-cong f (mapFˢ-id x t))
@@ -638,7 +638,7 @@ module _ {i a b ℓa ℓe : Level}
          {X : SysEq i a b ℓa ℓe} where
 
   identity²FM : compFMˢ idFMˢ idFMˢ ≈FM (idFMˢ {X = X})
-  identity²FM x = ≡refl , λ t →
+  identity²FM x = refl , λ t →
     ≈Mˢ-trans (≈A X) (≈E X)
       (mapFˢ-comp idFˢ idFˢ x t)
       (mapFˢ-id x (FMapˢ.mapFˢ idFˢ x t))

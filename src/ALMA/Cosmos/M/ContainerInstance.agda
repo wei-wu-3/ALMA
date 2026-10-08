@@ -22,7 +22,7 @@
 module ALMA.Cosmos.M.ContainerInstance where
 
 open import Agda.Primitive using (Level; _⊔_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
@@ -100,17 +100,17 @@ module _ {o h e s p : Level}
                             (propEqOn (MO.E C FC x d (proj₁ pb)))
   open DetData public
 
-  -- One deterministic step: matching ≡refl pins the target index to
+  -- One deterministic step: matching refl pins the target index to
   -- S.₀ x; child is the supplied pullback and edge-adj the supplied
   -- adjunction. No equality is eliminated.
-  -- 一个确定性步：匹配 ≡refl 把目标索引钉为 S.₀ x；child 取所供
+  -- 一个确定性步：匹配 refl 把目标索引钉为 S.₀ x；child 取所供
   -- pullback，edge-adj 取所供伴随。不消去任何等式。
   private
     detStep : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
               (dd : DetData S)
             → ∀ {x y : MO.I C FC} (r : Graph S x y)
             → Stepˢ sysP sysP (Graph S) r
-    detStep S dd {x = x₀} {y = .(f₀ S x₀)} ≡refl = record
+    detStep S dd {x = x₀} {y = .(f₀ S x₀)} refl = record
       { shapeᴿ = labelMap dd x₀
       ; child   = λ d v → pullback dd d v
       ; edge-adj = λ d v → edgeAdj dd x₀ d v (pullback dd d v)
@@ -127,17 +127,17 @@ module _ {o h e s p : Level}
 
   detData-id : DetData idF
   DetData.labelMap detData-id _ d = d
-  DetData.pullback detData-id _ v = v , ≡refl
-  DetData.edgeAdj  detData-id x d v₀ (v , ≡refl) =
+  DetData.pullback detData-id _ v = v , refl
+  DetData.edgeAdj  detData-id x d v₀ (v , refl) =
     idAdjˢ (propEqOn (MO.E C FC x d v))
 
   ----------------------------------------------------------------------
   -- FMapˢ assembled pointwise from DetData: u is S.₀ (its propositional
-  -- graph is the unique witness ≡refl used by asMorphˢ), shape is
+  -- graph is the unique witness refl used by asMorphˢ), shape is
   -- labelMap, the canonical child is the pullback and the edge
   -- adjunction is edgeAdj.
   -- 由 DetData 逐点装配 FMapˢ：u 为 S.₀（其命题图即 asMorphˢ 所用的
-  -- 唯一见证 ≡refl），shape 为 labelMap，规范子节点为 pullback，边伴随
+  -- 唯一见证 refl），shape 为 labelMap，规范子节点为 pullback，边伴随
   -- 为 edgeAdj。
 
   detFMapˢ : (S : Functor (ShapeCat C FC) (ShapeCat C FC))

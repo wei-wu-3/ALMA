@@ -24,7 +24,7 @@
 module ALMA.Cosmos.M.ListCosmos where
 
 open import Agda.Primitive using (lzero)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Fin.Base using (Fin; opposite)
@@ -89,9 +89,9 @@ i0 : BinI
 i0 = tt , tt
 
 -- At the unique index the edge fibre is Fin 2: the target equation is
--- necessarily i0 ≡ i0. Edges are introduced as (p , ≡refl) and never
+-- necessarily i0 ≡ i0. Edges are introduced as (p , refl) and never
 -- eliminated.
--- 在唯一索引处边纤维即 Fin 2：目标等式必为 i0 ≡ i0。边以 (p , ≡refl)
+-- 在唯一索引处边纤维即 Fin 2：目标等式必为 i0 ≡ i0。边以 (p , refl)
 -- 引入，绝不消去。
 Edge : (d : BinData) → Set lzero
 Edge d = BinE i0 d i0
@@ -117,12 +117,12 @@ d0 = record { uf = uf0 ; pts = λ { _ _ → tt } }
 -- The edge permutation acts only on the position and keeps the
 -- constructive target equation as an (un-matched) variable: at the
 -- unique index the target is i0 regardless of the position, so the
--- same equation types the moved edge. Matching it with ≡refl would
+-- same equation types the moved edge. Matching it with refl would
 -- require pair injectivity (unsupported under --cubical-compatible),
 -- so the equation is carried, never inspected.
 -- 边置换只作用于位置，并把构造性目标等式作为（不匹配的）变量保留：在
 -- 唯一索引处目标恒为 i0，与位置无关，故同一等式即可为移动后的边定型。
--- 用 ≡refl 匹配该等式会依赖配对单射（--cubical-compatible 不支持），
+-- 用 refl 匹配该等式会依赖配对单射（--cubical-compatible 不支持），
 -- 故等式被携带、绝不检视。
 
 swapE : ∀ (d : BinData) → Edge d → Edge d
@@ -130,12 +130,12 @@ swapE d (p , eq) = opposite p , eq
 
 ------------------------------------------------------------------------
 -- Uniform deterministic data for the identity index functor:
---   pb v = (v , ≡refl);
+--   pb v = (v , refl);
 --   adj is the opposite edge self-bijection, with both round-trips
 --   from the involution; it ignores d, satisfying the fixed-label
 --   uniformity premise.
 -- 恒等索引函子的一致确定性数据：
---   pb v = (v , ≡refl)；
+--   pb v = (v , refl)；
 --   adj 为 opposite 边自双射，两条往返由对合给出；忽略 d，满足固定标签
 --   一致性前提。
 
@@ -154,7 +154,7 @@ private
     }
 
 swapUni : UniDet C₀ BinFC (idF {C = ShapeCat C₀ BinFC})
-UniDet.pb  swapUni v = v , ≡refl
+UniDet.pb  swapUni v = v , refl
 UniDet.adj swapUni (tt , tt) d (tt , tt) = swapAdj d
 
 ------------------------------------------------------------------------
@@ -174,14 +174,14 @@ swapFMˢ = uniFMˢ C₀ BinFC (idF {C = ShapeCat C₀ BinFC}) swapUni
 -- 非恒等见证：所携带的边作用把位置 0 送到位置 1，故它不可能固定位置 0。
 
 e0 : Edge d0
-e0 = fzero , ≡refl
+e0 = fzero , refl
 
 e1 : Edge d0
-e1 = fsuc fzero , ≡refl
+e1 = fsuc fzero , refl
 
 swap-sends-0→1 :
   FiberAdjˢ.to (FMapˢ.adjFˢ (FMˢ.mor swapFMˢ) i0 d0 i0) e0 ≡ e1
-swap-sends-0→1 = ≡refl
+swap-sends-0→1 = refl
 
 swap-nonidentity :
   ¬ FiberAdjˢ.to (FMapˢ.adjFˢ (FMˢ.mor swapFMˢ) i0 d0 i0) e0 ≡ e0

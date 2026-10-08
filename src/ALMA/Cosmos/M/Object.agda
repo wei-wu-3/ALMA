@@ -5,7 +5,7 @@
 -- source position together with the HOMOGENEOUS equation pinning the
 -- target index. Where the equalities live:
 --   * edge/index equations are propositional and constructive, always
---     introduced as (p , ≡refl), never eliminated by J/subst;
+--     introduced as (p , refl), never eliminated by J/subst;
 --   * the non-propositional equivalence lives in the LABEL, carried as
 --     the label EqOn ≈CD (natural isomorphism at the morphism layer);
 --   * position edges are sets, so their fibre EqOn is propositional.
@@ -15,7 +15,7 @@
 -- 在 setoid 参数化 M 底座上重建的 Cosmos：对象层。索引为基对象连同
 -- 形状；标签携带展开函子 uf 与位置到形状映射 pts；边是源位置连同把目
 -- 标索引钉为该位置处 uf/pts 作用结果的同质等式。等式的位置：
---   * 边/索引等式是命题且构造性的，总以 (p , ≡refl) 引入，绝不用
+--   * 边/索引等式是命题且构造性的，总以 (p , refl) 引入，绝不用
 --     J/subst 消去；
 --   * 非命题等价活在标签层，作为标签 EqOn ≈CD 携带（态射层的自然同
 --     构）；
@@ -29,7 +29,7 @@ module ALMA.Cosmos.M.Object where
 
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Product.Base using (proj₁; proj₂)
 
 open import Categories.Category.Core using (Category)
@@ -69,9 +69,9 @@ module _ {o h e s p : Level}
   A _ = CosmosData
 
   -- Edge: source position plus the constructive homogeneous equation
-  -- pinning the target index; always introduced as (p , ≡refl), never
+  -- pinning the target index; always introduced as (p , refl), never
   -- eliminated by J/subst.
-  -- 边：源位置加钉住目标索引的构造性同质等式；总以 (p , ≡refl) 引入，
+  -- 边：源位置加钉住目标索引的构造性同质等式；总以 (p , refl) 引入，
   -- 绝不用 J/subst 消去。
   E : (i : I) (d : A i) (j : I) → Set (o ⊔ s ⊔ p)
   E (A₀ , s) d (A₁ , s₁) =
@@ -97,7 +97,7 @@ module _ {o h e s p : Level}
   step : (i : I) (t : CosmosM i) (p : PosOf FC (proj₂ i))
        → CosmosM (next i t p)
   step (A₀ , s) t p =
-    M.below t (next (A₀ , s) t p) (p , ≡refl)
+    M.below t (next (A₀ , s) t p) (p , refl)
 
   Rooted : (A₀ : Category.Obj C) → ShapeOf FC A₀
          → Set (o ⊔ h ⊔ e ⊔ s ⊔ p)
@@ -107,10 +107,10 @@ module _ {o h e s p : Level}
   -- Terminality corecursor: a one-step coalgebra over a state family
   -- Xst gives, at each index, a label and for every position a child
   -- state at nextOf; ana produces a CosmosM by the native guarded
-  -- corecursion of M, matching the edge (p , ≡refl) constructively.
+  -- corecursion of M, matching the edge (p , refl) constructively.
   -- 终性余递归子：状态族 Xst 上的一步余代数在每个索引给出标签与每个
   -- 位置的子状态；ana 借 M 内建的受保护余递归产生 CosmosM，构造性匹配
-  -- 边 (p , ≡refl)。
+  -- 边 (p , refl)。
 
   record Coalgebra (u : Level) (Xst : I → Set u)
          : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
@@ -124,7 +124,7 @@ module _ {o h e s p : Level}
         (γ : Coalgebra u Xst)
       → (i : I) (x : Xst i) → CosmosM i
   ana γ i x .M.here = label γ i x
-  ana γ i x .M.below j (p , ≡refl) = ana γ j (child γ i x p)
+  ana γ i x .M.below j (p , refl) = ana γ j (child γ i x p)
 
   -- Observation coalgebra of a node: state is CosmosM, label reads the
   -- head, child steps along the edge; ana of it rebuilds the tree, and
@@ -182,8 +182,8 @@ module _ {o h e s p : Level}
     ana-unfold ≈CD {i = i} t .here-eq = EqOn.refl (≈CD i)
     ana-unfold ≈CD {i = i} t .below-eq y =
         idAdjˢ (SysEq.≈E (sys ≈CD) i (M.here t) y)
-      , ( (λ { (p , ≡refl) → ana-unfold ≈CD (step i t p) })
-        , (λ { (p , ≡refl) → ana-unfold˘ ≈CD (step i t p) }) )
+      , ( (λ { (p , refl) → ana-unfold ≈CD (step i t p) })
+        , (λ { (p , refl) → ana-unfold˘ ≈CD (step i t p) }) )
 
     ana-unfold˘ : ∀ {ℓd : Level}
                   (≈CD : (i : I) → EqOn {ℓ = ℓd} (A i))
@@ -192,8 +192,8 @@ module _ {o h e s p : Level}
     ana-unfold˘ ≈CD {i = i} t .here-eq = EqOn.refl (≈CD i)
     ana-unfold˘ ≈CD {i = i} t .below-eq y =
         idAdjˢ (SysEq.≈E (sys ≈CD) i (M.here t) y)
-      , ( (λ { (p , ≡refl) → ana-unfold˘ ≈CD (step i t p) })
-        , (λ { (p , ≡refl) → ana-unfold ≈CD (step i t p) }) )
+      , ( (λ { (p , refl) → ana-unfold˘ ≈CD (step i t p) })
+        , (λ { (p , refl) → ana-unfold ≈CD (step i t p) }) )
 
   ----------------------------------------------------------------------
   -- Carried correspondences between M-Cosmos nodes: a Morphˢ over an

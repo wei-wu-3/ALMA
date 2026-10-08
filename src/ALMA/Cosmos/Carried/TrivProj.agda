@@ -27,7 +27,7 @@
 module ALMA.Cosmos.Carried.TrivProj where
 
 open import Agda.Primitive using (Level)
-open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Builtin.Sigma using (_,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Axiom.UniquenessOfIdentityProofs using (UIP)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)

@@ -18,7 +18,7 @@ module ALMA.Base.MCorrSetoid where
 
 open import Agda.Primitive using (Level; _⊔_; lsuc; lzero)
 open import Agda.Builtin.Sigma using (Σ; _,_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Empty using (⊥)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Nat using (ℕ)
@@ -47,7 +47,6 @@ record EqOn {a ℓ : Level} (Carrier : Set a) : Set (lsuc (a ⊔ ℓ)) where
     _≈_           : Rel Carrier ℓ
     isEquivalence : IsEquivalence _≈_
   open IsEquivalence isEquivalence public using (refl; sym; trans; reflexive)
-open EqOn public
 
 ------------------------------------------------------------------------
 -- Fibre adjunction between two carriers with carried equivalences.
@@ -319,9 +318,9 @@ compMˢ {X = X} {Y = Y} {Z = Z} φ ψ .step {x = x} {y = z} (ym , r , s) =
 
 idMˢ : ∀ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
      → Morphˢ X X (λ (x y : I X) → x ≡ y)
-idMˢ X .step {x = x₀} {y = .x₀} ≡refl = record
+idMˢ X .step {x = x₀} {y = .x₀} refl = record
   { shapeᴿ   = λ a → a
-  ; child    = λ a v → v , ≡refl
+  ; child    = λ a v → v , refl
   ; edge-adj = λ a v → idAdjˢ (≈E X x₀ a v)
   }
 
@@ -344,7 +343,7 @@ LEq : EqOn L
 LEq = record
   { _≈_ = _≈L_
   ; isEquivalence = record
-    { refl  = ≡refl
+    { refl  = refl
     ; sym   = Prop.sym
     ; trans = Prop.trans
     }
@@ -373,8 +372,8 @@ onPosAdj = record
   ; fro      = λ n → (n , true)
   ; to-cong  = λ e → e
   ; fro-cong = λ e → e
-  ; η        = λ { (n , _) → ≡refl }
-  ; ε        = λ _ → ≡refl
+  ; η        = λ { (n , _) → refl }
+  ; ε        = λ _ → refl
   }
 
 ------------------------------------------------------------------------
@@ -418,7 +417,7 @@ private
   s .M.below _ _ = K
 
   t≈Mˢs : _≈Mˢ_ ≈Aᵗ ≈Eᵗ t s
-  t≈Mˢs .here-eq = ≡refl
+  t≈Mˢs .here-eq = refl
   t≈Mˢs .below-eq _ =
       idAdjˢ LEq
     , ( (λ _ → ≈Mˢ-refl ≈Aᵗ ≈Eᵗ K)

@@ -144,10 +144,7 @@ module GroupAction
   GI-invariantˡ : ∀ {x y} (g : G)
                 → GroupInvariant x y
                 → GroupInvariant (act x (g ⁻¹)) (act y (g ⁻¹))
-  GI-invariantˡ {x} {y} g p .fst = tt
-  GI-invariantˡ {x} {y} g p .snd h
-    rewrite act-comp x (g ⁻¹) h | act-comp y (g ⁻¹) h =
-    p .snd ((g ⁻¹) · h)
+  GI-invariantˡ g = GI-invariant (g ⁻¹)
 
   ----------------------------------------------------------------------
   -- Inverses, forward and dual; each transports the recursive call
@@ -172,18 +169,7 @@ module GroupAction
   GI-inverseˡ : ∀ {x y} (g : G)
               → GroupInvariant (act x (g ⁻¹)) (act y (g ⁻¹))
               → GroupInvariant x y
-  GI-inverseˡ {x} {y} g p .fst = tt
-  GI-inverseˡ {x} {y} g p .snd h =
-    subst₂ GroupInvariant left-eq right-eq (p .snd k)
-    where
-      k : G
-      k = g · h
-
-      left-eq : act (act x (g ⁻¹)) k ≡ act x h
-      left-eq = trans (act-comp x (g ⁻¹) k) (cong (act x) (g⁻¹·g·h≡h g h))
-
-      right-eq : act (act y (g ⁻¹)) k ≡ act y h
-      right-eq = trans (act-comp y (g ⁻¹) k) (cong (act y) (g⁻¹·g·h≡h g h))
+  GI-inverseˡ g = GI-inverse (g ⁻¹)
 
   ----------------------------------------------------------------------
   -- Round trips: compose the two invariance directions, then rewrite

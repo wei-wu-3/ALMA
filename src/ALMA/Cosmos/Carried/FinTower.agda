@@ -26,7 +26,7 @@ open import Agda.Builtin.Equality using (_≡_)
 open import Data.Nat using (ℕ; suc)
 open import Data.Fin.Base using (Fin; toℕ; inject₁)
 
-open import ALMA.Cosmos.Carried.LimitSystem using (n-at; natToFin)
+open import ALMA.Cosmos.Carried.LimitSystem using (n-at)
 open import ALMA.Cosmos.Carried.FinColimit using (FinCone)
 
 ------------------------------------------------------------------------

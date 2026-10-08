@@ -25,7 +25,7 @@
 
 module ALMA.Cosmos.Carried.NontrivialPushTowerS where
 
-open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁; proj₂)
 open import Agda.Builtin.Equality using (_≡_; refl)

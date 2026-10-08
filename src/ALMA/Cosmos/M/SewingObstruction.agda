@@ -30,7 +30,7 @@
 module ALMA.Cosmos.M.SewingObstruction where
 
 open import Agda.Primitive using (Level; lzero)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Data.Nat using (ℕ; suc)
@@ -110,8 +110,8 @@ module SewingObstruction (m : ℕ) where
   ufId = record
     { F₀           = proj₁
     ; F₁           = proj₁
-    ; identity     = ≡refl
-    ; homomorphism = ≡refl
+    ; identity     = refl
+    ; homomorphism = refl
     ; F-resp-≈     = λ p → p
     }
 
@@ -132,7 +132,7 @@ module SewingObstruction (m : ℕ) where
     → r s ≡ s
     → MO.E Cn FinFC (A , s) (label r) (A , s)
   return-edge r A s eq =
-    tt , Σ-≡,≡→≡ (≡refl , sym eq)
+    tt , Σ-≡,≡→≡ (refl , sym eq)
 
   no-return-edge
     : ∀ (r : Fin n → Fin n) (A s : Fin n)

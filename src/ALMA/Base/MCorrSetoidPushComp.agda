@@ -5,12 +5,12 @@
 -- and the composite label correspondence carries the middle label. The
 -- construction is coinductive (copatterns); it is the push counterpart
 -- of compMˢ/compFMˢ and is the primitive needed for cocone coherence
--- and mediating triangles. No transport, no K.
+-- and mediating triangles.
 --
 -- 前向边跟随模拟的复合。经过同一中间系统的两个 PushSimˢ 以关系方式复合：
 -- 复合索引层是中间索引与两个层见证的 Σ，复合标签对应携带中间标签。构造为
 -- 余归纳（copattern）；它是 compMˢ/compFMˢ 的 push 对偶，也是余锥相干性与
--- mediate 三角所需的原语。无传输、不用 K。
+-- mediate 三角所需的原语。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

@@ -8,7 +8,7 @@
 -- child coherence that the propositional gow carried as childF-coh is
 -- DEFINITIONAL. The engine go is a single coinductive function
 -- indexed by the (propositional, not necessarily refl) graph witness,
--- defined by J with the witness generalised to ≡refl; no K, no subst,
+-- defined by J with the witness generalised to refl; no K, no subst,
 -- no relocate/cast is used.
 --
 -- 固定标签容器制度下的确定性同余引擎：命题版 "gow" 重排机器的 setoid
@@ -16,7 +16,7 @@
 -- 条件下——标签保持（确定性 shape 作用为恒等）、规范子拉回与标签无关
 -- ——命题版 gow 须作为 childF-coh 携带的跨标签子相干是定义性的。引擎
 -- go 是单个余归纳函数，以（命题的、未必 refl 的）图见证为索引，在刚性
--- 索引变量上用 J 把见证一般化为 ≡refl 来定义；不用 K、不用 subst、不用
+-- 索引变量上用 J 把见证一般化为 refl 来定义；不用 K、不用 subst、不用
 -- relocate/cast。
 ------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@
 module ALMA.Cosmos.M.DetCongruence where
 
 open import Agda.Primitive using (Level; _⊔_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁; proj₂)
 
@@ -103,18 +103,18 @@ module _ {o h e s p : Level}
                → e ≡ e'
                → MO.≈CosmosM C FC propLabel
                    (M.below u y e) (M.below u y e')
-    edge-reloc u {e = z} {e' = .z} ≡refl =
+    edge-reloc u {e = z} {e' = .z} refl =
       ≈Mˢ-refl ≈A ≈E (M.below u _ z)
 
   ----------------------------------------------------------------------
   -- The coinductive congruence engine go, indexed by the graph witness
-  -- r : F₀ S x ≡ v and defined by J with r ≡refl. Child coverage
+  -- r : F₀ S x ≡ v and defined by J with r refl. Child coverage
   -- pb v = (x' , eqw) keeps eqw neutral and recurses directly; both
   -- below fields are direct guarded go calls, and the backward one
   -- first reverses the source-level bisimulation with the
   -- non-recursive ≈Mˢ-sym.
   -- 余归纳同余引擎 go，以图见证 r : F₀ S x ≡ v 为索引，用 J 以
-  -- r ≡refl 定义。子覆盖 pb v = (x' , eqw) 保持 eqw 中性并直接递归；
+  -- r refl 定义。子覆盖 pb v = (x' , eqw) 保持 eqw 中性并直接递归；
   -- 两个 below 字段都是直接受保护的 go 调用，反向先以非递归的
   -- ≈Mˢ-sym 反转源层互模拟。
 
@@ -131,9 +131,9 @@ module _ {o h e s p : Level}
          {t s : MO.CosmosM C FC x}
        → MO.≈CosmosM C FC propLabel t s
        → MO.≈CosmosM C FC propLabel (mapR-of S u r t) (mapR-of S u r s)
-    go S u {x = x} {.(Functor.F₀ S x)} ≡refl {t = t} {s = s} h
+    go S u {x = x} {.(Functor.F₀ S x)} refl {t = t} {s = s} h
         .here-eq = h .here-eq
-    go S u {x = x} {.(Functor.F₀ S x)} ≡refl {t = t} {s = s} h
+    go S u {x = x} {.(Functor.F₀ S x)} refl {t = t} {s = s} h
         .below-eq v =
         adjOut , ( (λ q → go S u eqw (hF q))
                  , (λ r → go S u eqw (≈Mˢ-sym ≈A ≈E (hT r))) )
@@ -218,8 +218,8 @@ module _ {o h e s p : Level}
                (≈Mˢ-sym ≈A ≈E (hbwd eSsrc))
 
   ----------------------------------------------------------------------
-  -- mapFˢ is mapR along ≡refl, so the desired congruence is go ≡refl.
-  -- mapFˢ 即沿 ≡refl 的 mapR，故所求同余为 go ≡refl。
+  -- mapFˢ is mapR along refl, so the desired congruence is go refl.
+  -- mapFˢ 即沿 refl 的 mapR，故所求同余为 go refl。
 
   uni-map-cong : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
                  (u : UniDet S)
@@ -228,7 +228,7 @@ module _ {o h e s p : Level}
                → MO.≈CosmosM C FC propLabel
                    (FMapˢ.mapFˢ (uniFMapˢ S u) x t)
                    (FMapˢ.mapFˢ (uniFMapˢ S u) x s)
-  uni-map-cong S u = go S u ≡refl
+  uni-map-cong S u = go S u refl
 
   ----------------------------------------------------------------------
   -- The categorical endomorphism bundle FMˢ for a uniform deterministic

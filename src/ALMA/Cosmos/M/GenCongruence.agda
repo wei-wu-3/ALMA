@@ -26,7 +26,7 @@
 module ALMA.Cosmos.M.GenCongruence where
 
 open import Agda.Primitive using (Level; _⊔_)
-open import Agda.Builtin.Equality using (_≡_) renaming (refl to ≡refl)
+open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Data.Product.Base using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
@@ -104,7 +104,7 @@ module _ {o h e s p : Level}
                → e ≡ e'
                → MO.≈CosmosM C FC propLabel
                    (M.below u y e) (M.below u y e')
-    edge-reloc u {e = z} {e' = .z} ≡refl =
+    edge-reloc u {e = z} {e' = .z} refl =
       ≈Mˢ-refl ≈A ≈E (M.below u _ z)
 
   private
@@ -128,9 +128,9 @@ module _ {o h e s p : Level}
          {t s : MO.CosmosM C FC x}
        → MO.≈CosmosM C FC propLabel t s
        → MO.≈CosmosM C FC propLabel (mapR-of S g r t) (mapR-of S g r s)
-    go S g {x = x} {.(Functor.F₀ S x)} ≡refl {t = t} {s = s} h
+    go S g {x = x} {.(Functor.F₀ S x)} refl {t = t} {s = s} h
         .here-eq = cong (σ g x) (h .here-eq)
-    go S g {x = x} {.(Functor.F₀ S x)} ≡refl {t = t} {s = s} h
+    go S g {x = x} {.(Functor.F₀ S x)} refl {t = t} {s = s} h
         .below-eq v =
         adjOut , ( (λ q → go S g eqw (hF q))
                  , (λ r → go S g eqw (≈Mˢ-sym ≈A ≈E (hT r))) )
@@ -201,8 +201,8 @@ module _ {o h e s p : Level}
                (≈Mˢ-sym ≈A ≈E (hbwd eSsrc))
 
   ----------------------------------------------------------------------
-  -- mapFˢ is mapR along ≡refl, so the congruence is go ≡refl.
-  -- mapFˢ 即沿 ≡refl 的 mapR，故同余为 go ≡refl。
+  -- mapFˢ is mapR along refl, so the congruence is go refl.
+  -- mapFˢ 即沿 refl 的 mapR，故同余为 go refl。
 
   gen-map-cong : (S : Functor (ShapeCat C FC) (ShapeCat C FC))
                  (g : GenDet S)
@@ -211,7 +211,7 @@ module _ {o h e s p : Level}
                → MO.≈CosmosM C FC propLabel
                    (FMapˢ.mapFˢ (genFMapˢ S g) x t)
                    (FMapˢ.mapFˢ (genFMapˢ S g) x s)
-  gen-map-cong S g = go S g ≡refl
+  gen-map-cong S g = go S g refl
 
   ----------------------------------------------------------------------
   -- Categorical endomorphism bundle: shape-cong is the propositional

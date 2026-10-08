@@ -12,6 +12,10 @@ import ALMA.Base.MCorr  -- Carried correspondence kernel (zero subst / cast)
                         -- 携带式对应内核（零 subst / cast）
 import ALMA.Base.MCorrSetoid
 import ALMA.Base.MCorrSetoidCat
+import ALMA.Base.MCorrSetoidPush
+import ALMA.Base.MCorrSetoidPushMap
+import ALMA.Base.MCorrSetoidPushComp
+import ALMA.Base.DetCat
 
 import ALMA.Base.Equivalence
 import ALMA.Base.Equivalence.Core
@@ -46,26 +50,26 @@ import ALMA.Cosmos.M.ListSwap
 import ALMA.Cosmos.M.ListSwapDef
 import ALMA.Cosmos.M.MorphismCorrespondence
 import ALMA.Cosmos.M.ContainerAutomorphism
+import ALMA.Cosmos.M.ListCosmos
 import ALMA.Cosmos.M.TowerSeparation
 import ALMA.Cosmos.M.PermutationNonCommutative
 import ALMA.Cosmos.M.NontrivialLimit
 import ALMA.Cosmos.M.SewingObstruction
 import ALMA.Cosmos.M.PermutedEmbedding
-import ALMA.Cosmos.M.ListCosmos
 
-import ALMA.Cosmos.Carried.SeqColimit
-import ALMA.Cosmos.Carried.SeqColimitS
-import ALMA.Cosmos.Carried.SeqColimitCat
 import ALMA.Cosmos.Carried.DetSys
 import ALMA.Cosmos.Carried.TrivProj
 import ALMA.Cosmos.Carried.FinNatUIP
 import ALMA.Cosmos.Carried.FinProj
 import ALMA.Cosmos.Carried.LimitSystem
 import ALMA.Cosmos.Carried.FinEmbed
-import ALMA.Cosmos.Carried.FinColimit
 import ALMA.Cosmos.Carried.FinTower
+import ALMA.Cosmos.Carried.FinColimit
 import ALMA.Cosmos.Carried.DetColimit
+import ALMA.Cosmos.Carried.SeqColimit
 import ALMA.Cosmos.Carried.Boundaries
+import ALMA.Cosmos.Carried.SeqColimitCat
+import ALMA.Cosmos.Carried.SeqColimitS
 import ALMA.Cosmos.Carried.ColimitPolarity
 import ALMA.Cosmos.Carried.FinPushMediateS
 import ALMA.Cosmos.Carried.FinPushColimitS

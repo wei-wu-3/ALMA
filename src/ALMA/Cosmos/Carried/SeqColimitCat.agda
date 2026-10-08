@@ -34,7 +34,7 @@ open import Categories.Functor using (Functor)
 open import ALMA.Base.MCorrSetoid using (SysEq)
 open import ALMA.Base.MCorrSetoidCat
   using (MCorrCatˢ; FMˢ; idFMˢ; compFMˢ; _≈FM_; ≈FM-refl; ≈FM-sym; ≈FM-trans
-        ; ∘-resp-≈FM; assocFM; sym-assocFM; identityˡFM; identityʳFM)
+        ; ∘-resp-≈FM; sym-assocFM; identityˡFM; identityʳFM)
 open import ALMA.Cosmos.Carried.SeqColimitS
   using (Chainˢ; Coconeˢ; IsColimitˢ; Colimitˢ; X; emb; leg; coc; has; Apex)
 

@@ -20,8 +20,8 @@ module ALMA.Cosmos.Carried.DetSys where
 
 open import Agda.Primitive using (Level; _⊔_; lzero)
 open import Agda.Builtin.Sigma using (Σ; _,_)
-open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
+open import Agda.Builtin.Equality using (_≡_)
+open import Data.Unit.Polymorphic.Base using (⊤)
 
 open import ALMA.Base.MCorr using (Sys; M)
 

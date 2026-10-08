@@ -75,9 +75,6 @@ module Iteration
     (x ^[ m ]) ^[ suc n ]
       ∎
 
-  iteration-action : ∀ x m n → x ^[ m + n ] ≡ (x ^[ m ]) ^[ n ]
-  iteration-action = ^-+
-
 ------------------------------------------------------------------------
 -- Coalgebra: the final coalgebra equality of f
 -- Coalgebra：f 的最终 coalgebra 相等
@@ -186,18 +183,17 @@ module Coalgebra
   periodic-iterate
     : ∀ {x} → IsPeriodic x
     → Σ ℕ (λ p → Σ (0 < p) (λ _ → ∀ n → x ^[ n + p ] ≡ x ^[ n ]))
-  periodic-iterate {x} (p , 0<p , eq) = p , 0<p , period-law
+  periodic-iterate {x} per with periodic-stable {x} per
+  ... | p , 0<p , iter = p , 0<p , period-law
     where
       period-law : ∀ n → x ^[ n + p ] ≡ x ^[ n ]
       period-law n = begin
         x ^[ n + p ]
-          ≡⟨ cong (λ j → x ^[ j ]) (+-comm n p) ⟩
-        x ^[ p + n ]
-          ≡⟨ ^-+ x p n ⟩
-        (x ^[ p ]) ^[ n ]
-          ≡⟨ cong (λ z → z ^[ n ]) eq ⟩
+          ≡⟨ ^-+ x n p ⟩
+        (x ^[ n ]) ^[ p ]
+          ≡⟨ iter n ⟩
         x ^[ n ]
-          ∎
+        ∎
 
 ------------------------------------------------------------------------
 -- Truncation: no layer condition, so every depth is trivially

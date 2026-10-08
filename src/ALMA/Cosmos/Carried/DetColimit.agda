@@ -21,10 +21,9 @@ open import Data.Fin.Base using (Fin; toℕ; inject₁)
 open import Data.Unit.Polymorphic.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality.Core using (trans; cong)
 
-open import ALMA.Base.MCorr using (M; here; below; _≈M_)
+open import ALMA.Base.MCorr using (here; below; _≈M_)
 open import ALMA.Cosmos.Carried.DetSys
-open import ALMA.Cosmos.Carried.LimitSystem
-  using (n-at; PushSim; module LimitSystem)
+open import ALMA.Cosmos.Carried.LimitSystem using (n-at; PushSim; module LimitSystem)
 
 ------------------------------------------------------------------------
 -- Deterministic colimit of a compatible tower of finite trivial
