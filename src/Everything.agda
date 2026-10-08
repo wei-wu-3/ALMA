@@ -73,6 +73,7 @@ import ALMA.Cosmos.Carried.FinPushColimitCat
 import ALMA.Cosmos.Carried.LimitSystemS
 import ALMA.Cosmos.Carried.SameIndexCatS
 import ALMA.Cosmos.Carried.NontrivialPushTowerS
+import ALMA.Cosmos.Carried.NontrivialPullTowerS
 
 ------------------------------------------------------------------------
 -- Frozen archives
