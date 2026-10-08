@@ -43,7 +43,7 @@ open import ALMA.Cosmos.Carried.SameIndexCatS
 open import Categories.Category.Core using (Category)
 open import Categories.Functor using (Functor)
 open import ALMA.Cosmos.Carried.SeqColimitCat
-  using (Chain⇒; stop; step; ωCat)
+  using (Chain⇒; stop; step; ωCat; _∘ch_)
 import ALMA.Cosmos.Carried.SeqColimitCat as SQC
 
 module _ (d : ℕ → ℕ) {ℓ : Level} where
@@ -170,3 +170,73 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     fam-of : (v : ℕ) → fibre 0 v → Fam v
     fam-of v a .at m    = orbit0 m v a
     fam-of v a .coh m   = EqOn.refl (≈fibre (suc m) v)
+
+    --------------------------------------------------------------------
+    -- The chain as a functor ω → SameIndexCat.  Paths are folded into
+    -- composites of the forward arrows; no hypothesis on the fibres is
+    -- needed at this stage.
+    -- 链作为 ω → SameIndexCat 函子。路径折叠为前向箭头的复合；此阶段不
+    -- 对纤维作任何假设。
+    private
+      cat : Category (lsuc ℓ) ℓ ℓ
+      cat = SameIndexCat s {ℓ = ℓ}
+
+      reflc : {X Y : LabelSys ℓ} {f : Idx⇒ s X Y} → _≈i_ s f f
+      reflc {f = f} = ≈i-refl s {ℓ = ℓ} f
+
+      symc : {X Y : LabelSys ℓ} {f g : Idx⇒ s X Y}
+           → _≈i_ s f g → _≈i_ s g f
+      symc {f = f} {g = g} p = ≈i-sym s {ℓ = ℓ} {f = f} {g = g} p
+
+      transc : {X Y : LabelSys ℓ} {f g h : Idx⇒ s X Y}
+             → _≈i_ s f g → _≈i_ s g h → _≈i_ s f h
+      transc {f = f} {g = g} {h = h} p q =
+        ≈i-trans s {ℓ = ℓ} {f = f} {g = g} {h = h} p q
+
+      respc : {X Y Z : LabelSys ℓ}
+                {F₁ F₂ : Idx⇒ s X Y} {G₁ G₂ : Idx⇒ s Y Z}
+            → _≈i_ s F₁ F₂ → _≈i_ s G₁ G₂
+            → _≈i_ s (compi s G₁ F₁) (compi s G₂ F₂)
+      respc {X = X} {Y = Y} {Z = Z}
+            {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q =
+        ∘-resp-≈i s {ℓ = ℓ} {X = X} {Y = Y} {Z = Z}
+                    {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q
+
+    fold-emb : ∀ {m n : ℕ} → Chain⇒ m n
+             → Idx⇒ s (X₀ m) (X₀ n)
+    fold-emb SQC.stop            = idxi s (X₀ _)
+    fold-emb (SQC.step {n = n} p) = compi s (e n) (fold-emb p)
+
+    fold-hom : ∀ {m y n : ℕ} (g : Chain⇒ y n) (f : Chain⇒ m y)
+             → _≈i_ s (fold-emb (g ∘ch f))
+                       (compi s (fold-emb g) (fold-emb f))
+    fold-hom {m} {y} {.y} SQC.stop f =
+      symc {X = X₀ m} {Y = X₀ y}
+           {f = compi s (idxi s (X₀ y)) (fold-emb f)}
+           {g = fold-emb f}
+           (reflc {f = compi s (idxi s (X₀ y)) (fold-emb f)})
+    fold-hom {m} {y} {.(suc t)} (SQC.step {n = t} g) f =
+      transc {X = X₀ m} {Y = X₀ (suc t)}
+        {f = compi s (e t) (fold-emb (g ∘ch f))}
+        {g = compi s (e t) (compi s (fold-emb g) (fold-emb f))}
+        {h = compi s (compi s (e t) (fold-emb g)) (fold-emb f)}
+        (respc {X = X₀ m} {Y = X₀ t} {Z = X₀ (suc t)}
+           {F₁ = fold-emb (g ∘ch f)}
+           {F₂ = compi s (fold-emb g) (fold-emb f)}
+           {G₁ = e t} {G₂ = e t}
+           (fold-hom g f) (reflc {f = e t}))
+        (reflc {f = compi s (e t)
+                  (compi s (fold-emb g) (fold-emb f))})
+
+    fold-resp-i : ∀ {m n : ℕ} {p q : Chain⇒ m n}
+                → p ≡ q → _≈i_ s (fold-emb p) (fold-emb q)
+    fold-resp-i {p = p} refl = reflc {f = fold-emb p}
+
+    chainFun : Functor ωCat cat
+    chainFun = record
+      { F₀          = X₀
+      ; F₁          = fold-emb
+      ; identity    = λ {m} → reflc {f = fold-emb {m = m} SQC.stop}
+      ; homomorphism = λ {m y n f g} → fold-hom g f
+      ; F-resp-≈    = λ {m n p q} eq → fold-resp-i {p = p} {q = q} eq
+      }
