@@ -66,6 +66,13 @@ import ALMA.Cosmos.Carried.FinColimit
 import ALMA.Cosmos.Carried.FinTower
 import ALMA.Cosmos.Carried.DetColimit
 import ALMA.Cosmos.Carried.Boundaries
+import ALMA.Cosmos.Carried.ColimitPolarity
+import ALMA.Cosmos.Carried.FinPushMediateS
+import ALMA.Cosmos.Carried.FinPushColimitS
+import ALMA.Cosmos.Carried.FinPushColimitCat
+import ALMA.Cosmos.Carried.LimitSystemS
+import ALMA.Cosmos.Carried.SameIndexCatS
+import ALMA.Cosmos.Carried.NontrivialPushTowerS
 
 ------------------------------------------------------------------------
 -- Frozen archives
