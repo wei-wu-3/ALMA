@@ -16,10 +16,12 @@
 -- The vertex level k and fibre level ℓ are separate; the construction
 -- lives at L = k ⊔ ℓ.  The ω-chain is the quiver with K = ℕ and the
 -- single successor edge SucArrow, so k = lzero and L = ℓ with no lift;
--- it subsumes ChainColimitS without its sufficient hypotheses.
--- Collapsing the closure to propositional equality remains independent
--- of the flags (a set quotient/HIT to construct, a provably non-UIP
--- fibre to refute), exactly as for the chain direct limit.
+-- the direct limit is then unconditional, whereas a compatible-family
+-- (projection-cone) presentation would additionally need a born-at-0
+-- section or stage isomorphisms.  Collapsing the closure to propositional
+-- equality remains independent of the flags (a set quotient/HIT to
+-- construct, a provably non-UIP fibre to refute), exactly as for the
+-- chain direct limit.
 --
 -- SameIndexCatS 中任意 quiver 形状图示的余极限。
 --
@@ -32,9 +34,10 @@
 -- pointwise-i 提升为态射互模拟。
 --
 -- 顶点层 k 与纤维层 ℓ 分离，构造位于 L = k ⊔ ℓ。ω-链即 K = ℕ、仅含后继
--- 边 SucArrow 的 quiver，此时 k = lzero、L = ℓ，无需提升；它在不带那些充
--- 分假设的前提下涵盖 ChainColimitS。把闭包压成命题相等仍与开关独立（构造
--- 需集合商/HIT，证伪需可证不满足 UIP 的纤维），与链直接极限相同。
+-- 边 SucArrow 的 quiver，此时 k = lzero、L = ℓ，无需提升；直接极限因而无
+-- 条件成立，而相容族（投影锥）表示还需额外的诞生 0 截面或阶段同构。把闭
+-- 包压成命题相等仍与开关独立（构造需集合商/HIT，证伪需可证不满足 UIP 的
+-- 纤维），与链直接极限相同。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -213,11 +216,11 @@ module Build (d : ℕ → ℕ) {k ℓ : Level}
 ------------------------------------------------------------------------
 -- The ω-chain specialisation: vertices ℕ, successor edges only.  With
 -- k = lzero the object level is L = ℓ, so no lift is needed and the
--- colimit needs no stage isomorphism or born-at-0 section, unlike the
--- compatible-family representation in ChainColimitS.
+-- colimit needs no stage isomorphism or born-at-0 section, unlike a
+-- compatible-family (projection-cone) representation.
 --
 -- ω-链特例：顶点 ℕ，仅后继边。k = lzero 时对象层 L = ℓ，无需提升；与
--- ChainColimitS 的相容族表示不同，余极限无需阶段同构或诞生 0 截面。
+-- 相容族（投影锥）表示不同，余极限无需阶段同构或诞生 0 截面。
 
 module ωBuild (d : ℕ → ℕ) {ℓ : Level}
              (X₀ : ℕ → LabelSys ℓ)

@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------
 -- Standard colimit of a forward ω-chain with propositional fibres.
 --
--- This is the growing-chain branch of the zero-transport direct-limit
--- dichotomy.  Each stage fibre is a plain set with propositional
+-- This is the propositional-fibre special case of the direct-limit
+-- construction.  Each stage fibre is a plain set with propositional
 -- equality (propEqOn); the forward map emb m need not be injective or
 -- surjective.  The direct-limit element Thread v is a stage-tagged
 -- fibre element: the birth stage is an ordinary field, so comparing two
@@ -11,21 +11,26 @@
 -- ℕ iteration arithmetic carried on the record, not on a fibre.  Hence
 -- no transport, no K, no function extensionality.
 --
--- The arbitrary-setoid, born-at-0 branch (compatible families) lives in
--- ChainColimitS; the two branches exhaust the zero-transport direct
--- limits, and the independence boundary fixing their exact, non-necessary
--- hypotheses is stated there.
+-- The general arbitrary-setoid, arbitrary-shape colimit is the
+-- Σ-plus-equivalence-closure construction in SameIndexColimitS, which
+-- needs no born-at-0 section or stage isomorphism; this Thread model is
+-- that construction specialised to propositional fibres.  Collapsing the
+-- closure to propositional equality remains independent of the flags (a
+-- set quotient/HIT to construct it, a provably non-UIP fibre to refute
+-- it).
 --
--- 命题纤维前向 ω-链的标准余极限（增长链支）。
+-- 命题纤维前向 ω-链的标准余极限（直接极限构造的命题纤维特例）。
 --
--- 这是零传输直接极限二分的增长链支。每阶段纤维是带命题相等
--- （propEqOn）的普通集合；前向映射 emb m 不必单射或满射。直接极限
--- 元素 Thread v 是带阶段标签的纤维元素：诞生阶段是普通字段，故比较两个
--- 线程从不跨纤维——最终重合陈述为整条阶段标签记录的命题相等，ℕ 迭代
--- 算术承载在记录上而非纤维上。因此无传输、不用 K、不用函数外延性。
+-- 每阶段纤维是带命题相等（propEqOn）的普通集合；前向映射 emb m 不必
+-- 单射或满射。直接极限元素 Thread v 是带阶段标签的纤维元素：诞生阶段
+-- 是普通字段，故比较两个线程从不跨纤维——最终重合陈述为整条阶段标签
+-- 记录的命题相等，ℕ 迭代算术承载在记录上而非纤维上。因此无传输、不用
+-- K、不用函数外延性。
 --
--- 任意 setoid、诞生于 0 的一支（相容族）在 ChainColimitS；两支穷尽零
--- 传输直接极限，界定其精确且非必然之假设的独立性边界在该处给出。
+-- 一般任意 setoid、任意形状的余极限是 SameIndexColimitS 中的 Σ 加等价
+-- 闭包构造，无需诞生 0 截面或阶段同构；本 Thread 模型即该构造在命题纤维
+-- 上的特化。把闭包压成命题相等仍与开关独立（构造需集合商/HIT，证伪需
+-- 可证不满足 UIP 的纤维）。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
