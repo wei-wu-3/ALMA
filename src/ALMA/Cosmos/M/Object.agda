@@ -30,7 +30,7 @@ module ALMA.Cosmos.M.Object where
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Data.Product.Base using (proj₁; proj₂)
+open import Data.Product.Base using (proj₂)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
@@ -39,6 +39,7 @@ open import ALMA.Base.MCorr using (M; _⍮_)
 open import ALMA.Base.MCorrSetoid
   using (EqOn; SysEq; propEqOn; FiberAdjˢ; idAdjˢ; _≈Mˢ_; here-eq; below-eq
         ; ≈Mˢ-refl; Morphˢ; compMˢ; idMˢ)
+import ALMA.Base.MCorrSetoidCoalg as GCP
 open import ALMA.Cosmos.ContCategory using (ContCat)
 open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
@@ -112,6 +113,20 @@ module _ {o h e s p : Level}
   -- 位置的子状态；ana 借 M 内建的受保护余递归产生 CosmosM，构造性匹配
   -- 边 (p , refl)。
 
+  -- Propositional system over the same I/A/E; used to lift the generic
+  -- carried anamorphism (which is independent of the label regime).
+  -- 同一 I/A/E 上的命题系统；用于提升泛型携带式 anamorphism（其与标签
+  -- 等价制度无关）。
+  sysProp : SysEq (o ⊔ s) (o ⊔ h ⊔ e ⊔ s ⊔ p) (o ⊔ s ⊔ p)
+                  (o ⊔ h ⊔ e ⊔ s ⊔ p) (o ⊔ s ⊔ p)
+  sysProp = record
+    { I  = I
+    ; A  = A
+    ; E  = E
+    ; ≈A = λ i → propEqOn (A i)
+    ; ≈E = λ i d j → propEqOn (E i d j)
+    }
+
   record Coalgebra (u : Level) (Xst : I → Set u)
          : Set (o ⊔ h ⊔ e ⊔ s ⊔ p ⊔ u) where
     field
@@ -120,11 +135,25 @@ module _ {o h e s p : Level}
             → Xst (nextOf i (label i x) p)
   open Coalgebra public
 
+  -- The deterministic container coalgebra is the generic carried
+  -- coalgebra at the constructive edge (p , refl): the generic child
+  -- matches the edge, which pins j to nextOf. Determinism lives entirely
+  -- in this adapter; no J/subst is used.
+  -- 确定性容器余代数即泛型携带式余代数在构造性边 (p , refl) 处的实例：
+  -- 泛型 child 匹配该边，从而把 j 钉为 nextOf。确定性完全集中于此适配
+  -- 器；不用 J/subst。
+  gcoalg : ∀ {u : Level} {Xst : I → Set u}
+         → Coalgebra u Xst → GCP.Coalgebra sysProp u Xst
+  gcoalg γ .GCP.Coalgebra.label i x = label γ i x
+  gcoalg γ .GCP.Coalgebra.child i x .(nextOf i (label γ i x) p) (p , refl)
+    = child γ i x p
+
+  -- The anamorphism is the generic carried one at the (p , refl) edge.
+  -- anamorphism 即 (p , refl) 边处的泛型携带式 anamorphism。
   ana : ∀ {u : Level} {Xst : I → Set u}
         (γ : Coalgebra u Xst)
       → (i : I) (x : Xst i) → CosmosM i
-  ana γ i x .M.here = label γ i x
-  ana γ i x .M.below j (p , refl) = ana γ j (child γ i x p)
+  ana γ i x = GCP.ana sysProp (gcoalg γ) i x
 
   -- Observation coalgebra of a node: state is CosmosM, label reads the
   -- head, child steps along the edge; ana of it rebuilds the tree, and
