@@ -379,3 +379,14 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
                        (Idx⇒.shape h v a)
                        (Idx⇒.shape (mediate K) v a)
     unique h K ht v a m = ht m v a
+
+    -- A pointwise cone over an inhabited point supplies a compatible
+    -- thread through the tower. Contrapositive: a point with no thread
+    -- cannot be the apex of a pointwise cone with a label there -- the
+    -- structural obstruction to a pull limit (zero transport).
+    --
+    -- 有人点上的逐点锥给出一条穿过塔的相容线程。逆否：无线程点不可能在
+    -- 该处带标签地成为逐点锥顶点——pull 极限的结构性障碍（零传输）。
+    cone-thread : {N : LabelSys ℓ} (K : PCone N) (v : ℕ)
+                (a : LabelSys.A₀ N v) → LimLabel v
+    cone-thread K v a = Idx⇒.shape (mediate K) v a
