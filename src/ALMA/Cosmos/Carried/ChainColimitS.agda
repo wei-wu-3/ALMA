@@ -172,6 +172,14 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     fam-of v a .at m    = orbit0 m v a
     fam-of v a .coh m   = EqOn.refl (≈fibre (suc m) v)
 
+    -- orbit0 respects the stage setoid.
+    -- orbit0 保持阶段 setoid。
+    orbit0-cong : (m v : ℕ) {a a' : fibre 0 v}
+                → EqOn._≈_ (≈fibre 0 v) a a'
+                → EqOn._≈_ (≈fibre m v) (orbit0 m v a) (orbit0 m v a')
+    orbit0-cong zero    v eq = eq
+    orbit0-cong (suc m) v eq = fwd-cong m v (orbit0-cong m v eq)
+
     --------------------------------------------------------------------
     -- The chain as a functor ω → SameIndexCat.  Paths are folded into
     -- composites of the forward arrows; no hypothesis on the fibres is
@@ -314,3 +322,107 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     famCone : Cone
     famCone = record
       { apex = record { ψ = legIdx ; commute = λ {m n} p → legPath p } }
+
+    --------------------------------------------------------------------
+    -- Colimit branch.  Stage → apex injections exist when every forward
+    -- arrow is a setoid isomorphism: a backward map r m with both
+    -- round-trip laws gives every later-stage element a canonical root at
+    -- stage 0, so its forward orbit recovers the element (no transport).
+    --
+    -- 余极限支。当每条前向箭头是 setoid 同构时存在“阶段 → 顶点”注入：
+    -- 双向收缩 r m 的两条往返律给每个晚诞生元素一个规范的阶段 0 根，其前向
+    -- 轨道恢复该元素（无传输）。
+    module BuildIso
+      (r     : (m : ℕ) → Idx⇒ s (X₀ (suc m)) (X₀ m))
+      (res-emb : (m v : ℕ) (a : fibre m v)
+               → EqOn._≈_ (≈fibre m v)
+                           (Idx⇒.shape (r m) v (fwd m v a)) a)
+      (emb-res : (m v : ℕ) (b : fibre (suc m) v)
+               → EqOn._≈_ (≈fibre (suc m) v)
+                           (fwd m v (Idx⇒.shape (r m) v b)) b)
+      where
+
+      back : (m v : ℕ) → fibre (suc m) v → fibre m v
+      back m v = Idx⇒.shape (r m) v
+
+      back-cong : (m v : ℕ) {b b' : fibre (suc m) v}
+                → EqOn._≈_ (≈fibre (suc m) v) b b'
+                → EqOn._≈_ (≈fibre m v) (back m v b) (back m v b')
+      back-cong m v = Idx⇒.shape-cong (r m) {v = v}
+
+      -- Canonical stage-0 root of a stage-m element.
+      -- 阶段 m 元素的规范阶段 0 根。
+      root : (m v : ℕ) → fibre m v → fibre 0 v
+      root zero    v a = a
+      root (suc m) v a = root m v (back m v a)
+
+      root-cong : (m v : ℕ) {a a' : fibre m v}
+                → EqOn._≈_ (≈fibre m v) a a'
+                → EqOn._≈_ (≈fibre 0 v) (root m v a) (root m v a')
+      root-cong zero    v eq = eq
+      root-cong (suc m) v eq = root-cong m v (back-cong m v eq)
+
+      -- Forward orbit of the root recovers the element (e ∘ r round trip).
+      -- 根的前向轨道恢复该元素（e ∘ r 往返）。
+      fwd-root : (m v : ℕ) (a : fibre m v)
+               → EqOn._≈_ (≈fibre m v) (orbit0 m v (root m v a)) a
+      fwd-root zero    v a = EqOn.refl (≈fibre 0 v)
+      fwd-root (suc m) v a =
+        EqOn.trans (≈fibre (suc m) v)
+          (fwd-cong m v (fwd-root m v (back m v a)))
+          (emb-res m v a)
+
+      -- Injection: take the root and follow its forward orbit.
+      -- 注入：取根并沿其前向轨道。
+      inj : (m : ℕ) → Idx⇒ s (X₀ m) apexLS
+      inj m = record
+        { shape      = λ v a → fam-of v (root m v a)
+        ; shape-cong = λ {v = v} {a} {a'} eq k →
+                         orbit0-cong k v (root-cong m v eq)
+        }
+
+      -- One-step cocone coherence: inj (suc m) ∘ e m ≈ inj m.
+      -- 一步余锥相干：inj (suc m) ∘ e m ≈ inj m。
+      inj-coh : (m : ℕ)
+              → _≈i_ s (compi s (inj (suc m)) (e m)) (inj m)
+      inj-coh m =
+        pointwise-i s {ℓ = ℓ} {X = X₀ m} {Y = apexLS}
+          (compi s (inj (suc m)) (e m)) (inj m)
+          (λ v a k →
+             orbit0-cong k v
+               (root-cong m v (res-emb m v a)))
+
+      -- Path-level cocone coherence: inj n ∘ fold p ≈ inj m.
+      -- 路径级余锥相干：inj n ∘ fold p ≈ inj m。
+      injPath : {m n : ℕ} (p : Chain⇒ m n)
+              → _≈i_ s (compi s (inj n) (fold-emb p)) (inj m)
+      injPath SQC.stop =
+        reflc {X = X₀ _} {Y = apexLS}
+              {f = compi s (inj _) (idxi s (X₀ _))}
+      injPath (SQC.step {n = k} p) =
+        transc {X = X₀ _} {Y = apexLS}
+          {f = compi s (inj (suc k))
+                  (compi s (e k) (fold-emb p))}
+          {g = compi s (inj k) (fold-emb p)}
+          {h = inj _}
+          (transc {X = X₀ _} {Y = apexLS}
+            {f = compi s (inj (suc k))
+                    (compi s (e k) (fold-emb p))}
+            {g = compi s (compi s (inj (suc k)) (e k)) (fold-emb p)}
+            {h = compi s (inj k) (fold-emb p)}
+            (reflc {f = compi s (inj (suc k))
+                      (compi s (e k) (fold-emb p))})
+            (respc {X = X₀ _} {Y = X₀ k} {Z = apexLS}
+                   {F₁ = fold-emb p} {F₂ = fold-emb p}
+                   {G₁ = compi s (inj (suc k)) (e k)}
+                   {G₂ = inj k}
+                   (reflc {f = fold-emb p}) (inj-coh k)))
+          (injPath p)
+
+      open import Categories.Diagram.Cocone chainFun
+
+      -- The canonical colimit cocone under the isomorphism hypothesis.
+      -- 同构假设下的规范余极限余锥。
+      nColimCocone : Cocone
+      nColimCocone = record
+        { coapex = record { ψ = inj ; commute = λ {m n} p → injPath p } }
