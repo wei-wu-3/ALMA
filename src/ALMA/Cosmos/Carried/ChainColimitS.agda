@@ -38,7 +38,8 @@ open import Data.Nat.Base using (ℕ; zero; suc)
 open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
 open import ALMA.Cosmos.Carried.SameIndexCatS
   using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
-        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i)
+        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
+        ; pointwise-i)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor using (Functor)
@@ -240,3 +241,76 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       ; homomorphism = λ {m y n f g} → fold-hom g f
       ; F-resp-≈    = λ {m n p q} eq → fold-resp-i {p = p} {q = q} eq
       }
+
+    --------------------------------------------------------------------
+    -- Colimit apex: the label system of compatible families, with its
+    -- pointwise setoid.
+    -- 余极限顶点：相容族构成的标签系统，带逐点 setoid。
+    apexLS : LabelSys ℓ
+    apexLS = record { A₀ = Fam ; ≈A₀ = ≈Fam }
+
+    -- A family's stage-n choice equals the forward orbit of its stage-0
+    -- choice, by iterating the coherence.
+    -- 族的阶段 n 选择等于其阶段 0 选择的前向轨道（逐次使用相干）。
+    fam-orbit : (n v : ℕ) (τ : Fam v)
+              → EqOn._≈_ (≈fibre n v) (orbit0 n v (at τ 0)) (at τ n)
+    fam-orbit zero    v τ = EqOn.refl (≈fibre 0 v)
+    fam-orbit (suc n) v τ =
+      EqOn.trans (≈fibre (suc n) v)
+        (fwd-cong n v (fam-orbit n v τ))
+        (coh τ n)
+
+    -- Canonical leg: project a family to its stage-m choice.
+    -- 规范腿：把族投影到其阶段 m 选择。
+    legIdx : (m : ℕ) → Idx⇒ s apexLS (X₀ m)
+    legIdx m = record
+      { shape      = λ v τ → at τ m
+      ; shape-cong = λ eq → eq m
+      }
+
+    -- One-step cocone coherence: e m after leg m is leg (suc m).
+    -- 一步余锥相干：e m 接 leg m 等于 leg (suc m)。
+    leg-coh : (m : ℕ)
+            → _≈i_ s (compi s (e m) (legIdx m)) (legIdx (suc m))
+    leg-coh m =
+      pointwise-i s {ℓ = ℓ} {X = apexLS} {Y = X₀ (suc m)}
+        (compi s (e m) (legIdx m)) (legIdx (suc m))
+        (λ v τ → coh τ m)
+
+    -- Path-level cocone coherence: fold p after leg m is leg n.
+    -- 路径级余锥相干：fold p 接 leg m 等于 leg n。
+    legPath : {m n : ℕ} (p : Chain⇒ m n)
+            → _≈i_ s (compi s (fold-emb p) (legIdx m)) (legIdx n)
+    legPath SQC.stop =
+      reflc {X = apexLS} {Y = X₀ _}
+            {f = compi s (idxi s (X₀ _)) (legIdx _)}
+    legPath (SQC.step {n = k} p) =
+      transc {X = apexLS} {Y = X₀ (suc k)}
+        {f = compi s (compi s (e k) (fold-emb p)) (legIdx _)}
+        {g = compi s (e k) (compi s (fold-emb p) (legIdx _))}
+        {h = legIdx (suc k)}
+        (reflc {f = compi s (compi s (e k) (fold-emb p)) (legIdx _)})
+        (transc {X = apexLS} {Y = X₀ (suc k)}
+          {f = compi s (e k) (compi s (fold-emb p) (legIdx _))}
+          {g = compi s (e k) (legIdx k)}
+          {h = legIdx (suc k)}
+          (respc {X = apexLS} {Y = X₀ k} {Z = X₀ (suc k)}
+                 {F₁ = compi s (fold-emb p) (legIdx _)}
+                 {F₂ = legIdx k}
+                 {G₁ = e k} {G₂ = e k}
+                 (legPath p) (reflc {f = e k}))
+          (leg-coh k))
+
+    open import Categories.Diagram.Cone chainFun
+
+    -- Compatible families form the canonical cone over the forward chain
+    -- (projections apex → stage, commuting with e): a born-at-0 family is
+    -- determined by projecting to every stage.  The colimit cocone with
+    -- stage → apex injections is a separate construction and needs a root
+    -- for every later-stage element (stage isomorphisms).
+    -- 相容族构成前向链的规范锥（顶点 → 阶段的投影，与 e 交换）：诞生于 0
+    -- 的族由到各阶段的投影确定。带“阶段 → 顶点”注入的余极限余锥是另一构
+    -- 造，需要每个晚诞生元素的根（阶段同构）。
+    famCone : Cone
+    famCone = record
+      { apex = record { ψ = legIdx ; commute = λ {m n} p → legPath p } }
