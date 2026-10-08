@@ -35,7 +35,10 @@ open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; zero; suc)
 
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn)
+open import ALMA.Base.MCorr using (M)
+open import ALMA.Base.MCorrSetoid
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_)
+open SysEq
 open import ALMA.Cosmos.Carried.SameIndexCatS
   using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
         ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
@@ -496,3 +499,98 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
           (EqOn.sym (LabelSys.≈A₀ Z v)
              (Idx⇒.shape-cong h (λ m → fam-orbit m v τ)))
           (ht 0 v (at τ 0))
+
+      ------------------------------------------------------------------
+      -- Standard colimit, conditionally.  A bisimulation cocone whose
+      -- every stage object carries a total label-tree at each label,
+      -- rooted at that label in the stage setoid, admits a unique
+      -- Cocone⇒ out of the canonical colimit cocone.  The tree is used
+      -- only to read the pointwise head coherence off the bisimulation
+      -- commute; factorisation and uniqueness then lift by pointwise-i.
+      --
+      -- 条件性标准余极限。若余锥的每个阶段对象在每个标签处带一棵以该标签
+      -- 为根（阶段 setoid 中）的全总标签树，则存在从规范余极限余锥出发的
+      -- 唯一 Cocone⇒。树仅用于从双模拟 commute 读出逐点头部相干；因子分解
+      -- 与唯一性随后由 pointwise-i 提升。
+      module StandardColimit where
+
+        private
+          succ-arrow : ∀ {m} → Chain⇒ m (suc m)
+          succ-arrow = SQC.step SQC.stop
+
+        module _ (K : Cocone)
+                 (tree : (m v : ℕ) (a : fibre m v)
+                       → M (A (sYS (X₀ m))) (E (sYS (X₀ m))) v)
+                 (tree-here : (m v : ℕ) (a : fibre m v)
+                            → EqOn._≈_ (≈fibre m v)
+                                        (M.here (tree m v a)) a)
+          where
+
+          private
+            Zk  = Cocone.N K
+            ψk  = Cocone.ψ K
+
+            -- Move a head equation from the tree root M.here to the
+            -- prescribed label a, in the coapex setoid, using the two
+            -- morphisms' congruence and the root setoid equation.
+            -- 利用两个态射的同余与根 setoid 等式，把头部等式从树根
+            -- M.here 搬到余顶点 setoid 中的指定标签 a。
+            relocate : (m v : ℕ)
+                       (F G : Idx⇒ s (X₀ m) Zk)
+                       (a : fibre m v)
+                     → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                                 (Idx⇒.shape F v (M.here (tree m v a)))
+                                 (Idx⇒.shape G v (M.here (tree m v a)))
+                     → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                                 (Idx⇒.shape F v a)
+                                 (Idx⇒.shape G v a)
+            relocate m v F G a h0 =
+              EqOn.trans (LabelSys.≈A₀ Zk v)
+                (EqOn.sym (LabelSys.≈A₀ Zk v)
+                   (Idx⇒.shape-cong F (tree-here m v a)))
+                (EqOn.trans (LabelSys.≈A₀ Zk v)
+                   h0
+                   (Idx⇒.shape-cong G (tree-here m v a)))
+
+            -- Read the forward cocone coherence as a head equation.
+            -- 将前向余锥相干读为头部等式。
+            kcoh : (m v : ℕ) (a : fibre m v)
+                 → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                     (Idx⇒.shape (ψk (suc m)) v (fwd m v a))
+                     (Idx⇒.shape (ψk m) v a)
+            kcoh m v a =
+              relocate m v
+                (compi s (ψk (suc m)) (e m)) (ψk m) a
+                (_≈Mˢ_.here-eq
+                  (Cocone.commute K {X = m} {Y = suc m} succ-arrow
+                                v (tree m v a)))
+
+            Kpf : PFCocone Zk
+            Kpf = record { ψc = ψk ; coh = kcoh }
+
+          -- The unique mediator and its cocone factorisation.
+          -- 唯一 mediate 及其余锥因子分解。
+          mediate-i : Idx⇒ s apexLS Zk
+          mediate-i = mediate Kpf
+
+          !K : Cocone⇒ nColimCocone K
+          !K = record
+            { arr     = mediate-i
+            ; commute = λ {m} →
+                          pointwise-i s
+                            (compi s mediate-i (inj m)) (ψk m)
+                            (triangle Kpf m)
+            }
+
+          -- Any other mediator is bisimulation-equal to mediate-i.
+          -- 任何其他 mediate 与 mediate-i 互模拟相等。
+          !K-unique : (h : Cocone⇒ nColimCocone K)
+                    → _≈i_ s (Cocone⇒.arr h) mediate-i
+          !K-unique h =
+            pointwise-i s (Cocone⇒.arr h) mediate-i
+              (unique (Cocone⇒.arr h) Kpf
+                (λ m v a →
+                  relocate m v
+                    (compi s (Cocone⇒.arr h) (inj m)) (ψk m) a
+                    (_≈Mˢ_.here-eq
+                      (Cocone⇒.commute h {X = m} v (tree m v a)))))
