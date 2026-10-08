@@ -54,11 +54,15 @@ The central construction of the formalization is Cosmos. It replaces the (B , ne
 
 The Equivalence/ sub-tree mirrors this convergence at the level of observation equivalence. All degenerations—ScaleInvariant, DiscreteEq, and their specialisations to group actions, linear dynamics, topological and manifold equivalences—are instances of a single indexed coinductive skeleton Mᵢ, whose central instance LayeredEqGen organises them into a two-axis lattice. This aligns the code structure with the paper's three fundamental features of the stable world-structure (distinguishability, continuous variation, transformation invariance).
 
+The carried colimit theory reaches its boundary in the same-index wide subcategory SameIndexCatS. A zero-transport direct limit of a non-trivial-fibre forward ω-chain exists in exactly two complementary forms, neither using transport, K, or function extensionality: (i) propositional fibres with growth—ChainColimitPropS, whose Thread apex carries the birth stage as an ordinary field and identifies rays by eventual coincidence of whole records, with an unconditional cocone and pointwise mediator; (ii) arbitrary setoid fibres born at stage 0—ChainColimitS, whose compatible-family apex Fam is a forward-chain limit cone, while colimit injections require stage-wise setoid isomorphisms. In both branches the agda-categories standard Colimit/Limit is conditional on the competing apex carrying total label-trees; an arbitrary-setoid, late-born zero-transport quotient does not exist (the two unit laws of ℕ iteration cannot both hold definitionally). NontrivialPushTowerS and NontrivialPullTowerS develop the push and pull instances of the same polarity, including its negative obstruction theorems.
+
 subst 的本体论根源：当 A 本质上由 B 在参数 p₀ 处决定，却被独立表达时，A 的自足外观与其实例位置之间的错位，必然在 A 与 B 的每个连接点上以 subst 的形式显露。
 
 形式化的核心构造是 Cosmos。它以边族索引 M 型取代 (B , next) 索引 M 型表示，使 next 函数与 next-comm 交换等式不再出现；容器结构、内禀范畴、态射对形状的变换、余代数展开以及动态自我指涉，全部携带为数据，从而使哲学思想——无限、无界、动态且自我指涉的宇宙论——获得机器可检验的、无 subst 的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
 Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
+
+携带式余极限理论在同索引宽子范畴 SameIndexCatS 中到达其边界。非平凡纤维前向 ω-链的零传输直接极限恰以两种互补形式存在，均不用传输、K 或函数外延性：(i) 命题纤维且增长——ChainColimitPropS，其 Thread 顶点把诞生阶段作为普通字段携带，以整条记录的最终重合等同射线，余锥与逐点 mediate 均无条件；(ii) 任意 setoid 纤维且诞生于阶段 0——ChainColimitS，其相容族顶点 Fam 是前向链极限锥，而余极限注入要求逐阶段 setoid 同构。两支中 agda-categories 标准 Colimit/Limit 均以竞争顶点携带全总标签树为条件；任意 setoid、晚诞生的零传输商不存在（ℕ 迭代的两条单位律不能同时定义性成立）。NontrivialPushTowerS 与 NontrivialPullTowerS 发展同一极性的 push 与 pull 实例，包括其否定性障碍定理。
 
 ## Dependencies & Build / 依赖与构建
 
@@ -89,6 +93,10 @@ src/
 │   │   ├── MCorr.agda                     Carried correspondence kernel
 │   │   ├── MCorrSetoid.agda               Setoid-parameterised kernel
 │   │   ├── MCorrSetoidCat.agda            Setoid correspondence category
+│   │   ├── MCorrSetoidPush.agda           Setoid forward (push) relation
+│   │   ├── MCorrSetoidPushMap.agda        Push map and congruence
+│   │   ├── MCorrSetoidPushComp.agda       Push relation composition
+│   │   ├── DetCat.agda                    Deterministic forward category
 │   │   ├── Equivalence.agda
 │   │   └── Equivalence/
 │   │       ├── Core.agda
@@ -131,17 +139,29 @@ src/
 │   │   │   ├── SewingObstruction.agda
 │   │   │   └── PermutedEmbedding.agda
 │   │   └── Carried/                       Zero-subst colimit machinery
-│   │       ├── SeqColimit.agda
-│   │       ├── DetSys.agda
-│   │       ├── TrivProj.agda
-│   │       ├── FinNatUIP.agda
-│   │       ├── FinProj.agda
-│   │       ├── LimitSystem.agda
-│   │       ├── FinEmbed.agda
-│   │       ├── FinColimit.agda
-│   │       ├── FinTower.agda
-│   │       ├── DetColimit.agda
-│   │       └── Boundaries.agda
+│   │       ├── DetSys.agda                Deterministic stage systems
+│   │       ├── TrivProj.agda              Trivial-fibre projections
+│   │       ├── FinNatUIP.agda             Hedberg UIP on ℕ/Fin
+│   │       ├── FinProj.agda               Fin-tower projections
+│   │       ├── LimitSystem.agda           Pull limit system (⊤ fibre)
+│   │       ├── FinEmbed.agda              Fin-tower embeddings
+│   │       ├── FinTower.agda              Fin towers
+│   │       ├── FinColimit.agda            Fin-tower colimits
+│   │       ├── DetColimit.agda            Deterministic colimits
+│   │       ├── SeqColimit.agda            Sequential colimits
+│   │       ├── Boundaries.agda            Negative polarity results
+│   │       ├── SeqColimitCat.agda         ω-chain category
+│   │       ├── SeqColimitS.agda           Setoid sequential colimits
+│   │       ├── ColimitPolarity.agda       Push/pull leg polarity
+│   │       ├── FinPushMediateS.agda       Setoid push mediators
+│   │       ├── FinPushColimitS.agda       Setoid Fin push colimits
+│   │       ├── FinPushColimitCat.agda     Standard Colimit bundling
+│   │       ├── LimitSystemS.agda          Setoid push limit system
+│   │       ├── SameIndexCatS.agda         Same-index wide subcategory
+│   │       ├── NontrivialPushTowerS.agda  Nontrivial-fibre push towers
+│   │       ├── NontrivialPullTowerS.agda  Nontrivial-fibre pull towers
+│   │       ├── ChainColimitS.agda         Arbitrary-setoid ω-chain colimit
+│   │       └── ChainColimitPropS.agda     Propositional-fibre growing-chain colimit
 │   │
 │   ├── SecondPass/                        Frozen archive
 │   │   ├── ContCatEquivFunctor.agda
