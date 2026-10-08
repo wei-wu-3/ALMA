@@ -15,6 +15,18 @@
 -- stage-0 seed along the deterministic forward orbit; embedding a later
 -- stage element needs a root, the forward analogue of a total ray.
 --
+-- Scope of the hypotheses.  For an arbitrary-setoid chain with
+-- late-born fibres the general direct limit is neither constructed nor
+-- refuted under these flags: its construction needs a setoid quotient
+-- (a HIT, absent under --cubical-compatible), while a refutation needs
+-- a fibre that provably fails UIP, which likewise needs univalence or a
+-- HIT.  Propositional fibres, a born-at-0 global section, and stage
+-- isomorphisms are thus sufficient hypotheses carried explicitly
+-- below, not consequences of the core theory.  The index dimension is
+-- separate and already settled negatively: a total carried colimit leg
+-- forces the index map to be surjective (see ColimitPolarity), so the
+-- index-varying general colimit is refuted, not merely unprovable.
+--
 -- SameIndexCatS 中任意前向 ω-链的标准余极限。
 --
 -- 链由一族阶段对象 X m 与索引恒等的前向箭头 e m : X m ⇒ X (suc m)
@@ -25,27 +37,36 @@
 -- 对齐、无传输、不用 K、不用函数外延性，且阶段纤维可带任意 setoid（不
 -- 限于命题纤维）。一个族由阶段 0 的种子沿确定性前向轨道决定；嵌入更晚
 -- 阶段的元素需要一个根，即全总射线的前向对偶。
+--
+-- 假设的范围。对任意 setoid、晚诞生纤维的链，一般直接极限在本组开关下
+-- 既不可构造也不可证伪：构造需 setoid 商（HIT，--cubical-compatible 下
+-- 缺失），证伪需可证不满足 UIP 的纤维，同样依赖 univalence 或 HIT。故命题
+-- 纤维、诞生 0 全局截面与阶段同构只是下文显式携带的充分假设，并非核心
+-- 理论的推论。索引维独立且已有否定结论：全函数余极限腿迫使索引映射满
+-- （见 ColimitPolarity），故索引可变的一般余极限是被证伪而非仅不可证。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.Carried.ChainColimitS where
 
-open import Agda.Primitive using (Level; lsuc)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Data.Nat.Base using (ℕ; zero; suc)
 
-open import Categories.Category.Core using (Category)
-open import Categories.Functor using (Functor)
-
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; _≈Mˢ_)
+open import ALMA.Base.MCorrSetoid
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_)
 open SysEq
 open import ALMA.Cosmos.Carried.SameIndexCatS
-  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_; SameIndexCat; ≈i-refl
-        ; ≈i-sym; ≈i-trans; ∘-resp-≈i; pointwise-i)
+  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
+        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
+        ; pointwise-i)
 
-open import ALMA.Cosmos.Carried.SeqColimitCat using (Chain⇒; stop; step; ωCat; _∘ch_)
+open import Categories.Category.Core using (Category)
+open import Categories.Functor using (Functor)
+open import ALMA.Cosmos.Carried.SeqColimitCat
+  using (Chain⇒; stop; step; ωCat; _∘ch_)
 import ALMA.Cosmos.Carried.SeqColimitCat as SQC
 
 module _ (d : ℕ → ℕ) {ℓ : Level} where

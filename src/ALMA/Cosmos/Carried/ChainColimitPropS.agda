@@ -13,7 +13,8 @@
 --
 -- The arbitrary-setoid, born-at-0 branch (compatible families) lives in
 -- ChainColimitS; the two branches exhaust the zero-transport direct
--- limits under the boundary established there.
+-- limits, and the independence boundary fixing their exact, non-necessary
+-- hypotheses is stated there.
 --
 -- 命题纤维前向 ω-链的标准余极限（增长链支）。
 --
@@ -23,26 +24,29 @@
 -- 线程从不跨纤维——最终重合陈述为整条阶段标签记录的命题相等，ℕ 迭代
 -- 算术承载在记录上而非纤维上。因此无传输、不用 K、不用函数外延性。
 --
--- 任意 setoid、诞生于 0 的一支（相容族）在 ChainColimitS；两支穷尽了
--- 该处所确立边界下的零传输直接极限。
+-- 任意 setoid、诞生于 0 的一支（相容族）在 ChainColimitS；两支穷尽零
+-- 传输直接极限，界定其精确且非必然之假设的独立性边界在该处给出。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Cosmos.Carried.ChainColimitPropS where
 
-open import Agda.Primitive using (Level; lsuc)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (sym; trans; cong)
+open import Relation.Binary.PropositionalEquality.Core
+  using (sym; trans; cong)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
 
 open import ALMA.Base.MCorr using (M)
-open import ALMA.Base.MCorrSetoid using (SysEq; EqOn; propEqOn; _≈Mˢ_)
+open import ALMA.Base.MCorrSetoid
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_)
 open SysEq
 open import ALMA.Cosmos.Carried.SameIndexCatS
-  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_; SameIndexCat; ≈i-refl
-        ; ≈i-sym; ≈i-trans; ∘-resp-≈i; pointwise-i)
+  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
+        ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
+        ; pointwise-i)
 
 open import Categories.Category.Core using (Category)
 open import Categories.Functor using (Functor)
