@@ -37,7 +37,7 @@ open import Relation.Nullary.Negation using (¬_)
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
   using (SysEq; EqOn; propEqOn; idAdjˢ; _≈Mˢ_)
-open import ALMA.Base.MCorrSetoidCat using (FMapˢ)
+open import ALMA.Base.MCorrSetoidCat using (FMapˢ; FMˢ)
 open import ALMA.Cosmos.Carried.SameIndexCatS
   using ( LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
         ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i )
@@ -136,6 +136,47 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
   ----------------------------------------------------------------------
   -- Forward embedding and backward restriction (the cochain arrow).
   -- 前向嵌入与反向限制（余链箭头）。
+
+  -- Generalised pointwise lifting. Head equations in the target's own
+  -- setoid (any setoid, not only a propositional fibre) give morphism
+  -- bisimilarity; child trees recurse guardedly along the identity
+  -- index.
+  --
+  -- 广义逐点提升。目标自身 setoid（任意 setoid，不限于命题纤维）中的头部
+  -- 等式给出态射互模拟；子树沿恒等索引守卫递归。
+  pointwise-i : {X Y : LabelSys ℓ} (f g : Idx⇒ s X Y)
+    → (∀ (v : ℕ) (a : LabelSys.A₀ X v)
+        → EqOn._≈_ (LabelSys.≈A₀ Y v)
+                    (Idx⇒.shape f v a) (Idx⇒.shape g v a))
+    → _≈i_ s f g
+  pointwise-i {X = X} {Y = Y} f g eq v t = go v t
+    where
+    sx = sYS X
+    sy = sYS Y
+    edgeAdj : (v w : ℕ) → _
+    edgeAdj v w =
+      idAdjˢ (propEqOn (Σ (⊤ {lzero}) λ _ → w ≡ s v))
+    mutual
+      go : (v : ℕ) (u : M (A sx) (E sx) v)
+         → _≈Mˢ_ (≈A sy) (≈E sy)
+                  (FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor f)) v u)
+                  (FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor g)) v u)
+      go v u ._≈Mˢ_.here-eq = eq v (M.here u)
+      go v u ._≈Mˢ_.below-eq w =
+        edgeAdj v w
+          , ( (λ e → go w (M.below u w e))
+            , (λ e → go˘ w (M.below u w e)) )
+
+      go˘ : (v : ℕ) (u : M (A sx) (E sx) v)
+          → _≈Mˢ_ (≈A sy) (≈E sy)
+                   (FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor g)) v u)
+                   (FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor f)) v u)
+      go˘ v u ._≈Mˢ_.here-eq =
+        EqOn.sym (≈A sy v) (eq v (M.here u))
+      go˘ v u ._≈Mˢ_.below-eq w =
+        edgeAdj v w
+          , ( (λ e → go˘ w (M.below u w e))
+            , (λ e → go w (M.below u w e)) )
 
   embIdx : (m : ℕ) → Idx⇒ s (stageLS m) (stageLS (suc m))
   embIdx m = record
@@ -482,3 +523,89 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     no-mediate mk =
       Data.Empty.⊥-elim
         (no-thread (Idx⇒.shape (Cone⇒.arr mk) 0 tt))
+
+  ----------------------------------------------------------------------
+  -- Standard limit, conditionally. A bisimulation cone whose apex
+  -- carries a total label-tree at every label admits a unique Cone⇒
+  -- into the canonical limit cone. The ray is needed only to read the
+  -- pointwise head coherence off the bisimulation commute; the
+  -- factorisation and uniqueness then lift by pointwise-i (no ray).
+  --
+  -- 条件性标准极限。若一个双模拟锥的顶点在每个标签处都带一棵全总标签
+  -- 树，则存在进入规范极限锥的唯一 Cone⇒。射线仅用于从双模拟 commute 读出
+  -- 逐点头部相干；因子分解与唯一性随后由 pointwise-i 提升（无需射线）。
+  module StandardLimit where
+
+    open PLimit
+
+    -- The op-arrow from stage m+1 back to stage m.
+    -- 从阶段 m+1 回到阶段 m 的 op 箭头。
+    private res-arrow : ∀ {m} → SQC.Chain⇒ m (suc m)
+            res-arrow = SQC.step SQC.stop
+
+    module _ (K : Cone)
+             (tree : (v : ℕ) (a : LabelSys.A₀ (Cone.N K) v)
+                   → M (A (sYS (Cone.N K))) (E (sYS (Cone.N K))) v)
+             (tree-here : (v : ℕ) (a : LabelSys.A₀ (Cone.N K) v)
+                        → M.here (tree v a) ≡ a)
+      where
+
+      private Nk  = Cone.N K
+              ψk  = Cone.ψ K
+
+      -- Move a head equation from the tree root M.here (tree v a) to
+      -- the prescribed label a along the root equation.
+      -- 沿根等式把头部等式从树根 M.here (tree v a) 搬到指定标签 a。
+      private
+        relocate : {Q : Set ℓ} (v : ℕ)
+                   (f g : LabelSys.A₀ Nk v → Q)
+                   (a : LabelSys.A₀ Nk v)
+                 → f (M.here (tree v a)) ≡ g (M.here (tree v a))
+                 → f a ≡ g a
+        relocate v f g a h0 =
+          trans (cong f (sym (tree-here v a)))
+                (trans h0 (cong g (tree-here v a)))
+
+      -- Read the restriction coherence as a head equation.
+      -- 将限制相干读为头部等式。
+      kcoh : (m : ℕ) (v : ℕ) (a : LabelSys.A₀ Nk v)
+           → l-proj m v (Idx⇒.shape (ψk (suc m)) v a)
+           ≡ Idx⇒.shape (ψk m) v a
+      kcoh m v a =
+        relocate v
+          (λ x → l-proj m v (Idx⇒.shape (ψk (suc m)) v x))
+          (Idx⇒.shape (ψk m) v) a
+          (_≈Mˢ_.here-eq
+            (Cone.commute K {X = suc m} {Y = m} res-arrow
+                          v (tree v a)))
+
+      Kpc : PCone Nk
+      Kpc = record { ψ = ψk ; coh = kcoh }
+
+      -- The unique mediator and its cone factorisation.
+      -- 唯一 mediate 及其锥因子分解。
+      mediate-i : Idx⇒ s Nk apexLS
+      mediate-i = mediate Kpc
+
+      !K : Cone⇒ K nCone
+      !K = record
+        { arr     = mediate-i
+        ; commute = λ {X} →
+                      pointwise-i (compi s (projLeg X) mediate-i) (ψk X)
+                                  (triangle Kpc X)
+        }
+
+      -- Any other mediator is bisimulation-equal to mediate-i.
+      -- 任何其他 mediate 与 mediate-i 互模拟相等。
+      !K-unique : (h : Cone⇒ K nCone)
+                → _≈i_ s (Cone⇒.arr h) mediate-i
+      !K-unique h =
+        pointwise-i (Cone⇒.arr h) mediate-i
+          (unique (Cone⇒.arr h) Kpc
+            (λ X v a →
+              relocate v
+                (Idx⇒.shape (compi s (projLeg X) (Cone⇒.arr h)) v)
+                (Idx⇒.shape (ψk X) v) a
+                (_≈Mˢ_.here-eq
+                  (Cone⇒.commute h {X = X} v (tree v a)))))
+
