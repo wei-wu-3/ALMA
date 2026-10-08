@@ -230,3 +230,51 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       ; homomorphism = λ {m y n f g} → fold-hom g f
       ; F-resp-≈    = λ {m n p q} eq → fold-resp-i {p = p} {q = q} eq
       }
+
+    open import Categories.Diagram.Cocone chainFun
+
+    -- Tagging after one forward step equals one extend of the tagged
+    -- thread, definitionally.
+    -- 前向一步后再标签化，等于对标签化线程做一次 extend，定义性成立。
+    one-ray : (m v : ℕ) (a : L₀ m v)
+            → mk (suc m) (emb m v a) ≈Thread mk m a
+    one-ray m v a = record { dl = 0 ; dr = 1 ; same = refl }
+
+    -- One-step leg coherence: leg (suc m) ∘ emb m ≈ leg m.
+    -- 一步腿相干：leg (suc m) ∘ emb m ≈ leg m。
+    one-coh-i : (m : ℕ)
+              → _≈i_ s (compi s (legIdx (suc m)) (embIdx m)) (legIdx m)
+    one-coh-i m =
+      pointwise-i s
+        (compi s (legIdx (suc m)) (embIdx m)) (legIdx m)
+        (λ v a → one-ray m v a)
+
+    -- Path leg coherence.
+    -- 路径腿相干。
+    leg-path : {m n : ℕ} (p : Chain⇒ m n)
+             → _≈i_ s (compi s (legIdx n) (fold-emb p)) (legIdx m)
+    leg-path {m} {.m} SQC.stop =
+      reflc {f = compi s (legIdx m) (idxi s (stageLS m))}
+    leg-path {m} {.(suc t)} (SQC.step {n = t} p) =
+      transc {X = stageLS m} {Y = apexLS}
+        {f = compi s (legIdx (suc t))
+               (compi s (embIdx t) (fold-emb p))}
+        {g = compi s (compi s (legIdx (suc t)) (embIdx t)) (fold-emb p)}
+        {h = legIdx m}
+        (reflc {f = compi s (legIdx (suc t))
+                  (compi s (embIdx t) (fold-emb p))})
+        (transc {X = stageLS m} {Y = apexLS}
+           {f = compi s (compi s (legIdx (suc t)) (embIdx t)) (fold-emb p)}
+           {g = compi s (legIdx t) (fold-emb p)}
+           {h = legIdx m}
+           (respc {X = stageLS m} {Y = stageLS t} {Z = apexLS}
+              {F₁ = fold-emb p} {F₂ = fold-emb p}
+              {G₁ = compi s (legIdx (suc t)) (embIdx t)} {G₂ = legIdx t}
+              (reflc {f = fold-emb p}) (one-coh-i t))
+           (leg-path p))
+
+    -- The canonical direct-limit cocone (unconditional).
+    -- 规范直接极限余锥（无条件）。
+    nCocone : Cocone
+    nCocone = record
+      { coapex = record { ψ = legIdx ; commute = λ {m n} p → leg-path p } }
