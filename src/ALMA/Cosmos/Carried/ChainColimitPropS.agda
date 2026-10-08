@@ -38,9 +38,12 @@ open import Relation.Binary.PropositionalEquality.Core
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
 
-open import ALMA.Base.MCorrSetoid using (EqOn; propEqOn)
+open import ALMA.Base.MCorr using (M)
+open import ALMA.Base.MCorrSetoid
+  using (SysEq; EqOn; propEqOn; _≈Mˢ_)
+open SysEq
 open import ALMA.Cosmos.Carried.SameIndexCatS
-  using (LabelSys; Idx⇒; idxi; compi; _≈i_
+  using (LabelSys; dsys; Idx⇒; idxi; compi; _≈i_
         ; SameIndexCat; ≈i-refl; ≈i-sym; ≈i-trans; ∘-resp-≈i
         ; pointwise-i)
 
@@ -278,3 +281,179 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     nCocone : Cocone
     nCocone = record
       { coapex = record { ψ = legIdx ; commute = λ {m n} p → leg-path p } }
+
+    --------------------------------------------------------------------
+    -- Pointwise cocones and the mediating functor.  A competing cocone
+    -- is a coapex Z with legs ψ m and one-step coherence
+    -- ψ (suc m) (emb m a) ≈ ψ m a in the fibre setoid.  The mediator
+    -- evaluates a thread at its birth stage; invariance under extend
+    -- makes it well-defined on _≈Thread_.  No injectivity, root,
+    -- isomorphism or global section is required at this pointwise
+    -- level, and no transport, K or funExt is used.
+    --
+    -- 逐点余锥与 mediate 函子。竞争余锥由余顶点 Z、腿 ψ m 与一步相干
+    -- ψ (suc m)(emb m a) ≈ ψ m a 组成。mediate 在诞生阶段求值线程；
+    -- extend 下不变性使其在 _≈Thread_ 上良定义。逐点层无需单射、根、
+    -- 同构或全局截面，且无传输、不用 K 与函数外延性。
+    record PFCocone (Z : LabelSys ℓ) : Set (lsuc ℓ) where
+      field
+        ψc  : (m : ℕ) → Idx⇒ s (stageLS m) Z
+        coh : (m v : ℕ) (a : L₀ m v)
+            → EqOn._≈_ (LabelSys.≈A₀ Z v)
+                        (Idx⇒.shape (ψc (suc m)) v (emb m v a))
+                        (Idx⇒.shape (ψc m) v a)
+    open PFCocone
+
+    module _ {Z : LabelSys ℓ} (K : PFCocone Z) where
+
+      private ≈Z = LabelSys.≈A₀ Z
+
+      -- Evaluate a stage-tagged thread at its birth stage.
+      -- 在诞生阶段求值阶段标签化线程。
+      eval-ray : {v : ℕ} → Thread v → LabelSys.A₀ Z v
+      eval-ray (mk m a) = Idx⇒.shape (ψc K m) _ a
+
+      -- One forward extend leaves the evaluation unchanged.
+      -- 一次前向 extend 下求值不变。
+      eval-ext : {v : ℕ} (τ : Thread v)
+               → EqOn._≈_ (≈Z v) (eval-ray (extend τ)) (eval-ray τ)
+      eval-ext (mk m a) = coh K m _ a
+
+      eval-ext^ : (k : ℕ) {v : ℕ} (τ : Thread v)
+                → EqOn._≈_ (≈Z v) (eval-ray (extend^ k τ)) (eval-ray τ)
+      eval-ext^ zero    τ = EqOn.refl (≈Z _)
+      eval-ext^ (suc k) τ =
+        EqOn.trans (≈Z _) (eval-ext (extend^ k τ)) (eval-ext^ k τ)
+
+      -- Same-ray threads evaluate to setoid-equal labels.
+      -- 同一射线的线程求值为 setoid 相等标签。
+      med-shape-cong : {v : ℕ} {τ τ' : Thread v}
+                     → τ ≈Thread τ'
+                     → EqOn._≈_ (≈Z v) (eval-ray τ) (eval-ray τ')
+      med-shape-cong {v = v} r =
+        EqOn.trans (≈Z v)
+          (EqOn.sym (≈Z v) (eval-ext^ (dl r) _))
+          (EqOn.trans (≈Z v)
+             (EqOn.reflexive (≈Z v) (cong eval-ray (same r)))
+             (eval-ext^ (dr r) _))
+
+      -- The mediator.
+      -- mediate。
+      mediate : Idx⇒ s apexLS Z
+      mediate = record
+        { shape      = λ v τ → eval-ray τ
+        ; shape-cong = med-shape-cong
+        }
+
+      -- Factorisation: mediate ∘ leg m is pointwise ψ m.
+      -- 因子分解：mediate ∘ leg m 逐点等于 ψ m。
+      triangle : (m v : ℕ) (a : L₀ m v)
+               → EqOn._≈_ (≈Z v)
+                           (Idx⇒.shape (ψc K m) v a)
+                           (Idx⇒.shape (ψc K m) v a)
+      triangle m v a = EqOn.refl (≈Z v)
+
+      -- Any other factorising mediator is pointwise equal to mediate.
+      -- 任何其他可因子分解的 mediate 与本 mediate 逐点相等。
+      unique : (h : Idx⇒ s apexLS Z)
+             → ((m v : ℕ) (a : L₀ m v)
+                → EqOn._≈_ (≈Z v)
+                            (Idx⇒.shape h v (mk m a))
+                            (Idx⇒.shape (ψc K m) v a))
+             → (v : ℕ) (τ : Thread v)
+             → EqOn._≈_ (≈Z v)
+                         (Idx⇒.shape h v τ) (eval-ray τ)
+      unique h ht v (mk m a) = ht m v a
+
+    --------------------------------------------------------------------
+    -- Standard colimit, conditionally.  A bisimulation cocone whose
+    -- stage objects carry, at every label, a total label-tree rooted at
+    -- that label (propositional fibres) admits a unique Cocone⇒ out of
+    -- nCocone.  The tree is used only to read the pointwise head
+    -- coherence off the bisimulation commute; factorisation and
+    -- uniqueness then lift by pointwise-i.
+    --
+    -- 条件性标准余极限。若余锥的阶段对象在每个标签处带一棵以该标签为根
+    -- 的全总标签树（命题纤维），则存在从 nCocone 出发的唯一 Cocone⇒。
+    -- 树仅用于从双模拟 commute 读出逐点头部相干；因子分解与唯一性随后由
+    -- pointwise-i 提升。
+    module StandardColimit where
+
+      private
+        succ-arrow : ∀ {m} → Chain⇒ m (suc m)
+        succ-arrow = SQC.step SQC.stop
+
+      module _ (K : Cocone)
+               (tree : (m v : ℕ) (a : L₀ m v)
+                     → M (A (dsys s (stageLS m)))
+                         (E (dsys s (stageLS m))) v)
+               (tree-here : (m v : ℕ) (a : L₀ m v)
+                          → M.here (tree m v a) ≡ a)
+        where
+
+        private
+          Zk = Cocone.N K
+          ψk = Cocone.ψ K
+
+          -- Move a head equation from the tree root M.here to the
+          -- prescribed label a, along the propositional root equation.
+          -- 沿命题根等式把头部等式从树根 M.here 搬到指定标签 a。
+          relocate : (m v : ℕ)
+                     (F G : Idx⇒ s (stageLS m) Zk)
+                     (a : L₀ m v)
+                   → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                               (Idx⇒.shape F v (M.here (tree m v a)))
+                               (Idx⇒.shape G v (M.here (tree m v a)))
+                   → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                               (Idx⇒.shape F v a)
+                               (Idx⇒.shape G v a)
+          relocate m v F G a h0 =
+            EqOn.trans (LabelSys.≈A₀ Zk v)
+              (EqOn.sym (LabelSys.≈A₀ Zk v)
+                 (Idx⇒.shape-cong F (tree-here m v a)))
+              (EqOn.trans (LabelSys.≈A₀ Zk v)
+                 h0
+                 (Idx⇒.shape-cong G (tree-here m v a)))
+
+          -- Forward cocone coherence as a head equation.
+          -- 前向余锥相干作为头部等式。
+          kcoh : (m v : ℕ) (a : L₀ m v)
+               → EqOn._≈_ (LabelSys.≈A₀ Zk v)
+                   (Idx⇒.shape (ψk (suc m)) v (emb m v a))
+                   (Idx⇒.shape (ψk m) v a)
+          kcoh m v a =
+            relocate m v
+              (compi s (ψk (suc m)) (embIdx m)) (ψk m) a
+              (_≈Mˢ_.here-eq
+                (Cocone.commute K {X = m} {Y = suc m} succ-arrow
+                              v (tree m v a)))
+
+          Kpf : PFCocone Zk
+          Kpf = record { ψc = ψk ; coh = kcoh }
+
+        -- The unique mediator and its cocone factorisation.
+        -- 唯一 mediate 及其余锥因子分解。
+        mediate-i : Idx⇒ s apexLS Zk
+        mediate-i = mediate Kpf
+
+        !K : Cocone⇒ nCocone K
+        !K = record
+          { arr     = mediate-i
+          ; commute = λ {m} →
+                        pointwise-i s
+                          (compi s mediate-i (legIdx m)) (ψk m)
+                          (triangle Kpf m)
+          }
+
+        -- Any other mediator is bisimulation-equal to mediate-i.
+        -- 任何其他 mediate 与 mediate-i 互模拟相等。
+        !K-unique : (h : Cocone⇒ nCocone K)
+                  → _≈i_ s (Cocone⇒.arr h) mediate-i
+        !K-unique h =
+          pointwise-i s (Cocone⇒.arr h) mediate-i
+            (unique Kpf (Cocone⇒.arr h)
+              (λ m v a →
+                relocate m v
+                  (compi s (Cocone⇒.arr h) (legIdx m)) (ψk m) a
+                  (_≈Mˢ_.here-eq
+                    (Cocone⇒.commute h {X = m} v (tree m v a)))))
