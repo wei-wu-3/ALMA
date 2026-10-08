@@ -4,17 +4,19 @@
 --
 -- The push tower only carries labels forward (l-emb).  A cochain needs
 -- a backward arrow, so an inverse system adds l-proj, the retraction of
--- l-emb on the already-born part (proj-emb : l-proj ∘ l-emb ≡ id).  Both
--- maps keep the global id, hence every arrow is an identity-index Idx⇒
--- and the whole construction lives in SameIndexCatS: no Fin alignment,
--- no transport, no K.
+-- l-emb on the already-born part (proj-emb : l-proj ∘ l-emb ≡ id).  Every
+-- arrow keeps the global id, hence is an identity-index Idx⇒ and the
+-- construction lives in SameIndexCatS: no Fin alignment, no transport,
+-- no K, no function extensionality (the limit fibre carries a pointwise
+-- setoid).
 --
 -- 同索引携带函子上的非平凡纤维逆向（pull / limit）系统。
 --
 -- push 塔只向前携带标签（l-emb）。余链需要反向箭头，故逆向系统加入
 -- l-proj，即 l-emb 在已诞生部分上的收缩（proj-emb：l-proj ∘ l-emb ≡
--- id）。两个映射都保持全局 id，故每条箭头都是索引恒等的 Idx⇒，整个构造
--- 落在 SameIndexCatS 中：无 Fin 对齐、无传输、不用 K。
+-- id）。每条箭头保持全局 id，因而是索引恒等的 Idx⇒，构造落在
+-- SameIndexCatS 中：无 Fin 对齐、无传输、不用 K、不用函数外延性（极限
+-- 纤维携带逐点 setoid）。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -23,7 +25,8 @@ module ALMA.Cosmos.Carried.NontrivialPullTowerS where
 
 open import Agda.Primitive using (Level; lzero; lsuc)
 open import Agda.Builtin.Equality using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (cong)
+open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
+open import Relation.Binary.Structures using (IsEquivalence)
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Unit.Polymorphic.Base using (⊤)
 open import Agda.Builtin.Sigma using (Σ; _,_)
@@ -57,8 +60,8 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     s = d
     sYS = dsys s
 
-  -- Stage label family and its system.
-  -- 阶段标签族及其系统。
+  -- Stage label family (propositional fibre setoid).
+  -- 阶段标签族（命题纤维 setoid）。
   stageLS : ℕ → LabelSys ℓ
   stageLS m = record
     { A₀  = L m
@@ -66,45 +69,37 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     }
 
   ----------------------------------------------------------------------
-  -- Pointwise equality of fibre maps implies morphism bisimilarity.
-  -- Both morphisms are identity-index, so the child target index and
-  -- the child tree coincide; the head is the given equation and the
-  -- children recurse guardedly.
+  -- Pointwise equality of two fibre maps into a propositional-fibre
+  -- family, as a pointwise label-tree bisimulation.  The source label
+  -- family may carry any setoid; only the target is propositional.  Both
+  -- maps are identity-index, so the child index and child tree coincide:
+  -- the head is the given equation and the children recurse guardedly.
   --
-  -- 纤维映射逐点相等蕴含态射互模拟。两态射均索引恒等，故子节点目标索引
-  -- 与子树重合；头部为所给等式，子节点守卫递归。
-  -- Pointwise equality of fibre maps between propositional-fibre label
-  -- families, as a pointwise label-tree bisimulation.  The child index
-  -- and child tree coincide (identity index); the head is the given
-  -- equation and the children recurse guardedly.
-  --
-  -- 命题纤维标签族之间纤维映射逐点相等，写成逐点标签树互模拟。子节点索引
-  -- 与子树重合（索引恒等）；头部为所给等式，子节点守卫递归。
-  module _ (P Q : ℕ → Set ℓ) where
+  -- 两个进入命题纤维族的纤维映射逐点相等，写成逐点标签树互模拟。源标签族
+  -- 可带任意 setoid，仅目标为命题的。两映射索引恒等，故子节点索引与子树
+  -- 重合：头部为所给等式，子节点守卫递归。
+  module _ (X : LabelSys ℓ) (Q : ℕ → Set ℓ) where
     private
-      XP : LabelSys ℓ
-      XP = record { A₀ = P ; ≈A₀ = λ v → propEqOn (P v) }
       YQ : LabelSys ℓ
       YQ = record { A₀ = Q ; ≈A₀ = λ v → propEqOn (Q v) }
-      sx = sYS XP
+      sx = sYS X
       sy = sYS YQ
       edgeEQ : (v w : ℕ) → Set lzero
       edgeEQ v w = Σ (⊤ {lzero}) λ _ → w ≡ s v
-      fmap : ((v : ℕ) → P v → Q v) → FMapˢ sx sy
+      fmap : ((v : ℕ) → LabelSys.A₀ X v → Q v) → FMapˢ sx sy
       fmap sh = record
         { u      = λ z → z
         ; shape  = sh
         ; childF = λ z _ w → w , refl
         ; adjFˢ  = λ z _ w → idAdjˢ (propEqOn (edgeEQ z w))
         }
-      img : ((v : ℕ) → P v → Q v)
+      img : ((v : ℕ) → LabelSys.A₀ X v → Q v)
           → (v : ℕ) → M (A sx) (E sx) v → M (A sy) (E sy) v
       img sh v t = FMapˢ.mapFˢ (fmap sh) v t
 
     pointwise→≈i
-      : (shf : (v : ℕ) → P v → Q v)
-        (shg : (v : ℕ) → P v → Q v)
-      → ((v : ℕ) (a : P v) → shf v a ≡ shg v a)
+      : (shf shg : (v : ℕ) → LabelSys.A₀ X v → Q v)
+      → ((v : ℕ) (a : LabelSys.A₀ X v) → shf v a ≡ shg v a)
       → (v : ℕ) (t : M (A sx) (E sx) v)
       → _≈Mˢ_ (≈A sy) (≈E sy) (img shf v t) (img shg v t)
     pointwise→≈i shf shg eq v t = go v t
@@ -149,7 +144,54 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
   res-emb : (m : ℕ)
           → _≈i_ s (compi s (resIdx m) (embIdx m)) (idxi s (stageLS m))
   res-emb m =
-    pointwise→≈i (L m) (L m)
+    pointwise→≈i (stageLS m) (L m)
       (λ v a → l-proj m v (l-emb m v a))
       (λ v a → a)
       (λ v a → proj-emb m v a)
+
+  ----------------------------------------------------------------------
+  -- Limit apex: a compatible family of stage labels at each global id.
+  -- Equality is pointwise over stages (a setoid), so uniqueness of the
+  -- mediating morphism needs no function extensionality and no K.
+  --
+  -- 极限顶点：每个全局 id 处阶段标签的相容族。相等按阶段逐点给出（一个
+  -- setoid），故 mediate 态射的唯一性既不需函数外延性也不用 K。
+  record LimLabel (v : ℕ) : Set ℓ where
+    field
+      at  : (m : ℕ) → L m v
+      coh : (m : ℕ) → l-proj m v (at (suc m)) ≡ at m
+  open LimLabel
+
+  apex≈ : (v : ℕ) → EqOn (LimLabel v)
+  apex≈ v = record
+    { _≈_ = λ a b → (m : ℕ) → at a m ≡ at b m
+    ; isEquivalence = record
+      { refl  = λ m → refl
+      ; sym   = λ h m → sym (h m)
+      ; trans = λ h k m → trans (h m) (k m)
+      }
+    }
+
+  apexLS : LabelSys ℓ
+  apexLS = record
+    { A₀  = LimLabel
+    ; ≈A₀ = apex≈
+    }
+
+  -- Projection legs: read the stage-m component of the compatible family.
+  -- 投影锥腿：读取相容族的阶段 m 分量。
+  projLeg : (m : ℕ) → Idx⇒ s apexLS (stageLS m)
+  projLeg m = record
+    { shape      = λ v a → at a m
+    ; shape-cong = λ h → h m
+    }
+
+  -- Limit cone coherence: resIdx m ∘ projLeg (m+1) ≈ projLeg m.
+  -- 极限锥相干：resIdx m ∘ projLeg (m+1) ≈ projLeg m。
+  cone-coh : (m : ℕ)
+    → _≈i_ s (compi s (resIdx m) (projLeg (suc m))) (projLeg m)
+  cone-coh m =
+    pointwise→≈i apexLS (L m)
+      (λ v a → l-proj m v (at a (suc m)))
+      (λ v a → at a m)
+      (λ v a → coh a m)
