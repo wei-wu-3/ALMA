@@ -88,17 +88,18 @@ agda -i src src/Everything.agda
 src/
 ├── ALMA/
 │   ├── Base/                              Active main line — foundation
-│   │   ├── IndexedMType.agda
-│   │   ├── MCategory.agda
-│   │   ├── MCorr.agda                     Carried correspondence kernel
-│   │   ├── MCorrSetoid.agda               Setoid-parameterised kernel
-│   │   ├── MCorrSetoidCat.agda            Setoid correspondence category
-│   │   ├── MCorrSetoidPush.agda           Setoid forward (push) relation
-│   │   ├── MCorrSetoidPushMap.agda        Push map and congruence
-│   │   ├── MCorrSetoidPushComp.agda       Push relation composition
-│   │   ├── DetCat.agda                    Deterministic forward category
-│   │   ├── Equivalence.agda
-│   │   └── Equivalence/
+│   │   ├── IndexedMType.agda             Indexed coinductive skeleton Mᵢ
+│   │   ├── MCategory.agda                Category of (co)algebras on Mᵢ
+│   │   ├── MCorr.agda                    Edge-family carried correspondence kernel
+│   │   ├── MCorrSetoid.agda              Setoid-parameterised kernel
+│   │   ├── MCorrSetoidCat.agda           Pull correspondence category
+│   │   ├── MCorrSetoidCoalg.agda         Carried terminal coalgebra
+│   │   ├── MCorrSetoidPush.agda          Forward (push) relation
+│   │   ├── MCorrSetoidPushMap.agda       Push map and congruence
+│   │   ├── MCorrSetoidPushComp.agda      Push relation composition
+│   │   ├── DetCat.agda                   Deterministic forward category
+│   │   ├── Equivalence.agda              Observation-equivalence umbrella
+│   │   └── Equivalence/                  Two-axis degeneracy lattice
 │   │       ├── Core.agda
 │   │       ├── SubstTransport.agda
 │   │       ├── Properties.agda
@@ -119,47 +120,47 @@ src/
 │   │   ├── ContCategoryLemmas.agda
 │   │   ├── ContFunctor.agda
 │   │   ├── ContCatEquiv.agda
-│   │   ├── M/
+│   │   ├── M/                             Deterministic container M-Cosmos
 │   │   │   ├── Object.agda                M-Cosmos object layer
 │   │   │   ├── ContainerInstance.agda     I = ⊤ special case
-│   │   │   ├── Terminal.agda
-│   │   │   ├── CoalgCat.agda
-│   │   │   ├── Lambek.agda
-│   │   │   ├── CosmosCategory.agda
-│   │   │   ├── DetCongruence.agda         Congruence engines
-│   │   │   ├── GenCongruence.agda
-│   │   │   ├── ListSwap.agda
+│   │   │   ├── Terminal.agda              Terminal coalgebra up to bisimulation
+│   │   │   ├── CoalgCat.agda              Category of M-Cosmos coalgebras
+│   │   │   ├── Lambek.agda                Lambek lemma
+│   │   │   ├── CosmosCategory.agda        M-Cosmos category
+│   │   │   ├── DetCongruence.agda         Fixed-label congruence engine
+│   │   │   ├── GenCongruence.agda         Label-action congruence engine
+│   │   │   ├── ListCosmos.agda            swap01 via DetCongruence
+│   │   │   ├── ListSwap.agda              ℕ/Fin swap via GenCongruence
 │   │   │   ├── ListSwapDef.agda
 │   │   │   ├── MorphismCorrespondence.agda
 │   │   │   ├── ContainerAutomorphism.agda
-│   │   │   ├── ListCosmos.agda
-│   │   │   ├── TowerSeparation.agda       Separation / obstruction
 │   │   │   ├── PermutationNonCommutative.agda
-│   │   │   ├── NontrivialLimit.agda
-│   │   │   ├── SewingObstruction.agda
-│   │   │   └── PermutedEmbedding.agda
+│   │   │   ├── PermutedEmbedding.agda
+│   │   │   ├── TowerSeparation.agda       Bisimulation separation witness
+│   │   │   ├── NontrivialLimit.agda       No nontrivial limit over a trivial apex
+│   │   │   └── SewingObstruction.agda
 │   │   └── Carried/                       Zero-subst colimit machinery
+│   │       ├── FinNatUIP.agda             Hedberg UIP on ℕ/Fin
 │   │       ├── DetSys.agda                Deterministic stage systems
 │   │       ├── TrivProj.agda              Trivial-fibre projections
-│   │       ├── FinNatUIP.agda             Hedberg UIP on ℕ/Fin
 │   │       ├── FinProj.agda               Fin-tower projections
+│   │       ├── SeqColimit.agda            Sequential colimits
 │   │       ├── LimitSystem.agda           Pull limit system (⊤ fibre)
 │   │       ├── FinEmbed.agda              Fin-tower embeddings
-│   │       ├── FinTower.agda              Fin towers
 │   │       ├── FinColimit.agda            Fin-tower colimits
+│   │       ├── FinTower.agda              Fin towers
 │   │       ├── DetColimit.agda            Deterministic colimits
-│   │       ├── SeqColimit.agda            Sequential colimits
 │   │       ├── Boundaries.agda            Negative polarity results
-│   │       ├── SeqColimitCat.agda         ω-chain category
 │   │       ├── SeqColimitS.agda           Setoid sequential colimits
+│   │       ├── SeqColimitCat.agda         ω-chain category
 │   │       ├── ColimitPolarity.agda       Push/pull leg polarity
+│   │       ├── LimitSystemS.agda          Setoid push limit system
 │   │       ├── FinPushMediateS.agda       Setoid push mediators
 │   │       ├── FinPushColimitS.agda       Setoid Fin push colimits
 │   │       ├── FinPushColimitCat.agda     Standard Colimit bundling
-│   │       ├── LimitSystemS.agda          Setoid push limit system
 │   │       ├── SameIndexCatS.agda         Same-index wide subcategory
-│   │       ├── NontrivialPushTowerS.agda  Nontrivial-fibre push towers
 │   │       ├── NontrivialPullTowerS.agda  Nontrivial-fibre pull towers
+│   │       ├── NontrivialPushTowerS.agda  Nontrivial-fibre push towers
 │   │       ├── ChainColimitS.agda         Arbitrary-setoid ω-chain colimit
 │   │       └── ChainColimitPropS.agda     Propositional-fibre growing-chain colimit
 │   │
