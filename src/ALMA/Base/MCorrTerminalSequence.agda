@@ -283,3 +283,81 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   -- 它，要么把累积伴随作为锥的数据携带（截断锥处即恒等），要么假设子树
   -- 映射是边 setoid 同余。这与别处同属证明相关/funExt 边界，并非逻辑
   -- 必然，此处点明而不偷偷假设。
+
+  ----------------------------------------------------------------------
+  -- Path B machinery. Finite-depth setoid transitivity: the two edge
+  -- adjunctions compose via compAdjˢ and the pointwise children close
+  -- recursively.
+  -- 路径 B 机器。有限深度 setoid 的传递性：两根边伴随经 compAdjˢ 复合，
+  -- 逐点子树递归闭合。
+  ≈Tr-trans : ∀ {n : ℕ} {x : I} {q r s : Tr n x}
+            → q ≈Tr r → r ≈Tr s → q ≈Tr s
+  ≈Tr-trans {n = zero}  _ _ = tt
+  ≈Tr-trans {n = suc m} {x = x}
+            {(a , k)} {(a' , k')} {(a'' , k'')} (ha₁ , b₁) (ha₂ , b₂) =
+      EqOn.trans (≈A x) ha₁ ha₂
+    , λ y →
+        let adj₁ , f1 , b1c = b₁ y
+            adj₂ , f2 , b2c = b₂ y
+            adj = compAdjˢ (≈E x a y) (≈E x a' y) (≈E x a'' y)
+                            adj₁ adj₂
+        in adj
+         , ( (λ e   → ≈Tr-trans (f1 e) (f2 (to adj₁ e)))
+           , (λ e'' → ≈Tr-trans (b2c e'') (b1c (fro adj₂ e''))) )
+
+  -- Cross-depth label coherence of a cone: the depth-0 label is related
+  -- to the depth-m label by composing the label components of coh.
+  -- 锥的跨深度标签相干：深度 0 标签经 coh 的标签分量复合而与深度 m 标签
+  -- 相关。
+  cone-label-coh : ∀ {x : I} (c : Cone x) (m : ℕ)
+                 → EqOn._≈_ (≈A x) (cone-head c 0) (cone-head c m)
+  cone-label-coh c zero    = EqOn.refl (≈A _)
+  cone-label-coh c (suc m)
+    with coh c (suc m)
+  ... | ha , _ = EqOn.trans (≈A _) (cone-label-coh c m) ha
+
+  -- Edge-setoid congruence of a cone, carried at the cone and every tail
+  -- cone. `here-cong` says equivalent edges at depth m index
+  -- pointwise-related depth children; `tail-cong` lifts the same to each
+  -- depth-0 tail cone. This is the extra hypothesis under which the
+  -- backward leg closes (and hence the strict setoid iso). An arbitrary
+  -- M-tree's `below` is just an edge-indexed function and does not supply
+  -- it, so this is a condition, not a logical necessity.
+  -- 锥的边 setoid 同余，携带于锥及其每个尾锥。`here-cong` 表示深度 m 处
+  -- 等价的边索引出逐点相关的深度子树；`tail-cong` 将其提升到每个深度 0
+  -- 尾锥。这是反向腿（因而严格 setoid 同构）闭合所需的额外假设；一般
+  -- M-树的 `below` 只是边索引函数，不提供它，故这是条件而非逻辑必然。
+  record ConeCong {x : I} (c : Cone x) : Set ℓeq where
+    coinductive
+    field
+      here-cong : (m : ℕ) (y : I)
+                  (e e' : E x (cone-head c m) y)
+                → EqOn._≈_ (≈E x (cone-head c m) y) e e'
+                → _≈Tr_ {n = m} (kids (obs c (suc m)) y e)
+                              (kids (obs c (suc m)) y e')
+      tail-cong : (y : I) (e : E x (cone-head c 0) y)
+                → ConeCong (tail-cone c y e)
+  open ConeCong
+
+  -- Conditional round trip (limit side): under ConeKidsCong, truncating
+  -- the mediating tree reproduces the cone's observation at every depth.
+  -- The forward component is the induction hypothesis at the tail cone;
+  -- the backward component closes with the adjunction counit, here-cong
+  -- and finite-depth transitivity. No subst, no funExt.
+  -- 条件性往返（极限侧）：在 ConeCong 下，截断中介树逐深度复现锥的观察。
+  -- 前向分量即尾锥处的归纳假设；反向分量由伴随余单位、here-cong 与有限
+  -- 深度传递性闭合。无 subst、无 funExt。
+  take-mediate : ∀ {x : I} {c : Cone x} (cc : ConeCong c) (n : ℕ)
+               → take {n = n} (mediate c) ≈Tr obs c n
+  take-mediate cc zero    = tt
+  take-mediate {x = x} {c = c} cc (suc m) =
+      cone-label-coh c m
+    , λ y →
+        let Γ  = relabel c m y
+            cg = λ e → tail-cong cc y e
+        in Γ
+         , ( (λ e   → take-mediate (cg e) m)
+           , (λ e'  →
+               let ih = take-mediate (cg (fro Γ e')) m
+                   hc = here-cong cc m y (to Γ (fro Γ e')) e' (ε Γ e')
+               in ≈Tr-sym (≈Tr-trans ih hc)) )
