@@ -20,10 +20,15 @@
 -- the carried setoid/bisimulation rather than _≡_: a propositional iso
 -- would compare child functions pointwise and hence need funExt, which
 -- is not assumed. This module gives the approximants, the M cone, the
--- finite-depth necessity of bisimulation, the compatible-family cone
--- and the unconditional mediating map (limit → νF); the round trips and
--- uniqueness up to _≈Mˢ_ follow in a separate slice, together with the
--- carried-adjunction condition they require.
+-- finite-depth necessity of bisimulation, the compatible-family cone,
+-- the unconditional mediating map (limit → νF), and the limit-side round
+-- trip under the carried edge-congruence ConeCong. The fully carried
+-- coinductive limit (cumulative adjunctions and all tail cones as data)
+-- has M's own signature -- a current label plus edge-indexed children --
+-- so M is that coinductive limit up to its eta; a duplicate record would
+-- be a thin wrapper. The remaining strict setoid iso / uniqueness is
+-- conditional on edge-setoid congruence (ConeCong), the same
+-- proof-relevance/funExt boundary as elsewhere, not a logical necessity.
 --
 -- 索引边族函子的终序列，有限深度侧。一步函子为
 --   F X i = Σ (A i) λ a → (j : I) (e : E i a j) → X j；
@@ -39,9 +44,12 @@
 -- 每个 F 层都把子节点作为数据暴露（有界/多项式形状）：树由其有限深度
 -- 前缀决定，故极限在 ω 处达到，无需超限（κ）迭代。相等取携带 setoid/
 -- 互模拟而非 _≡_：命题式同构需逐点比较子函数、因而需要 funExt，此处不
--- 假设。本模块给出近似物、M 锥、互模拟的有限深度必要性、相容族锥与无
--- 条件的中介映射（极限 → νF）；两个往返与到 _≈Mˢ_ 的唯一性连同其所需的
--- 携带伴随条件在另一切片给出。
+-- 假设。本模块给出近似物、M 锥、互模拟的有限深度必要性、相容族锥、无
+-- 条件的中介映射（极限 → νF），以及携带边同余 ConeCong 下的极限侧往返。
+-- 完全携带式余归纳极限（累积伴随与所有尾锥皆作为数据）的签名与 M 本身
+-- 相同——当前标签加边索引子节点——故 M 到其 eta 即该余归纳极限，再建一个
+-- 同形记录只是薄包装。余下的严格 setoid 同构/唯一性以边 setoid 同余
+-- （ConeCong）为条件，与别处同属证明相关/funExt 边界，并非逻辑必然。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -361,3 +369,34 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
                let ih = take-mediate (cg (fro Γ e')) m
                    hc = here-cong cc m y (to Γ (fro Γ e')) e' (ε Γ e')
                in ≈Tr-sym (≈Tr-trans ih hc)) )
+
+  ----------------------------------------------------------------------
+  -- Uniqueness and the finite-to-bisimulation boundary.
+  --
+  -- `mediate c` is the anamorphism of the cone-induced observation
+  -- coalgebra, so uniqueness of mediating trees up to _≈Mˢ_ is exactly
+  -- the terminal-coalgebra uniqueness already proved in
+  -- MCorrSetoidCoalg (terminalUpToBisim / !-unique); it is not
+  -- re-proved here (a second coinductive record would duplicate _≈Mˢ_).
+  --
+  -- Pointwise finite agreement alone, (n : ℕ) → take n t ≈Tr take n s,
+  -- does NOT yield _≈Mˢ_: each depth selects its own edge adjunction and
+  -- the choices need not be coherent across depths. A cross-depth
+  -- coherent adjunction is precisely the data carried by a _≈Mˢ_ witness
+  -- (here-eq plus one adjunction per target index with recursive
+  -- children), so no weaker pointwise lemma exists without funExt or an
+  -- edge-congruence hypothesis such as ConeCong. This is a structural
+  -- boundary, not a missing construction.
+  --
+  -- 唯一性与有限→互模拟边界。
+  --
+  -- `mediate c` 即锥诱导的观察余代数的 anamorphism，故中介树到 _≈Mˢ_ 的
+  -- 唯一性正是 MCorrSetoidCoalg 已证的终余代数唯一性
+  -- （terminalUpToBisim / !-unique），此处不再重证（再建一个余归纳记录
+  -- 只会重复 _≈Mˢ_）。
+  --
+  -- 仅逐点有限一致 (n : ℕ) → take n t ≈Tr take n s 并不能得出 _≈Mˢ_：
+  -- 每个深度各自选择边伴随，跨深度未必相干。跨深度一致的边伴随恰是
+  -- _≈Mˢ_ 见证所携带的数据（here-eq 加每个目标索引一根伴随及递归子节点），
+  -- 故在没有 funExt 或 ConeCong 这类边同余假设时，不存在更弱的逐点引理。
+  -- 这是结构性边界，而非遗漏的构造。
