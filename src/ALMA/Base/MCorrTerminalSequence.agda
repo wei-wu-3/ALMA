@@ -19,9 +19,11 @@
 -- limit is reached at ω with no transfinite (κ) iteration. Equality is
 -- the carried setoid/bisimulation rather than _≡_: a propositional iso
 -- would compare child functions pointwise and hence need funExt, which
--- is not assumed. The mediating map and the iso up to _≈Mˢ_ follow in a
--- separate slice; this module fixes the approximants, the cone and the
--- finite-depth necessity.
+-- is not assumed. This module gives the approximants, the M cone, the
+-- finite-depth necessity of bisimulation, the compatible-family cone
+-- and the unconditional mediating map (limit → νF); the round trips and
+-- uniqueness up to _≈Mˢ_ follow in a separate slice, together with the
+-- carried-adjunction condition they require.
 --
 -- 索引边族函子的终序列，有限深度侧。一步函子为
 --   F X i = Σ (A i) λ a → (j : I) (e : E i a j) → X j；
@@ -37,8 +39,9 @@
 -- 每个 F 层都把子节点作为数据暴露（有界/多项式形状）：树由其有限深度
 -- 前缀决定，故极限在 ω 处达到，无需超限（κ）迭代。相等取携带 setoid/
 -- 互模拟而非 _≡_：命题式同构需逐点比较子函数、因而需要 funExt，此处不
--- 假设。mediate 映射与到 _≈Mˢ_ 的同构在另一切片给出；本模块固定近似物、
--- 锥与有限深度必要性。
+-- 假设。本模块给出近似物、M 锥、互模拟的有限深度必要性、相容族锥与无
+-- 条件的中介映射（极限 → νF）；两个往返与到 _≈Mˢ_ 的唯一性连同其所需的
+-- 携带伴随条件在另一切片给出。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -53,7 +56,7 @@ open import Data.Product.Base using (_×_; proj₁; proj₂)
 
 open import ALMA.Base.MCorr using (M)
 open import ALMA.Base.MCorrSetoid
-  using (SysEq; EqOn; FiberAdjˢ; idAdjˢ; symAdjˢ; _≈Mˢ_)
+  using (SysEq; EqOn; FiberAdjˢ; idAdjˢ; symAdjˢ; compAdjˢ; _≈Mˢ_)
 
 open FiberAdjˢ
 
@@ -179,3 +182,104 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
         in adj
          , ( (λ e  → bisim→finite (fwd e) m)
            , (λ e' → bisim→finite (bwd e') m) )
+
+  ----------------------------------------------------------------------
+  -- Limit cone: a compatible family of finite-depth observations, with
+  -- coherence at the carried setoid (not _≡_). M supplies a cone via
+  -- truncation.
+  -- 极限锥：有限深度观察的相容族，相容性在携带 setoid（非 _≡_）上。M 经
+  -- 截断给出一个锥。
+
+  record Cone (x : I) : Set ℓeq where
+    field
+      obs : (n : ℕ) → Tr n x
+      coh : (n : ℕ) → obs n ≈Tr drop (obs (suc n))
+  open Cone
+
+  take-coneM : ∀ {x : I} → M A E x → Cone x
+  take-coneM t .obs n = take {n = n} t
+  take-coneM t .coh n = take-cone {n = n} t
+
+  -- Label at depth m+1 of a cone.
+  -- 锥在深度 m+1 处的标签。
+  cone-head : ∀ {x : I} → Cone x → ℕ → A x
+  cone-head c m = head (obs c (suc m))
+
+  -- Cumulative edge relabeling: Γ c m y is the adjunction from the
+  -- depth-0 edge fibre to the depth-m edge fibre, built by composing the
+  -- adjunctions stored in the cone's coherence. `to` sends a depth-0
+  -- edge to its depth-m representative.
+  -- 累积边重定域：Γ c m y 是从深度 0 边纤维到深度 m 边纤维的伴随，由锥
+  -- 相容性中存放的伴随复合而成。`to` 把深度 0 的边映到其在深度 m 的代表。
+  relabel : ∀ {x : I} (c : Cone x) (m : ℕ) (y : I)
+          → FiberAdjˢ (≈E x (cone-head c m) y)
+                       (≈E x (cone-head c 0) y)
+  relabel {x = x} c zero    y = idAdjˢ (≈E x (cone-head c 0) y)
+  relabel {x = x} c (suc m) y
+    with coh c (suc m)
+  ... | _ , body
+    with body y
+  ... | α , _ , _ =
+    compAdjˢ (≈E x (cone-head c 0) y)
+             (≈E x (cone-head c m) y)
+             (≈E x (cone-head c (suc m)) y)
+             (relabel c m y) α
+
+  -- Tail cone at the target index y for a depth-0 edge e: its depth-m
+  -- observation is the depth-(m+1) child of the cone, read along the
+  -- relabelled edge. Coherence is exactly the forward component of the
+  -- cone's coherence, using `to (Γ (suc m)) = to α ∘ to (Γ m)`.
+  -- 目标索引 y 处、对深度 0 边 e 的尾锥：其深度 m 观察是锥的深度 m+1
+  -- 子节点，沿重定域后的边读取。相容性恰为锥相容性的前向分量，用到
+  -- `to (Γ (suc m)) = to α ∘ to (Γ m)`。
+  tail-obs : ∀ {x : I} (c : Cone x) (y : I)
+             (e : E x (cone-head c 0) y) (m : ℕ) → Tr m y
+  tail-obs c y e m =
+    kids (obs c (suc m)) y (to (relabel c m y) e)
+
+  tail-coh : ∀ {x : I} (c : Cone x) (y : I)
+             (e : E x (cone-head c 0) y) (m : ℕ)
+           → tail-obs c y e m ≈Tr drop (tail-obs c y e (suc m))
+  tail-coh c y e m
+    with coh c (suc m)
+  ... | _ , body
+    with body y
+  ... | _ , fwd , _ = fwd (to (relabel c m y) e)
+
+  tail-cone : ∀ {x : I} (c : Cone x) (y : I)
+              (e : E x (cone-head c 0) y) → Cone y
+  tail-cone c y e .obs = tail-obs c y e
+  tail-cone c y e .coh = tail-coh c y e
+
+  ----------------------------------------------------------------------
+  -- Mediating map: every compatible cone realizes an M-tree. The head
+  -- is the depth-1 label; each child mediates the corresponding tail
+  -- cone. The only recursive call is directly under M.below, so the
+  -- definition is guarded; all relabeling is carried, no subst.
+  -- 中介映射：每个相容锥都实现为一棵 M-树。头部取深度 1 标签；每个子
+  -- 节点中介相应的尾锥。唯一的递归调用直接位于 M.below 之下，故受守护；
+  -- 所有重定域皆携带，无 subst。
+
+  mediate : ∀ {x : I} → Cone x → M A E x
+  mediate c .M.here        = cone-head c 0
+  mediate c .M.below y e   = mediate (tail-cone c y e)
+
+  -- This gives the limit→νF leg unconditionally: every compatible
+  -- family of finite observations realizes an M-tree, with all
+  -- cross-depth edge relabeling carried by FiberAdjˢ (no subst, no
+  -- funExt). The two round trips and uniqueness up to _≈Mˢ_ are the next
+  -- sub-slice. For a generic cone the cumulative adjunction is the
+  -- identity only up to the edge EqOn (η/ε), and the backward leg
+  -- compares children at η-related edges; closing it propositionally
+  -- either carries the cumulative adjunction as cone data (identity for
+  -- truncation cones) or assumes child maps are edge-setoid congruent.
+  -- This is the same proof-relevance/funExt boundary as elsewhere, not a
+  -- logical necessity, and is stated rather than assumed away.
+  --
+  -- 这无条件给出极限→νF 一侧：每个有限观察相容族都实现为一棵 M-树，
+  -- 跨深度边重定域全部由 FiberAdjˢ 携带（无 subst、无 funExt）。两个往返
+  -- 与到 _≈Mˢ_ 的唯一性是下一子切片。对一般锥，累积伴随只在边 EqOn
+  -- （η/ε）意义下为恒等，反向腿要在 η 相关的边处比较子树；命题式地闭合
+  -- 它，要么把累积伴随作为锥的数据携带（截断锥处即恒等），要么假设子树
+  -- 映射是边 setoid 同余。这与别处同属证明相关/funExt 边界，并非逻辑
+  -- 必然，此处点明而不偷偷假设。
