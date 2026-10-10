@@ -1,27 +1,16 @@
 ------------------------------------------------------------------------
--- Degeneration: drop next. No recursion, no observation family, only
--- the current-layer relation.
+-- Degeneration
 --
--- The mathematical content of this position is the theory of binary
--- relations, organised into three parallel lines:
---   RelationAlgebra    relations on X: composition, converse,
---                      identity, inclusion, RST → equivalence
---   GaloisConnection   preorders on X and Y: adjoints, closure
---                      operator c = g ∘ f, monotonicity, extensive,
---                      idempotent
---   Symmetrisation     preorder on X: Sym x y = (x ≤ y) × (y ≤ x)
--- Fixpoint is the intersection of GaloisConnection and Symmetrisation:
--- closure operator fixed points are Sym-related to their images.
+-- Drop next. No recursion, no observation family, only the current-layer
+-- relation. The mathematical content is the theory of binary relations,
+-- organised into RelationAlgebra, GaloisConnection, Symmetrisation, and
+-- Fixpoint.
 --
--- 退化：去掉 next。没有递归、没有观察族，只有当前层关系。
+-- 退化
 --
--- 这个位置的数学内容是二元关系理论，组织为三条并列的线：
---   RelationAlgebra    X 上的关系：复合、逆、恒等、包含、RST → 等价
---   GaloisConnection   X 与 Y 上的预序：伴随、闭包算子 c = g ∘ f、
---                      单调、扩张、幂等
---   Symmetrisation     X 上的预序：Sym x y = (x ≤ y) × (y ≤ x)
--- Fixpoint 是 GaloisConnection 与 Symmetrisation 的交叉点：闭包算子
--- 的不动点与其像在 Sym 意义下等价。
+-- 去掉 next。没有递归、没有观察族，只有当前层关系。数学内容是二元
+-- 关系理论，组织为 RelationAlgebra、GaloisConnection、Symmetrisation
+-- 与 Fixpoint。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -35,9 +24,12 @@ open import Data.Product.Base using (_×_)
 open import Relation.Binary.Structures using (IsEquivalence; IsPreorder)
 
 ------------------------------------------------------------------------
--- DiscreteEq: the base layer relation, marking the "drop next"
--- position of the degeneration lattice.
--- DiscreteEq：基础 layer 关系的别名，标记退化格的“去掉 next”位置。
+-- DiscreteEq
+--
+-- The base layer relation, marking the "drop next" position of the
+-- degeneration lattice.
+--
+-- 基础 layer 关系的别名，标记退化格的“去掉 next”位置。
 
 DiscreteEq : {a d : Level} {X : Set a} → (layer : X → X → Set d)
            → X → X → Set d
@@ -45,6 +37,7 @@ DiscreteEq layer x y = layer x y
 
 ------------------------------------------------------------------------
 -- Relation algebra
+--
 -- 关系代数
 
 module RelationAlgebra
@@ -58,6 +51,7 @@ module RelationAlgebra
   Id x y = x ≡ y
 
   -- R ∘ S means "first S, then R", matching function composition.
+  --
   -- R ∘ S 表示“先 S 后 R”，与函数复合一致。
   infixr 19 _∘_
   _∘_ : {d₁ d₂ : Level}
@@ -116,10 +110,12 @@ module RelationAlgebra
     }
 
 ------------------------------------------------------------------------
--- Galois connections: the order-theoretic analogue of _⊣_, replacing
--- round-trip equalities by a pair of adjunctions f ⊣ g iff
--- f x ⊑ y ⟺ x ≤ g y.
--- Galois 连接：_⊣_ 的序论类比，把往返等式替换为一对伴随 f ⊣ g，
+-- Galois connections
+--
+-- The order-theoretic analogue of _⊣_, replacing round-trip equalities
+-- by a pair of adjunctions f ⊣ g iff f x ⊑ y ⟺ x ≤ g y.
+--
+-- _⊣_ 的序论类比，把往返等式替换为一对伴随 f ⊣ g，
 -- 即 f x ⊑ y ⟺ x ≤ g y。
 
 module GaloisConnection
@@ -152,6 +148,7 @@ module GaloisConnection
         (≤-trans x≤x' (Galois.adj gal (⊑-refl (f x'))))
 
     -- Closure operator c = g ∘ f.
+    --
     -- 闭包算子 c = g ∘ f。
     c : X → X
     c = λ x → g (f x)
@@ -166,10 +163,12 @@ module GaloisConnection
     c-mono {x} {x'} x≤x' = g-mono (f-mono x≤x')
 
 ------------------------------------------------------------------------
--- Symmetrisation: Sym x y = (x ≤ y) × (y ≤ x) is an equivalence
--- relation and the largest symmetric subrelation of ≤.
--- 对称化：Sym x y = (x ≤ y) × (y ≤ x) 是等价关系，并且是 ≤ 的最大
--- 对称子关系。
+-- Symmetrisation
+--
+-- Sym x y = (x ≤ y) × (y ≤ x) is an equivalence relation and the
+-- largest symmetric subrelation of ≤.
+--
+-- Sym x y = (x ≤ y) × (y ≤ x) 是等价关系，并且是 ≤ 的最大对称子关系。
 
 module Symmetrisation
     {a d : Level} {X : Set a}
@@ -204,11 +203,13 @@ module Symmetrisation
   sym-universal R sym-R R⊆≤ p = R⊆≤ p , R⊆≤ (sym-R p)
 
 ------------------------------------------------------------------------
--- Fixed points of a closure operator. Every fixed point x is
--- Sym-related to its image c x, since c x ≤ x (fixed) and
--- x ≤ c x (extensive).
--- 闭包算子的不动点。每个不动点 x 与其像 c x 在 Sym 意义下等价，
--- 因为 c x ≤ x（不动点）且 x ≤ c x（扩张性）。
+-- Fixed points
+--
+-- Every fixed point x is Sym-related to its image c x, since c x ≤ x
+-- (fixed) and x ≤ c x (extensive).
+--
+-- 每个不动点 x 与其像 c x 在 Sym 意义下等价，因为 c x ≤ x（不动点）
+-- 且 x ≤ c x（扩张性）。
 
 module Fixpoint
     {a d : Level} {X : Set a}
@@ -238,10 +239,13 @@ module Fixpoint
   FixedRel x y = IsFixed x × IsFixed y
 
 ------------------------------------------------------------------------
--- Bridge: the closure operator induced by a Galois connection is a
--- closure operator in the sense of Fixpoint. Formal support for the
--- arrow GaloisConnection → Fixpoint in the degeneration diagram.
--- 桥接：Galois 连接诱导的闭包算子是 Fixpoint 意义下的闭包算子。
+-- Bridge
+--
+-- The closure operator induced by a Galois connection is a closure
+-- operator in the sense of Fixpoint. Formal support for the arrow
+-- GaloisConnection → Fixpoint in the degeneration diagram.
+--
+-- Galois 连接诱导的闭包算子是 Fixpoint 意义下的闭包算子。
 -- 这是退化图中 GaloisConnection → Fixpoint 箭头的形式化支撑。
 
 module GaloisFixpointBridge
@@ -268,6 +272,7 @@ module GaloisFixpointBridge
 ------------------------------------------------------------------------
 -- Solid arrows: formally established degeneration.
 -- Dashed grouping: shared preorder structure.
+--
 -- 实线箭头：已形式化的退化。
 -- 分组虚线：共享预序结构。
 --

@@ -1,18 +1,21 @@
 ------------------------------------------------------------------------
--- Zero-subst colimit of the finite stages Fin (n-at m), n-at m = suc
--- (suc m). The family embeds by iterated inject₁, with colimit ℕ via
--- toℕ. This is the carried, zero-subst / zero-cast replacement for the
--- Set-level universal property of FinCatInfinity: the d-fold embedding
--- uses embFin, whose target size n-at (shift d m) reduces
--- definitionally; every position is read through the total clamp cl
--- with a single bounded split m≤n⇒m<n∨m≡n and structural recursion on
--- m.
+-- Zero-subst colimit of the finite stages Fin (n-at m)
 --
--- 有限层 Fin (n-at m)（n-at m = suc (suc m)）的零 subst 余极限。该族经
--- 迭代 inject₁ 嵌入，余极限为经 toℕ 的 ℕ。本模块是 FinCatInfinity 中
--- Set 层泛性质的携带式、零 subst / 零 cast 替代：d 次嵌入用 embFin，
--- 其目标尺寸 n-at (shift d m) 定义性归约；每个位置经全函数 clamp cl
--- 读取，只用一次有界拆分 m≤n⇒m<n∨m≡n，并对 m 结构递归。
+-- With n-at m = suc (suc m), the family embeds by iterated inject₁ and
+-- its colimit is ℕ via toℕ. This is the carried, zero-subst / zero-cast
+-- replacement for the Set-level universal property of FinCatInfinity:
+-- the d-fold embedding uses embFin, whose target size n-at (shift d m)
+-- reduces definitionally; every position is read through the total
+-- clamp cl with a single bounded split m≤n⇒m<n∨m≡n and structural
+-- recursion on m.
+--
+-- 有限层 Fin (n-at m) 的零 subst 余极限
+--
+-- n-at m = suc (suc m) 时，该族经迭代 inject₁ 嵌入，余极限为经 toℕ
+-- 的 ℕ。本模块是 FinCatInfinity 中 Set 层泛性质的携带式、零 subst /
+-- 零 cast 替代：d 次嵌入用 embFin，其目标尺寸 n-at (shift d m) 定义性
+-- 归约；每个位置经全函数 clamp cl 读取，只用一次有界拆分
+-- m≤n⇒m<n∨m≡n，并对 m 结构递归。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -37,9 +40,12 @@ open import ALMA.Cosmos.Carried.LimitSystem
 
 ------------------------------------------------------------------------
 -- Pure Fin representatives, independent of the cone
+--
 -- One inject₁ reaches the canonical element of stage suc m with the
 -- same natural reading.
+--
 -- 纯 Fin 代表，与锥无关
+--
 -- 一次 inject₁ 到达第 suc m 层具有相同自然读数的典范元素。
 
 top-eq : ∀ m → inject₁ (cl m (suc m)) ≡ natToFin (suc m)
@@ -49,8 +55,9 @@ top-eq m =
       (trans (cl-toℕ m (suc m) ≤-refl)
              (sym (toℕ-natToFin (suc m)))))
 
--- Below the top, the stage-(suc p) representative is one inject₁ of the
--- stage-p representative.
+-- Below the top, the stage-(suc p) representative is one inject₁ of
+-- the stage-p representative.
+--
 -- 顶端以下，第 suc p 层代表是第 p 层代表的一次 inject₁。
 inj-cl : ∀ p k (le : k ≤ suc p)
        → cl (suc p) k ≡ inject₁ (cl p k)
@@ -61,9 +68,13 @@ inj-cl p k le =
                   (cl-toℕ p k le))))
 
 ------------------------------------------------------------------------
--- Compatible cone over the finite stages, valued in a set X:
--- at (suc m) (inject₁ x) ≡ at m x.
--- 有限层上取值于集合 X 的相容锥：at (suc m) (inject₁ x) ≡ at m x。
+-- Compatible cone over the finite stages
+--
+-- Valued in a set X, with at (suc m) (inject₁ x) ≡ at m x.
+--
+-- 有限层上的相容锥
+--
+-- 取值于集合 X，满足 at (suc m) (inject₁ x) ≡ at m x。
 
 record FinCone (X : Set) : Set where
 
@@ -74,6 +85,7 @@ record FinCone (X : Set) : Set where
 
   -- Target Fin size reduces definitionally via shift, so there is no
   -- subst Fin (+-suc).
+  --
   -- 目标 Fin 尺寸经 shift 定义性归约，故无 subst Fin (+-suc)。
   compat-emb : ∀ d m (x : Fin (n-at m))
              → at (shift d m) (embFin d m x) ≡ at m x
@@ -85,6 +97,7 @@ record FinCone (X : Set) : Set where
   -- Structural recursion on m: the top case (k ≡ suc m) goes one stage
   -- up via compat; the inherited case (k ≤ suc p) descends via compat
   -- and the recursion at stage p.
+  --
   -- 对 m 结构递归：顶端情形（k ≡ suc m）经 compat 上走一层；继承情形
   -- （k ≤ suc p）经 compat 下降并在第 p 层递归。
   at-cl : ∀ m k (le : k ≤ suc m)
@@ -109,6 +122,7 @@ record FinCone (X : Set) : Set where
 
   -- Unique extension g∞ : ℕ → X reads the canonical element of the
   -- stage equal to the natural index.
+  --
   -- 唯一扩展 g∞ : ℕ → X，读取等于自然索引那一层的典范元素。
   g∞ : ℕ → X
   g∞ k = at k (natToFin k)
@@ -125,6 +139,7 @@ record FinCone (X : Set) : Set where
              (cong (at m) (sym eqx))
 
   -- k equals toℕ (natToFin k) definitionally in value.
+  --
   -- k 在值上即为 toℕ (natToFin k)。
   unique : (h : ℕ → X)
          → (∀ m (x : Fin (n-at m)) → h (toℕ x) ≡ at m x)
@@ -137,7 +152,8 @@ open FinCone public
 
 ------------------------------------------------------------------------
 -- The Set-level universal property
--- Set 层泛性质
+--
+-- 集合层泛性质
 
 colimitUniv
   : ∀ {X : Set} (cone : FinCone X)

@@ -1,15 +1,17 @@
 ------------------------------------------------------------------------
--- Setoid-parameterised carried correspondences. MCorr hard-wires
--- propositional equality in three places (FiberAdj η/ε, the
--- bisimulation here-eq, and the FMap graph witness / relocation);
--- this module replaces the edge/label equality by a carried
--- equivalence on the manifest carrier, without K and without
+-- Setoid-parameterised carried correspondences
+--
+-- MCorr hard-wires propositional equality in three places (FiberAdj
+-- η/ε, the bisimulation here-eq, and the FMap graph witness /
+-- relocation); this module replaces the edge/label equality by a
+-- carried equivalence on the manifest carrier, without K and without
 -- dependent subst.
 --
--- setoid 参数化的携带式对应。MCorr 在三处硬编码命题相等（FiberAdj
--- 的 η/ε、互模拟的 here-eq、FMap 图见证/重定位）；本模块把边/标签
--- 等价替换为建立在外显载体上的、被携带的等价关系，不用 K，也不用
--- 依赖 subst。
+-- setoid 参数化的携带式对应
+--
+-- MCorr 在三处硬编码命题相等（FiberAdj 的 η/ε、互模拟的 here-eq、
+-- FMap 图见证/重定位）；本模块把边/标签等价替换为建立在外显载体上的、
+-- 被携带的等价关系，不用 K，也不用依赖 subst。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -35,11 +37,15 @@ open import Relation.Nullary.Negation using (¬_)
 open import ALMA.Base.MCorr using (M; FiberAdj; _⍮_)
 
 ------------------------------------------------------------------------
--- Equivalence on a manifest carrier: stdlib's Setoid with Carrier
--- promoted to a module parameter, so EqOn (A x) is by construction an
--- equivalence on exactly A x.
--- 外显载体上的等价：即 stdlib Setoid 把 Carrier 提为模块参数，故
--- EqOn (A x) 按构造正是 A x 上的等价。
+-- Equivalence on a manifest carrier
+--
+-- This is stdlib's Setoid with Carrier promoted to a module parameter,
+-- so EqOn (A x) is by construction an equivalence on exactly A x.
+--
+-- 外显载体上的等价
+--
+-- 即 stdlib Setoid 把 Carrier 提为模块参数，故 EqOn (A x) 按构造
+-- 正是 A x 上的等价。
 
 record EqOn {a ℓ : Level} (Carrier : Set a) : Set (lsuc (a ⊔ ℓ)) where
   infix 4 _≈_
@@ -49,11 +55,15 @@ record EqOn {a ℓ : Level} (Carrier : Set a) : Set (lsuc (a ⊔ ℓ)) where
   open IsEquivalence isEquivalence public using (refl; sym; trans; reflexive)
 
 ------------------------------------------------------------------------
--- Fibre adjunction between two carriers with carried equivalences.
+-- Fibre adjunction between two carriers with carried equivalences
+--
 -- η/ε live at the carried _≈_; to-cong/fro-cong carry the naturality
 -- coherence as data.
--- 两个载体间、在携带等价上的纤维伴随。η/ε 建立在携带的 _≈_ 上；
--- to-cong/fro-cong 把自然性相干作为数据携带。
+--
+-- 两个载体间、在携带等价上的纤维伴随
+--
+-- η/ε 建立在携带的 _≈_ 上；to-cong/fro-cong 把自然性相干作为数据
+-- 携带。
 
 record FiberAdjˢ {c d ℓc ℓd : Level}
                 {P : Set c} {R : Set d}
@@ -113,8 +123,9 @@ compAdjˢ ER EG EH a₁ a₂ = record
   }
 
 ------------------------------------------------------------------------
--- Coinductive bisimulation over carried label/edge equivalences.
--- 在携带的标签/边等价上的余归纳互模拟。
+-- Coinductive bisimulation over carried label/edge equivalences
+--
+-- 在携带的标签/边等价上的余归纳互模拟
 
 record _≈Mˢ_ {i a b ℓa ℓe : Level}
              {I : Set i} {A : I → Set a}
@@ -151,6 +162,7 @@ open _≈Mˢ_ public
 -- The below-eq field already stores both directions, so symmetry only
 -- swaps the adjunction and exchanges the two components; no
 -- coinductive call, no transport.
+--
 -- below-eq 已同时存放两个方向，故对称性只需交换伴随并对调两个分量；
 -- 无需余归纳调用，也无需传输。
 ≈Mˢ-sym : ∀ {i a b ℓa ℓe : Level}
@@ -168,6 +180,7 @@ open _≈Mˢ_ public
 
 -- Compose the two adjunctions with compAdjˢ; every recursive call lies
 -- under the coinductive below-eq constructor.
+--
 -- 用 compAdjˢ 复合两根伴随；每个递归调用都位于余归纳 below-eq 构造子
 -- 之下。
 ≈Mˢ-trans : ∀ {i a b ℓa ℓe : Level}
@@ -189,11 +202,14 @@ open _≈Mˢ_ public
       , (λ e₂ → ≈Mˢ-trans ≈A ≈E (bwdq e₂) (bwdp (fro adjq e₂))) )
 
 ------------------------------------------------------------------------
--- The propositional FiberAdj as an instance of the setoid one: the
--- _≡_ kernel is exactly the EqOn special case at propositional
+-- Propositional FiberAdj as an instance of the setoid one
+--
+-- The _≡_ kernel is exactly the EqOn special case at propositional
 -- equality.
--- 命题版 FiberAdj 作为 setoid 版的实例：_≡_ 内核恰为 EqOn 在命题
--- 相等处的特例。
+--
+-- 命题版 FiberAdj 作为 setoid 版的实例
+--
+-- _≡_ 内核恰为 EqOn 在命题相等处的特例。
 
 propEqOn : ∀ {a} (A : Set a) → EqOn {ℓ = a} A
 propEqOn A = record
@@ -222,11 +238,16 @@ toAdjˢ a = record
   }
 
 ------------------------------------------------------------------------
--- Systems carrying label/edge equivalences: a Sys together with an
--- EqOn on every label fibre and every edge fibre. The M type itself
--- is unchanged; only the comparison regime is carried.
--- 携带标签/边等价的系统：Sys 外加每个标签纤维与边纤维上的 EqOn。
--- M 型本身不变；被携带的只是比较制度。
+-- Systems carrying label/edge equivalences
+--
+-- A Sys together with an EqOn on every label fibre and every edge
+-- fibre. The M type itself is unchanged; only the comparison regime is
+-- carried.
+--
+-- 携带标签/边等价的系统
+--
+-- Sys 外加每个标签纤维与边纤维上的 EqOn。M 型本身不变；被携带的只是
+-- 比较制度。
 
 record SysEq (i a b ℓa ℓe : Level) : Set (lsuc (i ⊔ a ⊔ ℓa ⊔ b ⊔ ℓe)) where
   field
@@ -238,11 +259,14 @@ record SysEq (i a b ℓa ℓe : Level) : Set (lsuc (i ⊔ a ⊔ ℓa ⊔ b ⊔ �
 open SysEq public
 
 ------------------------------------------------------------------------
--- One-step carried correspondence over an arbitrary index layer R.
+-- One-step carried correspondence over an arbitrary index layer R
+--
 -- R need not be propositional equality; mapR only uses fro/pull and
 -- contains no equality.
--- 任意索引层 R 上的一步携带对应。R 不必是命题相等；mapR 仅用
--- fro/pull，不含任何相等。
+--
+-- 任意索引层 R 上的一步携带对应
+--
+-- R 不必是命题相等；mapR 仅用 fro/pull，不含任何相等。
 
 record Stepˢ {i j a b c d ℓr ℓa ℓe ℓc ℓd : Level}
              (X : SysEq i a b ℓa ℓe)
@@ -282,8 +306,13 @@ record Morphˢ {i j a b c d ℓr ℓa ℓe ℓc ℓd : Level}
 open Morphˢ public
 
 ------------------------------------------------------------------------
--- Composition; edge adjunctions compose via compAdjˢ.
--- 复合；边伴随经 compAdjˢ 复合。
+-- Composition
+--
+-- Edge adjunctions compose via compAdjˢ.
+--
+-- 复合
+--
+-- 边伴随经 compAdjˢ 复合。
 
 compMˢ :
   ∀ {i j k a b c d e f ℓ₁ ℓ₂ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
@@ -312,9 +341,14 @@ compMˢ {X = X} {Y = Y} {Z = Z} φ ψ .step {x = x} {y = z} (ym , r , s) =
   }
 
 ------------------------------------------------------------------------
--- Identity: the free path groupoid on the index; edge round-trips are
--- at the carried EqOn.
--- 恒等：索引上的自由路径广群；边往返律建立在携带的 EqOn 上。
+-- Identity
+--
+-- The free path groupoid on the index; edge round-trips are at the
+-- carried EqOn.
+--
+-- 恒等
+--
+-- 索引上的自由路径广群；边往返律建立在携带的 EqOn 上。
 
 idMˢ : ∀ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
      → Morphˢ X X (λ (x y : I X) → x ≡ y)
@@ -325,12 +359,16 @@ idMˢ X .step {x = x₀} {y = .x₀} refl = record
   }
 
 ------------------------------------------------------------------------
--- Pilot: a genuinely non-propositional equivalence. Carrier
--- L = ℕ × Bool with (n , b) ≈L (m , c) iff n ≡ m, ignoring the tag;
--- so (0 , true) ≈L (0 , false) but they are not propositionally equal.
--- 试点：真正非命题的等价。载体 L = ℕ × Bool，(n , b) ≈L (m , c) 当且
--- 仅当 n ≡ m，忽略标签；故 (0 , true) ≈L (0 , false)，但二者命题不
--- 相等。
+-- Pilot: a genuinely non-propositional equivalence
+--
+-- Carrier L = ℕ × Bool with (n , b) ≈L (m , c) iff n ≡ m, ignoring the
+-- tag; so (0 , true) ≈L (0 , false) but they are not propositionally
+-- equal.
+--
+-- 试点：真正非命题的等价
+--
+-- 载体 L = ℕ × Bool，(n , b) ≈L (m , c) 当且仅当 n ≡ m，忽略标签；
+-- 故 (0 , true) ≈L (0 , false)，但二者命题不相等。
 
 L : Set lzero
 L = ℕ × Bool
@@ -356,15 +394,18 @@ tag-neq : ¬ ((0 , true) ≡ (0 , false))
 tag-neq e = bool-neq (cong proj₂ e)
 
 ------------------------------------------------------------------------
--- Container position adjunction on the non-propositional equivalence.
+-- Container position adjunction on the non-propositional equivalence
+--
 -- Source positions R = L (tagged), target positions P = ℕ (untagged);
 -- fro is the old contravariant onPos, while to and η/ε are the data
 -- formerly rebuilt by subst (pts-compat / onActP), now carried at an
 -- equivalence strictly coarser than _≡_.
--- 非命题等价上的容器位置伴随。源位置 R = L（带标签），目标位置
--- P = ℕ（无标签）；fro 即旧反变 onPos，而 to 与 η/ε 正是过去靠 subst
--- （pts-compat / onActP）补造的数据，此处被携带，且建立在严格粗于
--- _≡_ 的等价上。
+--
+-- 非命题等价上的容器位置伴随
+--
+-- 源位置 R = L（带标签），目标位置 P = ℕ（无标签）；fro 即旧反变
+-- onPos，而 to 与 η/ε 正是过去靠 subst（pts-compat / onActP）补造的
+-- 数据，此处被携带，且建立在严格粗于 _≡_ 的等价上。
 
 onPosAdj : FiberAdjˢ (propEqOn ℕ) LEq
 onPosAdj = record
@@ -377,13 +418,16 @@ onPosAdj = record
   }
 
 ------------------------------------------------------------------------
--- Expressiveness witness: two M-trees bisimilar under LEq but with
--- propositionally distinct head labels. _≈Mˢ_ relates them; the old
--- _≈M_ cannot, since its here-eq would ask for
--- (0 , true) ≡ (0 , false).
--- 表达力见证：两棵 M 树在 LEq 下互模拟，但头部标签命题不相等。
--- _≈Mˢ_ 联系二者；旧 _≈M_ 不能，因其 here-eq 会要求
--- (0 , true) ≡ (0 , false)。
+-- Expressiveness witness
+--
+-- Two M-trees bisimilar under LEq but with propositionally distinct
+-- head labels. _≈Mˢ_ relates them; the old _≈M_ cannot, since its
+-- here-eq would ask for (0 , true) ≡ (0 , false).
+--
+-- 表达力见证
+--
+-- 两棵 M 树在 LEq 下互模拟，但头部标签命题不相等。_≈Mˢ_ 联系二者；
+-- 旧 _≈M_ 不能，因其 here-eq 会要求 (0 , true) ≡ (0 , false)。
 
 private
   Iᵗ : Set lzero

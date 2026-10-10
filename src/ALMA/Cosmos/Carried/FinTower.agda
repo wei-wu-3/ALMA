@@ -1,7 +1,8 @@
 ------------------------------------------------------------------------
--- Zero-subst colimit of a tower of finite endofunctions. A tower is a
--- family f m : Fin (n-at m) → Fin (n-at m) together with the one-step
--- coherence
+-- Zero-subst colimit of a tower of finite endofunctions
+--
+-- A tower is a family f m : Fin (n-at m) → Fin (n-at m) together with
+-- the one-step coherence
 --   toℕ (f (suc m) (inject₁ x)) ≡ toℕ (f m x).
 -- The colimit is a FinCone over ℕ: at m x = toℕ (f m x), compat is the
 -- supplied coherence, and FinCone derives at-cl / g∞ / extends / unique
@@ -9,13 +10,14 @@
 -- is the F₀ of the tower colimit, and unique is its Set-level universal
 -- property.
 --
--- 有限自函数塔的零 subst 余极限。一个塔即一族
--- f m : Fin (n-at m) → Fin (n-at m)，附带一步相干性
+-- 有限自函数塔的零 subst 余极限
+--
+-- 一个塔即一族 f m : Fin (n-at m) → Fin (n-at m)，附带一步相干性
 --   toℕ (f (suc m) (inject₁ x)) ≡ toℕ (f m x)。
 -- 余极限是 ℕ 上的一个 FinCone：at m x = toℕ (f m x)，compat 即所给
 -- 相干性，FinCone 零 subst 地派生出 at-cl / g∞ / extends / unique。
 -- 典范读数 g∞ k = toℕ (f k (natToFin k)) 即塔余极限的 F₀，unique 即
--- 其 Set 层泛性质。
+-- 其集合层泛性质。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -31,6 +33,7 @@ open import ALMA.Cosmos.Carried.FinColimit using (FinCone)
 
 ------------------------------------------------------------------------
 -- The cone of a tower of finite endofunctions
+--
 -- 有限自函数塔的锥
 
 finTowerCone
@@ -44,9 +47,14 @@ finTowerCone f embed-compat = record
   }
 
 ------------------------------------------------------------------------
--- Convenience wrapper opening the full cone surface (at-cl, g∞,
--- extends, unique) for a given tower.
--- 便捷包装：为给定塔打开完整锥表面（at-cl、g∞、extends、unique）。
+-- Convenience wrapper
+--
+-- Opens the full cone surface (at-cl, g∞, extends, unique) for a given
+-- tower.
+--
+-- 便捷包装
+--
+-- 为给定塔打开完整锥表面（at-cl、g∞、extends、unique）。
 
 module FinTower
   (f : ∀ m → Fin (n-at m) → Fin (n-at m))

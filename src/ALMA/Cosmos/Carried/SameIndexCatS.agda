@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- The wide subcategory of MCorrCatˢ on identity-index carried functors.
+-- The wide subcategory of MCorrCatˢ on identity-index carried functors
 --
 -- Objects are ℕ-indexed deterministic systems with a fixed successor
 -- dynamics d : ℕ → ℕ; only the label fibre varies. A morphism is given
@@ -12,12 +12,12 @@
 -- and unique: every cocone leg follows the identity trajectory, so the
 -- non-surjective index obstruction of ColimitPolarity cannot arise.
 --
--- MCorrCatˢ 在“索引恒等”携带函子上的宽子范畴。
+-- MCorrCatˢ 在“索引恒等”携带函子上的宽子范畴
 --
 -- 对象是以固定后继动力 d : ℕ → ℕ 的 ℕ 索引确定性系统，只有标签纤维可变。
--- 态射仅由纤维映射 shape 及其同余给出；索引映射、子节点映射与边伴随均固定
--- （索引恒等、单子节点 refl、恒等纤维伴随），故底层 FMˢ 的索引定义性为
--- 恒等。态射相等是逐点标签树互模拟，不含索引路径、不含传输。这正是
+-- 态射仅由纤维映射 shape 及其同余给出；索引映射、子节点映射与边伴随均
+-- 固定（索引恒等、单子节点 refl、恒等纤维伴随），故底层 FMˢ 的索引定义性
+-- 为恒等。态射相等是逐点标签树互模拟，不含索引路径、不含传输。这正是
 -- nchain push 余极限 mediate 函子全且唯一的范围：每条余锥腿沿恒等轨迹，
 -- 不会出现 ColimitPolarity 的索引非满射障碍。
 ------------------------------------------------------------------------
@@ -44,8 +44,13 @@ open import ALMA.Base.MCorrSetoidCat using (FMapˢ; FMˢ)
 open SysEq
 
 ------------------------------------------------------------------------
--- An object: a label family over ℕ together with its fibre setoid.
--- 对象：ℕ 上的标签族及其纤维 setoid。
+-- An object
+--
+-- A label family over ℕ together with its fibre setoid.
+--
+-- 对象
+--
+-- ℕ 上的标签族及其纤维 setoid。
 
 record LabelSys (ℓ : Level) : Set (lsuc ℓ) where
   field
@@ -54,6 +59,7 @@ record LabelSys (ℓ : Level) : Set (lsuc ℓ) where
 open LabelSys public
 
 -- The deterministic system for a label family under dynamics d.
+--
 -- 动力 d 下标签族对应的确定性系统。
 dsys : (d : ℕ → ℕ) {ℓ : Level} (X : LabelSys ℓ)
      → SysEq lzero ℓ lzero ℓ lzero
@@ -66,8 +72,9 @@ dsys d X = record
   }
 
 ------------------------------------------------------------------------
--- Identity-index carried functors and the wide subcategory.
--- 索引恒等携带函子与宽子范畴。
+-- Identity-index carried functors and the wide subcategory
+--
+-- 索引恒等携带函子与宽子范畴
 
 module _ (d : ℕ → ℕ) {ℓ : Level} where
 
@@ -75,6 +82,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     s = dsys d
 
   -- The generic identity-index FMˢ for a fibre map and its congruence.
+  --
   -- 纤维映射及其同余对应的通用索引恒等 FMˢ。
   idxFM : (X Y : LabelSys ℓ)
           (sh : (v : ℕ) → A₀ X v → A₀ Y v)
@@ -107,6 +115,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
         in adj , ((λ e₁ → go (fwd e₁)) , (λ e₂ → go (bwd e₂)))
 
   -- A morphism is a fibre map and its congruence; the FMˢ is derived.
+  --
   -- 态射即纤维映射及其同余；FMˢ 由此导出。
   record Idx⇒ (X Y : LabelSys ℓ) : Set ℓ where
     field
@@ -119,8 +128,9 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
   open Idx⇒ public
 
   ----------------------------------------------------------------------
-  -- Identity and composition at the fibre-map level.
-  -- 纤维映射层面的恒等与复合。
+  -- Identity and composition at the fibre-map level
+  --
+  -- 纤维映射层面的恒等与复合
 
   idxi : (X : LabelSys ℓ) → Idx⇒ X X
   idxi X = record
@@ -135,8 +145,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     }
 
   ----------------------------------------------------------------------
-  -- Morphism equality: pointwise label-tree bisimulation, no path.
-  -- 态射相等：逐点标签树互模拟，无路径。
+  -- Morphism equality
+  --
+  -- Pointwise label-tree bisimulation, no path.
+  --
+  -- 态射相等
+  --
+  -- 逐点标签树互模拟，无路径。
 
   _≈i_ : {X Y : LabelSys ℓ} → Idx⇒ X Y → Idx⇒ X Y → Set ℓ
   _≈i_ {X = X} {Y = Y} f g =
@@ -167,9 +182,14 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     }
 
   ----------------------------------------------------------------------
-  -- Composition respects pointwise bisimilarity. The head labels are
-  -- forced by the two congruences; the child trees recurse guardedly.
-  -- 复合尊重逐点互模拟：头标签由两个同余强制，子树守卫递归。
+  -- Composition respects pointwise bisimilarity
+  --
+  -- The head labels are forced by the two congruences; the child trees
+  -- recurse guardedly.
+  --
+  -- 复合尊重逐点互模拟
+  --
+  -- 头标签由两个同余强制，子树守卫递归。
   ∘-resp-≈i : {X Y Z : LabelSys ℓ}
               {F₁ F₂ : Idx⇒ X Y} {G₁ G₂ : Idx⇒ Y Z}
             → F₁ ≈i F₂ → G₁ ≈i G₂
@@ -209,11 +229,16 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
           , (λ e₂ → go w (M.below t w e₂)) )
 
   ----------------------------------------------------------------------
-  -- Pointwise lifting. Head equations in the target's own setoid (any
-  -- setoid, not only a propositional fibre) give morphism bisimilarity;
-  -- child trees recurse guardedly along the identity index.
-  -- 逐点提升。目标自身 setoid（任意 setoid，不限于命题纤维）中的头部
-  -- 等式给出态射互模拟；子树沿恒等索引守卫递归。
+  -- Pointwise lifting
+  --
+  -- Head equations in the target's own setoid (any setoid, not only a
+  -- propositional fibre) give morphism bisimilarity; child trees recurse
+  -- guardedly along the identity index.
+  --
+  -- 逐点提升
+  --
+  -- 目标自身 setoid（任意 setoid，不限于命题纤维）中的头部等式给出态射
+  -- 互模拟；子树沿恒等索引守卫递归。
   pointwise-i : {X Y : LabelSys ℓ} (f g : Idx⇒ X Y)
     → (∀ (v : ℕ) (a : A₀ X v)
         → EqOn._≈_ (≈A₀ Y v) (shape f v a) (shape g v a))
@@ -245,8 +270,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
             , (λ e → go w (M.below u w e)) )
 
   ----------------------------------------------------------------------
+  -- Category laws
+  --
   -- Associativity and identity hold definitionally at the fibre-map
   -- level, hence by reflexivity.
+  --
+  -- 范畴律
+  --
   -- 结合律与恒等律在纤维映射层面定义性成立，故由自反性给出。
   assoc-i : {A B C D : LabelSys ℓ}
             {f : Idx⇒ A B} {g : Idx⇒ B C} {h : Idx⇒ C D}
@@ -270,8 +300,9 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
   identity²-i {X = X} = ≈i-refl (idxi X)
 
   ----------------------------------------------------------------------
-  -- The wide subcategory.
-  -- 宽子范畴。
+  -- The wide subcategory
+  --
+  -- 宽子范畴
 
   SameIndexCat : Category (lsuc ℓ) ℓ ℓ
   SameIndexCat = record

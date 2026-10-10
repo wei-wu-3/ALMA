@@ -1,24 +1,25 @@
 ------------------------------------------------------------------------
--- Carried sequential colimit — specification slice (zero subst). A
--- Chain is an ℕ-indexed sequence of edge-indexed systems together with
--- carried embedding FMap between successive layers. Two design choices
--- eliminate the two transport axes:
---   * Layer arithmetic: the d-fold embedding iterates compF, and its
---     target stage shift d m is defined by recursion on d, so
---     shift (suc d) m ≡ shift d (suc m) holds definitionally.
---   * Position: a cocone leg is itself a carried FMap, and leg
---     compatibility is behavioural equivalence _≈F_.
--- This slice fixes the interface and the carried iterated embedding;
--- the apex construction, mediate, the triangle equations and
--- uniqueness are filled in the following slices.
+-- Carried sequential colimit -- specification slice
 --
--- 携带式序列余极限 —— 规范切片（零 subst）。Chain 是以 ℕ 为索引的边
--- 索引系统序列，相邻两层间携带嵌入 FMap。两处设计消去了两条传输轴：
---   * 层算术：d 次嵌入迭代 compF，其目标层 shift d m 对 d 递归，使
---     shift (suc d) m ≡ shift d (suc m) 定义性成立。
---   * 位置：余锥腿本身就是携带 FMap，腿相容性是行为等价 _≈F_。
--- 本切片固定接口与携带的迭代嵌入；apex 构造、mediate、三角等式与
--- 唯一性在后续切片补齐。
+-- Zero subst. A Chain is an ℕ-indexed sequence of edge-indexed systems
+-- together with carried embedding FMap between successive layers. Two
+-- design choices eliminate the two transport axes: layer arithmetic,
+-- where the d-fold embedding iterates compF and its target stage shift
+-- d m is defined by recursion on d, so shift (suc d) m ≡ shift d (suc m)
+-- holds definitionally; and position, where a cocone leg is itself a
+-- carried FMap and leg compatibility is behavioural equivalence _≈F_.
+-- This slice fixes the interface and the carried iterated embedding;
+-- the apex construction, mediate, the triangle equations and uniqueness
+-- are filled in the following slices.
+--
+-- 携带式序列余极限 —— 规范切片
+--
+-- 零 subst。Chain 是以 ℕ 为索引的边索引系统序列，相邻两层间携带嵌入
+-- FMap。两处设计消去了两条传输轴：层算术，d 次嵌入迭代 compF，其目标
+-- 层 shift d m 对 d 递归，使 shift (suc d) m ≡ shift d (suc m) 定义性
+-- 成立；位置，余锥腿本身就是携带 FMap，腿相容性是行为等价 _≈F_。本切片
+-- 固定接口与携带的迭代嵌入；apex 构造、mediate、三角等式与唯一性在后续
+-- 切片补齐。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -35,19 +36,28 @@ open import ALMA.Base.MCorr
         ; ∘-resp-≈; sym-assoc-f; identityʳ-f)
 
 ------------------------------------------------------------------------
--- Stage shift by d successor edges. The layer-arithmetic equality
--- shift (suc d) m ≡ shift d (suc m) is baked into the recursion, so
--- nothing is ever transported along it.
--- 沿 d 条后继边的层偏移。层算术等式 shift (suc d) m ≡ shift d (suc m)
--- 已烤进递归，无需沿之传输任何东西。
+-- Stage shift by d successor edges
+--
+-- The layer-arithmetic equality shift (suc d) m ≡ shift d (suc m) is
+-- baked into the recursion, so nothing is ever transported along it.
+--
+-- 沿 d 条后继边的层偏移
+--
+-- 层算术等式 shift (suc d) m ≡ shift d (suc m) 已烤进递归，无需沿之
+-- 传输任何东西。
 
 shift : ℕ → ℕ → ℕ
 shift zero    m = m
 shift (suc d) m = shift d (suc m)
 
 ------------------------------------------------------------------------
--- A carried chain: systems X m and a carried embedding at each layer.
--- 携带式链：系统 X m 与每层的携带嵌入。
+-- A carried chain
+--
+-- Systems X m and a carried embedding at each layer.
+--
+-- 携带式链
+--
+-- 系统 X m 与每层的携带嵌入。
 
 record Chain (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
   field
@@ -56,6 +66,7 @@ record Chain (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
 
   -- Iteration of compF; the target stage computes via shift, so no
   -- arithmetic cast is needed at any step.
+  --
   -- compF 的迭代；目标层经 shift 计算，任一步都无需算术 cast。
   emb^d : (m d : ℕ) → FMap (X m) (X (shift d m))
   emb^d m zero    = idF (X m)
@@ -64,8 +75,9 @@ record Chain (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
 open Chain public
 
 ------------------------------------------------------------------------
--- A carried cocone with apex Y.
--- 以 Y 为 apex 的携带余锥。
+-- A carried cocone with apex Y
+--
+-- 以 Y 为 apex 的携带余锥
 
 record Cocone {i a b : Level} (ch : Chain i a b) (Y : Sys i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -77,8 +89,13 @@ record Cocone {i a b : Level} (ch : Chain i a b) (Y : Sys i a b)
 open Cocone public
 
 ------------------------------------------------------------------------
--- d-fold leg coherence, by induction on d from the one-step coh.
--- d 次腿相干性，由一步 coh 对 d 归纳。
+-- d-fold leg coherence
+--
+-- By induction on d from the one-step coh.
+--
+-- d 次腿相干性
+--
+-- 由一步 coh 对 d 归纳。
 
 module _ {i a b : Level} {ch : Chain i a b} {L : Sys i a b}
          (coc : Cocone ch L) where
@@ -100,9 +117,13 @@ module _ {i a b : Level} {ch : Chain i a b} {L : Sys i a b}
          (coh coc m))
 
 ------------------------------------------------------------------------
--- The colimit universal property, expressed entirely with carried
--- morphisms and behavioural equivalence.
--- 余极限泛性质，完全用携带态射与行为等价表达。
+-- The colimit universal property
+--
+-- Expressed entirely with carried morphisms and behavioural equivalence.
+--
+-- 余极限泛性质
+--
+-- 完全用携带态射与行为等价表达。
 
 record IsColimit {i a b : Level} {ch : Chain i a b}
                 (Apex : Sys i a b) (coc : Cocone ch Apex)
@@ -118,8 +139,13 @@ record IsColimit {i a b : Level} {ch : Chain i a b}
 open IsColimit public
 
 ------------------------------------------------------------------------
--- A bundled colimit: apex, its cocone and the universal property.
--- 打包的余极限：apex、其余锥与泛性质。
+-- A bundled colimit
+--
+-- Apex, its cocone and the universal property.
+--
+-- 打包的余极限
+--
+-- apex、其余锥与泛性质。
 
 record Colimit (i a b : Level) (ch : Chain i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -131,17 +157,21 @@ record Colimit (i a b : Level) (ch : Chain i a b)
 open Colimit public
 
 ------------------------------------------------------------------------
--- Carried colimit limit structure (existence data), relative to a
--- pre-given limit system L with unbounded positions. A plain
--- (non-FMap) position and label injection of each stage into L, with
--- inj-coh (the embedding preserves the injected position) and rep
+-- Carried colimit limit structure (existence data)
+--
+-- Relative to a pre-given limit system L with unbounded positions. A
+-- plain (non-FMap) position and label injection of each stage into L,
+-- with inj-coh (the embedding preserves the injected position) and rep
 -- (every limit point has a total finite-stage representative with a
 -- homogeneous graph witness in I L). rep replaces the old partial
 -- defaultFin, since positions are unbounded (ℕ).
--- 携带式余极限的极限结构（存在性数据），相对于预给的、位置无界的
--- 极限系统 L。每层到 L 有普通（非 FMap）位置与标签注入，附带 inj-coh
--- （嵌入保持注入位置）与 rep（每个极限点有全函数有限层代表，含 I L
--- 中的同质图见证）。rep 取代旧的偏函数 defaultFin，因位置无界（ℕ）。
+--
+-- 携带式余极限的极限结构（存在性数据）
+--
+-- 相对于预给的、位置无界的极限系统 L。每层到 L 有普通（非 FMap）
+-- 位置与标签注入，附带 inj-coh（嵌入保持注入位置）与 rep（每个极限点
+-- 有全函数有限层代表，含 I L 中的同质图见证）。rep 取代旧的偏函数
+-- defaultFin，因位置无界（ℕ）。
 
 record Limit {i a b : Level} (ch : Chain i a b)
        : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -151,6 +181,7 @@ record Limit {i a b : Level} (ch : Chain i a b)
 
     -- Stage→limit position injection. NOT an FMap: not
     -- child-surjective, hence no tree action.
+    --
     -- 阶段→极限的位置注入。不是 FMap：不满足子节点满，故无树作用。
     inj-u : (m : ℕ) → I (X ch m) → I L
 

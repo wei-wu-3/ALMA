@@ -1,6 +1,7 @@
 ------------------------------------------------------------------------
--- Sequential colimit over setoid carried systems (zero subst): the
--- MCorrSetoidCat counterpart of Carried.SeqColimit. A Chainˢ is an
+-- Sequential colimit over setoid carried systems
+--
+-- The MCorrSetoidCat counterpart of Carried.SeqColimit. A Chainˢ is an
 -- ℕ-indexed family of SysEq with a carried setoid functor FMˢ between
 -- successive layers. The d-fold embedding iterates compFMˢ and its
 -- target stage shift d m is defined by recursion on d, so
@@ -8,11 +9,13 @@
 -- are themselves FMˢ and their compatibility is behavioural
 -- equivalence _≈FM_.
 --
--- setoid 携带系统上的序列余极限（零 subst）：Carried.SeqColimit 在
--- MCorrSetoidCat 上的对应物。Chainˢ 是以 ℕ 为索引的 SysEq 族，相邻层
--- 间为携带 setoid 函子 FMˢ。d 次嵌入迭代 compFMˢ，目标层 shift d m 对
--- d 递归，使 shift (suc d) m ≡ shift d (suc m) 定义性成立；余锥腿本身
--- 为 FMˢ，其相容性是行为等价 _≈FM_。
+-- setoid 携带系统上的序列余极限
+--
+-- Carried.SeqColimit 在 MCorrSetoidCat 上的对应物。Chainˢ 是以 ℕ 为
+-- 索引的 SysEq 族，相邻层间为携带 setoid 函子 FMˢ。d 次嵌入迭代
+-- compFMˢ，目标层 shift d m 对 d 递归，使 shift (suc d) m ≡
+-- shift d (suc m) 定义性成立；余锥腿本身为 FMˢ，其相容性是行为等价
+-- _≈FM_。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -32,17 +35,22 @@ open import ALMA.Base.MCorrSetoidCat
 open SysEq
 
 ------------------------------------------------------------------------
--- Stage shift by d successor edges; the layer-arithmetic equality is
--- baked into the recursion.
--- 沿 d 条后继边的层偏移；层算术等式已烤进递归。
+-- Stage shift by d successor edges
+--
+-- The layer-arithmetic equality is baked into the recursion.
+--
+-- 沿 d 条后继边的层偏移
+--
+-- 层算术等式已烤进递归。
 
 shift : ℕ → ℕ → ℕ
 shift zero    m = m
 shift (suc d) m = shift d (suc m)
 
 ------------------------------------------------------------------------
--- A carried chain and its iterated embedding.
--- 携带式链及其迭代嵌入。
+-- A carried chain and its iterated embedding
+--
+-- 携带式链及其迭代嵌入
 
 record Chainˢ (i a b ℓa ℓe : Level) : Set (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)) where
   field
@@ -56,8 +64,9 @@ record Chainˢ (i a b ℓa ℓe : Level) : Set (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔
 open Chainˢ public
 
 ------------------------------------------------------------------------
--- A carried cocone with apex L.
--- 以 L 为 apex 的携带余锥。
+-- A carried cocone with apex L
+--
+-- 以 L 为 apex 的携带余锥
 
 record Coconeˢ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe)
                (L : SysEq i a b ℓa ℓe)
@@ -70,8 +79,13 @@ record Coconeˢ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe)
 open Coconeˢ public
 
 ------------------------------------------------------------------------
--- d-fold leg coherence, by induction on d from the one-step coh.
--- d 次腿相干性，由一步 coh 对 d 归纳。
+-- d-fold leg coherence
+--
+-- By induction on d from the one-step coh.
+--
+-- d 次腿相干性
+--
+-- 由一步 coh 对 d 归纳。
 
 module _ {i a b ℓa ℓe : Level} {ch : Chainˢ i a b ℓa ℓe}
          {L : SysEq i a b ℓa ℓe} (coc : Coconeˢ ch L) where
@@ -108,8 +122,13 @@ module _ {i a b ℓa ℓe : Level} {ch : Chainˢ i a b ℓa ℓe}
         (coh coc m))
 
 ------------------------------------------------------------------------
--- The colimit universal property, entirely in carried morphisms.
--- 余极限泛性质，完全用携带态射表达。
+-- The colimit universal property
+--
+-- Entirely in carried morphisms.
+--
+-- 余极限泛性质
+--
+-- 完全用携带态射表达。
 
 record IsColimitˢ {i a b ℓa ℓe : Level} {ch : Chainˢ i a b ℓa ℓe}
                   (Apex : SysEq i a b ℓa ℓe) (coc : Coconeˢ ch Apex)
@@ -125,8 +144,9 @@ record IsColimitˢ {i a b ℓa ℓe : Level} {ch : Chainˢ i a b ℓa ℓe}
 open IsColimitˢ public
 
 ------------------------------------------------------------------------
--- A bundled colimit.
--- 打包的余极限。
+-- A bundled colimit
+--
+-- 打包的余极限
 
 record Colimitˢ (i a b ℓa ℓe : Level) (ch : Chainˢ i a b ℓa ℓe)
        : Set (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)) where
@@ -138,13 +158,17 @@ record Colimitˢ (i a b ℓa ℓe : Level) (ch : Chainˢ i a b ℓa ℓe)
 open Colimitˢ public
 
 ------------------------------------------------------------------------
--- Existence data for a carried colimit apex: a limit system L with a
--- stage injection and a finite-stage representative for every point.
--- The injection is not an FMˢ (not child-surjective); rep replaces any
--- partial default since positions are unbounded.
--- 携带余极限 apex 的存在性数据：极限系统 L，带阶段注入与每点的有限层
--- 代表。注入不是 FMˢ（不满足子节点满）；位置无界，故用 rep 取代偏函数
--- 默认值。
+-- Existence data for a carried colimit apex
+--
+-- A limit system L with a stage injection and a finite-stage
+-- representative for every point. The injection is not an FMˢ (not
+-- child-surjective); rep replaces any partial default since positions
+-- are unbounded.
+--
+-- 携带余极限 apex 的存在性数据
+--
+-- 极限系统 L，带阶段注入与每点的有限层代表。注入不是 FMˢ（不满足
+-- 子节点满）；位置无界，故用 rep 取代偏函数默认值。
 
 record Limitˢ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe)
        : Set (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe)) where

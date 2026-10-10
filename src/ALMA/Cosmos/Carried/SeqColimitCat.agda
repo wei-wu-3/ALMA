@@ -1,22 +1,23 @@
 ------------------------------------------------------------------------
--- Sequential colimits in MCorrCatˢ as standard agda-categories
--- Colimits. The shape is the free category on the successor edges of
--- ℕ: Chain⇒ m is indexed only by its target, with the source m fixed
--- as a parameter (mirroring reflexive-transitive closure). A path is
--- grown by appending at the target, so folding a chain's embeddings
--- along it is structural recursion with no arithmetic cast and no
--- transport. The hom equivalence is propositional equality; the
--- category laws hold by trivial induction. A supplied Colimitˢ
--- (mediate/triangle/unique) makes the colimit cocone initial,
--- yielding a Categories.Diagram.Colimit. Existence is conditional on
--- Colimitˢ.
+-- Sequential colimits in MCorrCatˢ as standard agda-categories Colimits
 --
--- MCorrCatˢ 中的序列余极限，装配为 agda-categories 标准 Colimit。形状
--- 是 ℕ 后继边上的自由范畴：Chain⇒ m 仅以目标为索引，源 m 固定为参数
--- （镜像自反传递闭包）。路径在目标端追加生长，故沿路径折叠嵌入是结构
--- 化递归，无算术 cast、无传输。hom 等价取命题相等，范畴律由平凡归纳得
--- 到。给定 Colimitˢ（mediate/triangle/unique）即使余极限余锥成为初始
--- 对象，从而得到标准 Colimit；存在性以 Colimitˢ 为条件。
+-- The shape is the free category on the successor edges of ℕ:
+-- Chain⇒ m is indexed only by its target, with the source m fixed as a
+-- parameter (mirroring reflexive-transitive closure). A path is grown by
+-- appending at the target, so folding a chain's embeddings along it is
+-- structural recursion with no arithmetic cast and no transport. The hom
+-- equivalence is propositional equality; the category laws hold by
+-- trivial induction. A supplied Colimitˢ (mediate/triangle/unique) makes
+-- the colimit cocone initial, yielding a Categories.Diagram.Colimit.
+-- Existence is conditional on Colimitˢ.
+--
+-- MCorrCatˢ 中的序列余极限，装配为 agda-categories 标准 Colimit
+--
+-- 形状是 ℕ 后继边上的自由范畴：Chain⇒ m 仅以目标为索引，源 m 固定为
+-- 参数（镜像自反传递闭包）。路径在目标端追加生长，故沿路径折叠嵌入是
+-- 结构化递归，无算术 cast、无传输。hom 等价取命题相等，范畴律由平凡
+-- 归纳得到。给定 Colimitˢ（mediate/triangle/unique）即使命题余锥成为
+-- 初始对象，从而得到标准 Colimit；存在性以 Colimitˢ 为条件。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -39,14 +40,20 @@ open import ALMA.Cosmos.Carried.SeqColimitS
   using (Chainˢ; Coconeˢ; IsColimitˢ; Colimitˢ; X; emb; leg; coc; has; Apex)
 
 ------------------------------------------------------------------------
--- Shape category: paths over successor edges; source is a parameter.
--- 形状范畴：后继边上的路径；源端为参数。
+-- Shape category
+--
+-- Paths over successor edges; source is a parameter.
+--
+-- 形状范畴
+--
+-- 后继边上的路径；源端为参数。
 
 data Chain⇒ (m : ℕ) : ℕ → Set where
   stop : Chain⇒ m m
   step : ∀ {n} → Chain⇒ m n → Chain⇒ m (suc n)
 
 -- Composition prepends f to g; it recurses on the target-built g.
+--
 -- 复合把 f 接到 g 前，对目标端构造的 g 递归。
 infixl 7 _∘ch_
 _∘ch_ : ∀ {m y n} → Chain⇒ y n → Chain⇒ m y → Chain⇒ m n
@@ -54,6 +61,7 @@ stop    ∘ch f = f
 step g  ∘ch f = step (g ∘ch f)
 
 -- The one-step successor arrow.
+--
 -- 一步后继箭头。
 succ : ∀ {m} → Chain⇒ m (suc m)
 succ = step stop
@@ -91,8 +99,9 @@ ch-resp refl refl = refl
   }
 
 ------------------------------------------------------------------------
--- Folding a path into iterated carried embeddings.
--- 把路径折叠为迭代的携带嵌入。
+-- Folding a path into iterated carried embeddings
+--
+-- 把路径折叠为迭代的携带嵌入
 
 module _ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe) where
 
@@ -141,8 +150,9 @@ module _ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe) where
     }
 
   ----------------------------------------------------------------------
-  -- One-step coherence lifts to arbitrary paths by induction.
-  -- 一步相干性经归纳提升为任意路径上的相干性。
+  -- One-step coherence lifts to arbitrary paths by induction
+  --
+  -- 一步相干性经归纳提升为任意路径上的相干性
 
   leg-coh-path : {L : SysEq i a b ℓa ℓe} (k : Coconeˢ ch L)
                  {m n : ℕ} (p : Chain⇒ m n)
@@ -176,8 +186,9 @@ module _ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe) where
       (leg-coh-path {L = L} k p)
 
 ------------------------------------------------------------------------
--- A Colimitˢ makes the colimit cocone initial.
--- Colimitˢ 使余极限余锥成为初始对象。
+-- A Colimitˢ makes the colimit cocone initial
+--
+-- Colimitˢ 使余极限余锥成为初始对象
 
 module _ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe) where
 
@@ -188,7 +199,8 @@ module _ {i a b ℓa ℓe : Level} (ch : Chainˢ i a b ℓa ℓe) where
   open import Categories.Object.Initial Cocones
   open import Categories.Diagram.Colimit F using (Colimit)
 
-  -- fold of the successor arrow is the one-step embedding up to id.
+  -- Fold of the successor arrow is the one-step embedding up to id.
+  --
   -- 后继箭头的 fold 与一步嵌入仅差一个 id。
   succ-fold : ∀ {m} → fold ch (succ {m = m}) ≈FM emb ch m
   succ-fold {m = m} =

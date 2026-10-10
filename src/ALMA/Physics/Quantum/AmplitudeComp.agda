@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- L2 amplitude composition: a complex unitary conserves total norm.
+-- L2 amplitude composition: a complex unitary conserves total norm
 --
 -- Composing two amplitude instruments sums amplitudes (not weights), so
 -- interference appears. The primitive recombination is a 2×2 unitary
@@ -14,14 +14,13 @@
 -- The diagonal terms carry the factor |u|² + |v|² = 1; the two
 -- interference (cross) terms are exact opposites and cancel by the
 -- commutative-ring and conjugation laws alone -- no 8-variable
--- expansion. Orthogonality is again a carried hypothesis.
+-- expansion. Orthogonality is again a carried hypothesis. A
+-- rational-complex instance u = 3/5, v = (4/5)i closes by refl.
 --
--- A rational-complex instance u = 3/5, v = (4/5)i closes by refl.
+-- L2 振幅复合：复幺正保持总范数
 --
--- L2 振幅复合：复幺正保持总范数。
---
--- 复合两个振幅仪器是对振幅（而非权重）求和，故出现干涉。其基本重组是带
--- *复* 元素的 2×2 幺正
+-- 复合两个振幅仪器是对振幅（而非权重）求和，故出现干涉。其基本重组是
+-- 带复元素的 2×2 幺正
 --
 --     U = [[ u, v ], [ -conj v, conj u ]]，     |u|² + |v|² = 1，
 --
@@ -29,17 +28,16 @@
 --
 --     |uα + vβ|² + |(-conj v)α + (conj u)β|² = |α|² + |β|²。
 --
--- 对角项带上因子 |u|²+|v|²=1；两个干涉（交叉）项互为相反数，仅凭交换
--- 环与共轭律相消——无需 8 变量展开。正交仍是携带假设。
---
--- 有理复实例 u=3/5、v=(4/5)i 由 refl 收口。
+-- 对角项带上因子 |u|²+|v|²=1；两个干涉（交叉）项互为相反数，仅凭交换环
+-- 与共轭律相消——无需 8 变量展开。正交仍是携带假设。有理复实例
+-- u=3/5、v=(4/5)i 由 refl 收口。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
 
 module ALMA.Physics.Quantum.AmplitudeComp where
 
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _+_; _*_; _-_; -_; _/_)
+open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _+_; _*_; _-_; -_; _/_) 
 open import Data.Rational.Properties using
   ( +-assoc; +-comm; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
   ; *-assoc; *-comm; *-identityˡ
@@ -54,14 +52,19 @@ open import ALMA.Physics.Quantum.Gaussian
   using (ℂ; re; im; conj; norm²; _+ᶜ_; _*ᶜ_; norm²-mul; norm²-conj)
 
 -- Additive inverse on ℚ[i], componentwise.
+--
 -- ℚ[i] 的加法逆元，逐分量取负。
 -ᶜ_ : ℂ → ℂ
 -ᶜ_ (a , b) = (- a , - b)
 
 ------------------------------------------------------------------------
--- Rational kit (the Gaussian copies are private; reprove what is needed).
--- 有理工具（Gaussian 中相应引理为私有，按需重证）。
-------------------------------------------------------------------------
+-- Rational kit
+--
+-- The Gaussian copies are private; reprove what is needed.
+--
+-- 有理工具
+--
+-- Gaussian 中相应引理为私有，按需重证。
 
 private
   ‿-‿ : ∀ x → - (- x) ≡ x
@@ -89,6 +92,8 @@ private
     x * y ∎
 
   -- (x + y)² = x² + y² + (x*y + x*y).
+  --
+  -- (x + y)² = x² + y² + (x*y + x*y)。
   sq+ : ∀ x y → (x + y) * (x + y) ≡
                 x * x + (y * y + (x * y + x * y))
   sq+ x y = let open ≡-Reasoning in begin
@@ -107,6 +112,8 @@ private
     x * x + (y * y + (x * y + x * y)) ∎
 
   -- (a + b) + (c + d) = (a + c) + (b + d).
+  --
+  -- (a + b) + (c + d) = (a + c) + (b + d)。
   +-interchange : ∀ a b c d → (a + b) + (c + d) ≡ (a + c) + (b + d)
   +-interchange a b c d = let open ≡-Reasoning in begin
     (a + b) + (c + d)
@@ -122,6 +129,7 @@ private
     (a + c) + (b + d) ∎
 
   -- Subtraction distributes over multiplication on either side.
+  --
   -- 减法对乘法的两侧分配。
   *ʳ-sub : ∀ x y z → (x - y) * z ≡ x * z - y * z
   *ʳ-sub x y z = let open ≡-Reasoning in begin
@@ -140,6 +148,8 @@ private
     x * y - x * z ∎
 
   -- X - (Y + Z) = (X - Y) - Z.
+  --
+  -- X - (Y + Z) = (X - Y) - Z。
   sub-+-assoc : ∀ X Y Z → X - (Y + Z) ≡ (X - Y) - Z
   sub-+-assoc X Y Z = let open ≡-Reasoning in begin
     X - (Y + Z)
@@ -149,6 +159,7 @@ private
     (X - Y) - Z ∎
 
   -- Left-nested four-sum to right-nested.
+  --
   -- 左结合四项和转为右结合。
   flat4 : ∀ p q r s → ((p + q) + r) + s ≡ p + (q + (r + s))
   flat4 p q r s = let open ≡-Reasoning in begin
@@ -159,6 +170,7 @@ private
     p + (q + (r + s)) ∎
 
   -- Rotate the last three addends: a+b+c+d = a+c+d+b.
+  --
   -- 末三项轮换：a+b+c+d = a+c+d+b。
   perm4 : ∀ a b c d → a + (b + (c + d)) ≡ a + (c + (d + b))
   perm4 a b c d = let open ≡-Reasoning in begin
@@ -173,6 +185,7 @@ private
     a + (c + (d + b)) ∎
 
   -- Cancel opposite copies of t carried by two pairs, then interchange.
+  --
   -- 消去两对中一正一负的 t，再交换收拢。
   gather-t : ∀ P Q R S t →
              ((P + Q) + t) + ((R + S) + (- t)) ≡ (P + R) + (Q + S)
@@ -188,10 +201,13 @@ private
     (P + R) + (Q + S) ∎
 
 ------------------------------------------------------------------------
--- ℚ[i] is a commutative ring: the laws used to reorder amplitude
--- products abstractly.
--- ℚ[i] 是交换环：用于抽象重排振幅乘积的环律。
-------------------------------------------------------------------------
+-- ℚ[i] is a commutative ring
+--
+-- The laws used to reorder amplitude products abstractly.
+--
+-- ℚ[i] 是交换环
+--
+-- 用于抽象重排振幅乘积的环律。
 
 private
   *ᶜ-comm : ∀ x y → x *ᶜ y ≡ y *ᶜ x
@@ -213,6 +229,7 @@ private
     where
     -- Four signed monomials of the real part, permuted between the two
     -- parenthesisations.
+    --
     -- 实部的四个带符号单项式，在两种括号化间仅作排列。
     r1 = (a * c) * e ; r2 = - ((b * d) * e)
     r3 = - ((a * d) * f) ; r4 = - ((b * c) * f)
@@ -253,6 +270,7 @@ private
       a * (c * e - d * f) - b * (c * f + d * e) ∎
 
     -- Imaginary part: same permutation, four monomials.
+    --
     -- 虚部：四个单项式的同一排列。
     t1 = (a * c) * f ; t2 = - ((b * d) * f)
     t3 = (a * d) * e ; t4 = (b * c) * e
@@ -289,9 +307,10 @@ private
       ≡⟨ sym imagR ⟩
       a * (c * f + d * e) + b * (c * e - d * f) ∎
 
-  -- Conjugation is an involution and anti-preserves nothing extra: ℚ[i]
-  -- is commutative, so conj(xy) = conj x · conj y.
-  -- 共轭为对合；ℚ[i] 交换，故 conj(xy)=conj x·conj y。
+  -- Conjugation is an involution and preserves products: ℚ[i] is
+  -- commutative, so conj(xy) = conj x · conj y.
+  --
+  -- 共轭为对合且保持乘积：ℚ[i] 交换，故 conj(xy)=conj x·conj y。
   conj-invol : ∀ z → conj (conj z) ≡ z
   conj-invol (a , b) = cong (a ,_) (‿-‿ b)
 
@@ -321,6 +340,7 @@ private
       - (a * d + b * c) ∎
 
   -- Negation through multiplication, on either side.
+  --
   -- 取负穿过乘法的两侧恒等式。
   neg-mulˡ : ∀ x y → (-ᶜ x) *ᶜ y ≡ -ᶜ (x *ᶜ y)
   neg-mulˡ (a , b) (c , d) = cong₂ _,_ real imag
@@ -362,11 +382,16 @@ private
     cong₂ _+_ (-‿*- a a) (-‿*- b b)
 
 ------------------------------------------------------------------------
--- Polarization: |x + y|² = |x|² + |y|² + 2·Re(conj x · y).
--- 极化恒等式：|x + y|² = |x|² + |y|² + 2·Re(conj x · y)。
-------------------------------------------------------------------------
+-- Polarization
+--
+-- |x + y|² = |x|² + |y|² + 2·Re(conj x · y).
+--
+-- 极化恒等式
+--
+-- |x + y|² = |x|² + |y|² + 2·Re(conj x · y)。
 
 -- Interference term: twice the real part of the Hermitian overlap.
+--
 -- 干涉项：Hermite 内积实部的两倍。
 cross : ℂ → ℂ → ℚ
 cross x y = re (conj x *ᶜ y) + re (conj x *ᶜ y)
@@ -407,13 +432,16 @@ norm²-add (a , b) (d , e) = let open ≡-Reasoning in begin
     ovl + ovl ∎
 
 ------------------------------------------------------------------------
--- The two interference terms of a unitary row pair are opposites.
--- 幺正两行的两个干涉项互为相反数。
-------------------------------------------------------------------------
+-- The two interference terms of a unitary row pair are opposites
+--
+-- 幺正两行的两个干涉项互为相反数
 
 private
   -- B = conj(x')·y' is the additive inverse of A = conj(x)·y for the
   -- second row x' = -conj v · α, y' = conj u · β.
+  --
+  -- 对第二行 x' = -conj v · α、y' = conj u · β，B = conj(x')·y' 是
+  -- A = conj(x)·y 的加法逆元。
   cross-opposite : ∀ (u v α β : ℂ) →
       let x  = u *ᶜ α
           y  = v *ᶜ β
@@ -499,11 +527,16 @@ private
       -ᶜ A ∎
 
 ------------------------------------------------------------------------
--- Main theorem: a complex 2×2 unitary conserves total norm.
--- 主定理：复 2×2 幺正保持总范数。
-------------------------------------------------------------------------
+-- Main theorem
+--
+-- A complex 2×2 unitary conserves total norm.
+--
+-- 主定理
+--
+-- 复 2×2 幺正保持总范数。
 
 -- U = [[u, v], [-conj v, conj u]], with carried |u|² + |v|² = 1.
+--
 -- U = [[u, v], [-conj v, conj u]]，携带 |u|² + |v|² = 1。
 unitary2-pres : ∀ (u v α β : ℂ) →
                 norm² u + norm² v ≡ 1ℚ →
@@ -574,9 +607,13 @@ unitary2-pres u v α β h = let open ≡-Reasoning in begin
   dx'y' = cong₂ _+_ diagx' diagy'
 
 ------------------------------------------------------------------------
--- Rational-complex instance: u = 3/5, v = (4/5)i, |u|² + |v|² = 1.
--- 有理复实例：u = 3/5、v = (4/5)i，|u|² + |v|² = 1。
-------------------------------------------------------------------------
+-- Rational-complex instance
+--
+-- u = 3/5, v = (4/5)i, |u|² + |v|² = 1.
+--
+-- 有理复实例
+--
+-- u = 3/5、v = (4/5)i，|u|² + |v|² = 1。
 
 private
   i3 i4 : ℤ
@@ -591,11 +628,13 @@ u₃₄₅ = (c₃₄₅ , 0ℚ)
 v₃₄₅ = (0ℚ , s₃₄₅)
 
 -- Closed Pythagorean arithmetic normalises to 1 by refl.
+--
 -- 闭项勾股算术经 refl 规范化为 1。
 pythagoras-345 : norm² u₃₄₅ + norm² v₃₄₅ ≡ 1ℚ
 pythagoras-345 = refl
 
 -- The complex unitary with u = 3/5, v = (4/5)i conserves total norm.
+--
 -- u = 3/5、v = (4/5)i 的复幺正保持总范数。
 unitary2-345 : ∀ (α β : ℂ) →
   norm² (u₃₄₅ *ᶜ α +ᶜ v₃₄₅ *ᶜ β)

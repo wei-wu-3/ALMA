@@ -1,20 +1,22 @@
 ------------------------------------------------------------------------
--- Non-triviality on the carried M base.
+-- Non-triviality on the carried M base
+--
 -- Terminality gives only uniqueness of the mediating morphism
--- (!-unique); it does not make a fibre total.  Totality is the explicit
--- predicate AllBisim j, with Subterminal = every fibre total.  A carried
+-- (!-unique); it does not make a fibre total. Totality is the explicit
+-- predicate AllBisim j, with Subterminal = every fibre total. A carried
 -- correspondence (CosmosM⇒ over an index relation R, mapping across
 -- fibres via mapR along r : R i j) that reflects bisimulation cannot
--- send a separated source fibre into a total one.  The FinCat n tower
+-- send a separated source fibre into a total one. The FinCat n tower
 -- supplies both the separated source (idN≉const0N) and the fact that
 -- the terminal carrier is not subterminal.
 --
--- 携带式 M 底座上的非平凡性。
+-- 携带式 M 底座上的非平凡性
+--
 -- 终性只给中介映射唯一性（!-unique），不使纤维全体；全体性是显式谓词
 -- AllBisim j，Subterminal 即每个纤维全体。反射互模拟的携带对应（索引
--- 关系 R 上的 CosmosM⇒，经 mapR 沿 r : R i j 跨纤维映射）不能把分离源
--- 纤维送入全体纤维。FinCat n 塔同时给出分离源（idN≉const0N）与终载体
--- 非亚终。
+-- 关系 R 上的 CosmosM⇒，经 mapR 沿 r : R i j 跨纤维映射）不能把分离
+-- 源纤维送入全体纤维。FinCat n 塔同时给出分离源（idN≉const0N）与终
+-- 载体非亚终。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -48,9 +50,13 @@ module _ {o h e s p : Level}
     L = o ⊔ h ⊔ e ⊔ s ⊔ p
 
   ----------------------------------------------------------------------
-  -- Per-fibre totality and subterminal objects; explicit, never derived
-  -- from terminality.
-  -- 纤维全体性与亚终对象；显式假设，不由终性导出。
+  -- Per-fibre totality and subterminal objects
+  --
+  -- Explicit, never derived from terminality.
+  --
+  -- 纤维全体性与亚终对象
+  --
+  -- 显式假设，不由终性导出。
 
   AllBisim : (j : MO.I C FC) → Set (L ⊔ ℓd)
   AllBisim j =
@@ -67,8 +73,13 @@ module _ {o h e s p : Level}
   no-distinguishing-pair all (t , u , t≉u) = t≉u (all t u)
 
   ----------------------------------------------------------------------
+  -- Reflecting carried maps
+  --
   -- A carried map reflects bisimulation along r : R i j when bisimilar
   -- images at j force bisimilar sources at i.
+  --
+  -- 反射携带映射
+  --
   -- 携带映射沿 r : R i j 反射互模拟：j 处像互模拟则 i 处源互模拟。
 
   module _ {ℓr : Level}
@@ -83,6 +94,7 @@ module _ {o h e s p : Level}
       → MO.≈CosmosM C FC ≈CD t u
 
     -- Contrapositive: separation at the source survives the map.
+    --
     -- 逆否：源处的分离在映射后保持。
     separation-survives : ∀ {i j : MO.I C FC}
       → (r : R i j) → ReflectsBisimAt r
@@ -107,8 +119,9 @@ module _ {o h e s p : Level}
       no-reflecting-into-total r (sub _) reflect t u t≉u
 
   ----------------------------------------------------------------------
-  -- Terminality is mediator uniqueness (!-unique), not fibre totality.
-  -- 终性是中介映射唯一性（!-unique），非纤维全体性。
+  -- Terminality is mediator uniqueness, not fibre totality
+  --
+  -- 终性是中介映射唯一性，非纤维全体性
 
   record TerminalMediator {u : Level}
          (Xst : MO.I C FC → Set u)
@@ -134,6 +147,7 @@ module _ {o h e s p : Level}
       (med-comm m j x)
 
   -- Mediators of one coalgebra coincide pointwise.
+  --
   -- 同一余代数的中介逐点重合。
   terminal-mediators-coincide : ∀ {u : Level}
       {Xst : MO.I C FC → Set u}
@@ -147,8 +161,9 @@ module _ {o h e s p : Level}
       (≈CosmosM-sym ≈CD (terminal-unique n j x))
 
 ------------------------------------------------------------------------
--- FinCat n tower instantiation.
--- FinCat n 塔实例化。
+-- FinCat n tower instantiation
+--
+-- FinCat n 塔实例化
 
 module TowerInstance (m : ℕ) where
 
@@ -160,6 +175,7 @@ module TowerInstance (m : ℕ) where
     ≈CDn _ = propEqOn _
 
   -- The terminal carrier fibre at i₁ is not total.
+  --
   -- i₁ 处的终载体纤维并非全体。
   terminal-fibre-not-total
     : ¬ AllBisim {C = Cn} {FC = TrivFC} ≈CDn i₁
@@ -167,6 +183,7 @@ module TowerInstance (m : ℕ) where
     idN≉const0N (all (treeId i₁) (treeC0 i₁))
 
   -- No reflecting carried map leads from i₁ into a total fibre.
+  --
   -- 不存在从 i₁ 指向全体纤维的反射携带映射。
   tower-no-reflection-into-total
     : ∀ {ℓr : Level}

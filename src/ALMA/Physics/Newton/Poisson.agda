@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- The affine canonical Poisson algebra (the Heisenberg algebra).
+-- The affine canonical Poisson algebra (the Heisenberg algebra)
 --
 -- Observables affine in canonical coordinates, f = c + a q + b p over
 -- ℚ. The canonical bracket
@@ -11,22 +11,19 @@
 -- axioms (ℚ-bilinearity, antisymmetry, Jacobi) and the canonical
 -- relations {q,p}=1. The Hamiltonian vector field X_H f = {f,H} gives
 -- Newton's equations at constant force: q̇ = b_H, ṗ = −a_H, and energy
--- is conserved, {H,H}=0.
+-- is conserved, {H,H}=0. Everything is exact over ℚ; no analysis
+-- enters.
 --
--- Everything is exact over ℚ; no analysis enters.
---
--- 仿射典范 Poisson 代数（Heisenberg 代数）。
+-- 仿射典范 Poisson 代数（Heisenberg 代数）
 --
 -- 典范坐标上的仿射观测量 f = c + a q + b p（ℚ 系数），典范括号
 --
 --   {f, g} = ∂q f · ∂p g − ∂p f · ∂q g = a b' − b a'
 --
 -- 与 q、p 无关，故每个括号都在中心，代数为二步幂零的 Heisenberg 代数。
--- 此处验证 Poisson 公理（ℚ 双线性、反对称、Jacobi）与正则关系 {q,p}=1。
--- 哈密顿向量场 X_H f = {f,H} 给出常力情形的牛顿方程 q̇=b_H、ṗ=−a_H，
--- 且能量守恒 {H,H}=0。
---
--- 全部在 ℚ 上精确，不含任何分析。
+-- 此处验证 Poisson 公理（ℚ 双线性、反对称、Jacobi）与正则关系
+-- {q,p}=1。哈密顿向量场 X_H f = {f,H} 给出常力情形的牛顿方程
+-- q̇=b_H、ṗ=−a_H，且能量守恒 {H,H}=0。全部在 ℚ 上精确，不含任何分析。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -44,10 +41,11 @@ open import Relation.Binary.PropositionalEquality using
 
 ------------------------------------------------------------------------
 -- Affine observables and the canonical bracket
+--
 -- 仿射观测量与典范括号
-------------------------------------------------------------------------
 
 -- An observable c + a q + b p.
+--
 -- 观测量 c + a q + b p。
 record Obs : Set where
   constructor obs
@@ -58,6 +56,7 @@ record Obs : Set where
 open Obs
 
 -- Pointwise addition and scalar multiplication.
+--
 -- 逐点加法与数乘。
 add : Obs → Obs → Obs
 add (obs c a b) (obs c' a' b') = obs (c + c') (a + a') (b + b')
@@ -72,6 +71,7 @@ zero : Obs
 zero = obs 0ℚ 0ℚ 0ℚ
 
 -- The unit constant, and the canonical coordinates.
+--
 -- 单位常数与典范坐标。
 one : Obs
 one = obs 1ℚ 0ℚ 0ℚ
@@ -83,6 +83,7 @@ pO : Obs
 pO = obs 0ℚ 0ℚ 1ℚ
 
 -- Canonical Poisson bracket; the constant term of each argument drops.
+--
 -- 典范 Poisson 括号；两自变量的常数项不出现。
 bracket : Obs → Obs → Obs
 bracket (obs _ a b) (obs _ a' b') = obs (a * b' + - (b * a')) 0ℚ 0ℚ
@@ -91,10 +92,11 @@ infix 6 bracket
 
 ------------------------------------------------------------------------
 -- Antisymmetry and the canonical relations
+--
 -- 反对称性与正则关系
-------------------------------------------------------------------------
 
 -- {f, f} = 0 since a b − b a = 0.
+--
 -- 因 a b − b a = 0，有 {f, f} = 0。
 bracket-self : ∀ f → bracket f f ≡ zero
 bracket-self (obs _ a b) =
@@ -109,6 +111,7 @@ bracket-self (obs _ a b) =
     0ℚ ∎
 
 -- Antisymmetry: {g, f} = −{f, g}.
+--
 -- 反对称：{g, f} = −{f, g}。
 bracket-skew : ∀ f g → bracket g f ≡ neg (bracket f g)
 bracket-skew (obs _ a b) (obs _ a' b') =
@@ -141,6 +144,7 @@ bracket-skew (obs _ a b) (obs _ a' b') =
       x ∎
 
 -- Canonical (Heisenberg) relations.
+--
 -- 正则（Heisenberg）关系。
 bracket-qp : bracket qO pO ≡ one
 bracket-qp = refl
@@ -153,12 +157,17 @@ bracket-pp = bracket-self pO
 
 ------------------------------------------------------------------------
 -- Bilinearity
+--
 -- 双线性
-------------------------------------------------------------------------
 
--- Bilinearity in the first argument; write ω(u,v) for the constant
--- value of {u,v}, and distribute over addition and scaling.
--- 第一自变量的双线性；记 ω(u,v) 为 {u,v} 的常数值，对加法与数乘分配。
+-- Bilinearity in the first argument
+--
+-- Write ω(u,v) for the constant value of {u,v}, and distribute over
+-- addition and scaling.
+--
+-- 第一自变量的双线性
+--
+-- 记 ω(u,v) 为 {u,v} 的常数值，对加法与数乘分配。
 bracket-addˡ : ∀ f g h →
                bracket (add f g) h ≡ add (bracket f h) (bracket g h)
 bracket-addˡ (obs _ af bf) (obs _ ag bg) (obs _ ah bh) =
@@ -192,6 +201,7 @@ bracket-addˡ (obs _ af bf) (obs _ ag bg) (obs _ ah bh) =
       (w + y) + (x + z) ∎
 
 -- Bilinearity in the second argument follows by antisymmetry.
+--
 -- 第二自变量的双线性由反对称推出。
 bracket-addʳ : ∀ f g h →
                bracket f (add g h) ≡ add (bracket f g) (bracket f h)
@@ -217,6 +227,7 @@ bracket-addʳ f g h = let open ≡-Reasoning in begin
     obs (- c + - c') (- a + - a') (- b + - b') ∎
 
 -- Scalar linearity in each argument.
+--
 -- 每个自变量上的数乘线性。
 bracket-scaleˡ : ∀ r f g →
                  bracket (scale r f) g ≡ scale r (bracket f g)
@@ -265,12 +276,16 @@ bracket-scaleʳ r f g = let open ≡-Reasoning in begin
 
 ------------------------------------------------------------------------
 -- Centrality and the Jacobi identity
+--
 -- 中心性与 Jacobi 恒等式
-------------------------------------------------------------------------
 
--- Every bracket has zero q- and p-coefficients, hence is central: a
--- central observable brackets to zero with anything.
--- 每个括号的 q、p 系数皆零，故在中心：中心观测量与任何观测量括号为零。
+-- Every bracket has zero q- and p-coefficients, hence is central
+--
+-- A central observable brackets to zero with anything.
+--
+-- 每个括号的 q、p 系数皆零，故在中心
+--
+-- 中心观测量与任何观测量括号为零。
 central-kill : ∀ k h → bracket (obs k 0ℚ 0ℚ) h ≡ zero
 central-kill k (obs _ a b) = cong (λ x → obs x 0ℚ 0ℚ) lemma
   where
@@ -282,14 +297,20 @@ central-kill k (obs _ a b) = cong (λ x → obs x 0ℚ 0ℚ) lemma
     ≡⟨ +-inverseʳ 0ℚ ⟩
     0ℚ ∎
 
--- A nested bracket is zero on the left: { {f,g}, h } = 0, since the
--- inner bracket is definitionally central (obs k 0 0).
--- 左嵌套括号为零：{ {f,g}, h } = 0，因内括号按定义即在中心（obs k 0 0）。
+-- A nested bracket is zero on the left
+--
+-- { {f,g}, h } = 0, since the inner bracket is definitionally central
+-- (obs k 0 0).
+--
+-- 左嵌套括号为零
+--
+-- { {f,g}, h } = 0，因内括号按定义即在中心（obs k 0 0）。
 nested-zero : ∀ f g h → bracket (bracket f g) h ≡ zero
 nested-zero (obs _ af bf) (obs _ ag bg) h =
   central-kill (af * bg + - (bf * ag)) h
 
 -- zero is the additive unit on the left.
+--
 -- zero 是左加法单位。
 add-zeroˡ : ∀ u → add zero u ≡ u
 add-zeroˡ (obs c a b) = let open ≡-Reasoning in begin
@@ -299,8 +320,13 @@ add-zeroˡ (obs c a b) = let open ≡-Reasoning in begin
   ≡⟨ cong₂ (obs c) (+-identityˡ a) (+-identityˡ b) ⟩
   obs c a b ∎
 
--- Jacobi: every nested bracket vanishes, so the cyclic sum is zero.
--- Jacobi：每个嵌套括号皆零，故循环和为零。
+-- Jacobi
+--
+-- Every nested bracket vanishes, so the cyclic sum is zero.
+--
+-- Jacobi
+--
+-- 每个嵌套括号皆零，故循环和为零。
 jacobi : ∀ f g h →
          add (add (bracket (bracket f g) h)
                   (bracket (bracket g h) f))
@@ -321,15 +347,17 @@ jacobi f g h = let open ≡-Reasoning in begin
 
 ------------------------------------------------------------------------
 -- Hamiltonian dynamics: Newton's equations and energy conservation
+--
 -- 哈密顿动力学：牛顿方程与能量守恒
-------------------------------------------------------------------------
 
 -- Hamiltonian vector field X_H f = {f, H}.
+--
 -- 哈密顿向量场 X_H f = {f, H}。
 X : Obs → Obs → Obs
 X H f = bracket f H
 
 -- q̇ = {q,H} = b_H: the constant coefficient equals H's p-coefficient.
+--
 -- q̇ = {q,H} = b_H：常数值等于 H 的 p 系数。
 eom-q : ∀ H → X H qO ≡ obs (b H) 0ℚ 0ℚ
 eom-q (obs _ a b) = let open ≡-Reasoning in begin
@@ -348,6 +376,7 @@ eom-q (obs _ a b) = let open ≡-Reasoning in begin
     b ∎
 
 -- ṗ = {p,H} = −a_H: the constant coefficient is minus H's q-coefficient.
+--
 -- ṗ = {p,H} = −a_H：常数值为 H 的 q 系数取负。
 eom-p : ∀ H → X H pO ≡ obs (- a H) 0ℚ 0ℚ
 eom-p (obs _ a b) = let open ≡-Reasoning in begin
@@ -366,31 +395,40 @@ eom-p (obs _ a b) = let open ≡-Reasoning in begin
     - a ∎
 
 -- Energy is conserved along its own flow: {H,H} = 0.
+--
 -- 能量沿自身流守恒：{H,H} = 0。
 energy-conserved : ∀ H → X H H ≡ zero
 energy-conserved H = bracket-self H
 
 ------------------------------------------------------------------------
--- Constant-force instance: H = −F q + v₀ p gives q̇ = v₀, ṗ = F.
--- 常力实例：H = −F q + v₀ p 给出 q̇ = v₀、ṗ = F。
-------------------------------------------------------------------------
+-- Constant-force instance
+--
+-- H = −F q + v₀ p gives q̇ = v₀, ṗ = F.
+--
+-- 常力实例
+--
+-- H = −F q + v₀ p 给出 q̇ = v₀、ṗ = F。
 
 -- Force F = 2, initial velocity parameter v₀ = 1; H = −2 q + p.
+--
 -- 力 F = 2，速度参数 v₀ = 1；H = −2 q + p。
 H-const-force : Obs
 H-const-force = obs 0ℚ (- (1ℚ + 1ℚ)) 1ℚ
 
 -- q̇ = 1.
+--
 -- q̇ = 1。
 const-force-qdot : X H-const-force qO ≡ one
 const-force-qdot = refl
 
 -- ṗ = 2 (the force).
+--
 -- ṗ = 2（即力）。
 const-force-pdot : X H-const-force pO ≡ obs (1ℚ + 1ℚ) 0ℚ 0ℚ
 const-force-pdot = refl
 
 -- The constant-force Hamiltonian conserves its own energy.
+--
 -- 常力哈密顿量的能量守恒。
 const-force-energy : X H-const-force H-const-force ≡ zero
 const-force-energy = energy-conserved H-const-force

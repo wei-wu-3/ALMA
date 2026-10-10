@@ -1,35 +1,12 @@
 ------------------------------------------------------------------------
--- Equivalence: the degeneration lattice of LayeredEq.
+-- Equivalence
 --
---   Core.agda              centre of the lattice
---   SubstTransport.agda    layer relations + bridge
---   Properties.agda        generic laws of LayeredEqGen and specialisations
---   LayeredEqGenDepth.agda depth-bounded truncation
---   Map.agda               preservation under maps
---   ScaleInvariant.agda    LayeredEq / trivial layer
---   DiscreteEq.agda        drop next-eq
---   GroupInvariant.agda    ScaleInvariant / group action
---   LinearDynamics.agda    ScaleInvariant / no branching
---   TopologicalEq.agda     DiscreteEq / topology
---   ManifoldEq.agda        LayeredEqGen / single-directional charts
---   Lattice.agda           projections and joint projection
---   StrongEquiv.agda       category-level bridge
+-- The degeneration lattice of LayeredEq. The subsections list the
+-- modules of this hierarchy, grouped by their role in the lattice.
 --
--- 等价：LayeredEq 的退化格。
+-- 等价
 --
---   Core.agda              格的中央
---   SubstTransport.agda    同层关系与桥接
---   Properties.agda        LayeredEqGen 的通用律与特化
---   LayeredEqGenDepth.agda 深度有界截断
---   Map.agda               映射下的保持性
---   ScaleInvariant.agda    LayeredEq / 平凡层
---   DiscreteEq.agda        去掉 next-eq
---   GroupInvariant.agda    ScaleInvariant / 群作用
---   LinearDynamics.agda    ScaleInvariant / 无分支
---   TopologicalEq.agda     DiscreteEq / 拓扑
---   ManifoldEq.agda        LayeredEqGen / 单向坐标卡
---   Lattice.agda           投影与联合投影
---   StrongEquiv.agda       范畴层桥接
+-- LayeredEq 的退化格。各节列出本层级中的模块，按其在格中的角色分组。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -38,49 +15,95 @@ module ALMA.Base.Equivalence where
 
 ------------------------------------------------------------------------
 -- Core
+--
+-- Centre of the lattice.
+--
 -- 核心
+--
+-- 格的中央。
+
 open import ALMA.Base.Equivalence.Core public
 
 ------------------------------------------------------------------------
--- SubstTransport
--- 传输
+-- Layer relations and bridge
+--
+-- 同层关系与桥接
+
 open import ALMA.Base.Equivalence.SubstTransport public
 
 ------------------------------------------------------------------------
--- Generic properties and preservation
--- 通用性质与保持性
+-- Generic laws and preservation
+--
+-- 通用律与保持性
+
 open import ALMA.Base.Equivalence.Properties public
 open import ALMA.Base.Equivalence.LayeredEqGenDepth public
 open import ALMA.Base.Equivalence.Map public
 
 ------------------------------------------------------------------------
 -- Degeneration: ScaleInvariant
+--
+-- LayeredEq / trivial layer.
+--
 -- 退化：ScaleInvariant
+--
+-- LayeredEq / 平凡层。
+
 open import ALMA.Base.Equivalence.ScaleInvariant public
 
 ------------------------------------------------------------------------
 -- Degeneration: DiscreteEq
+--
+-- Drop next-eq.
+--
 -- 退化：DiscreteEq
+--
+-- 去掉 next-eq。
+
 open import ALMA.Base.Equivalence.DiscreteEq public
 
 ------------------------------------------------------------------------
 -- Further degenerations of ScaleInvariant
+--
+-- GroupInvariant is ScaleInvariant under a group action;
+-- LinearDynamics is ScaleInvariant with no branching.
+--
 -- ScaleInvariant 的更深退化
+--
+-- GroupInvariant 是群作用下的 ScaleInvariant；
+-- LinearDynamics 是无分支的 ScaleInvariant。
+
 open import ALMA.Base.Equivalence.GroupInvariant public
 open import ALMA.Base.Equivalence.LinearDynamics public
 
 ------------------------------------------------------------------------
 -- Further degenerations of DiscreteEq
+--
+-- TopologicalEq is DiscreteEq under a topology; ManifoldEq is a
+-- single-directional LayeredEqGen instance.
+--
 -- DiscreteEq 的更深退化
+--
+-- TopologicalEq 是拓扑下的 DiscreteEq；ManifoldEq 是单向的
+-- LayeredEqGen 实例。
+
 open import ALMA.Base.Equivalence.TopologicalEq public
 open import ALMA.Base.Equivalence.ManifoldEq public
 
 ------------------------------------------------------------------------
 -- Lattice structure
+--
+-- Projections and joint projection.
+--
 -- 格结构
+--
+-- 投影与联合投影。
+
 open import ALMA.Base.Equivalence.Lattice public
 
 ------------------------------------------------------------------------
 -- Category-level bridge
+--
 -- 范畴层桥接
+
 open import ALMA.Base.Equivalence.StrongEquiv public

@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------
--- Sewing obstruction and direction dichotomy on the carried M base.
+-- Sewing obstruction and direction dichotomy on the carried M base
+--
 -- The strict layer tower is absorbed by the M index (iterating
 -- ShapeCat C FC is iterating MO.I = Σ (Obj C) (ShapeOf FC)), so there
 -- is no per-step universe lifting and no PosOf subst. A carried
@@ -14,12 +15,14 @@
 -- rChg = const (fsuc fzero). All mismatches are absorbed by
 -- constructive no-confusion.
 --
--- 携带式 M 底座上的缝纫障碍与方向二分。严格层塔被 M 索引吸收（迭代
--- ShapeCat C FC 即迭代 MO.I = Σ (Obj C) (ShapeOf FC)），故无逐层抬
--- universe、无 PosOf subst。被提升节点回到源形状的携带式“retract”即
--- 一条 M 边，其目标由同质 refl 钉死；对对象保持、位置单点、形状路由
--- 为 r 的标签，回边存在当且仅当 r s ≡ s，故缝纫障碍塌缩为路由函数的
--- 不动点条件。二分即无范畴引理
+-- 携带式 M 底座上的缝纫障碍与方向二分
+--
+-- 严格层塔被 M 索引吸收（迭代 ShapeCat C FC 即迭代
+-- MO.I = Σ (Obj C) (ShapeOf FC)），故无逐层抬 universe、无 PosOf
+-- subst。被提升节点回到源形状的携带式“retract”即一条 M 边，其目标由
+-- 同质 refl 钉死；对对象保持、位置单点、形状路由为 r 的标签，回边存在
+-- 当且仅当 r s ≡ s，故缝纫障碍塌缩为路由函数的不动点条件。二分即无
+-- 范畴引理
 --   （∀ r s → r s ≡ s） ⇔ （∀ x y → x ≡ y）；
 -- Fin n（n ≥ 2）非单点，常值路由 rChg = const (fsuc fzero) 即为见证。
 -- 所有失配由构造性无混淆吸收。
@@ -49,16 +52,19 @@ open import Categories.Functor.Core using (Functor)
 open Functor using (F₀)
 
 open import ALMA.Cosmos.ContCategory using (ContCat; ≈sr-refl)
-open import ALMA.Cosmos.ContCategoryLemmas using (ShapeOf; PosOf)
 open import ALMA.Cosmos.ContCatEquiv using (ShapeCat)
 import ALMA.Cosmos.M.Object as MO
 
 ------------------------------------------------------------------------
--- Category-free core of the direction dichotomy: every self-map r on P
--- fixes every point iff P is a singleton.
+-- Category-free core of the direction dichotomy
+--
+-- Every self-map r on P fixes every point iff P is a singleton.
 --   to   : fixing the constant map const y at x gives y ≡ x.
 --   from : r s is the unique element, hence r s ≡ s.
--- 方向二分的无范畴核心：P 上每个自映射 r 固定每个点当且仅当 P 单点。
+--
+-- 方向二分的无范畴核心
+--
+-- P 上每个自映射 r 固定每个点当且仅当 P 单点。
 --   to   ：把常值映射 const y 在 x 处固定得 y ≡ x。
 --   from ：r s 即唯一元素，故 r s ≡ s。
 
@@ -77,9 +83,14 @@ routing-fixed-iff-singleton {P = P} = mk⇔ to from
     from u r s = u (r s) s
 
 ------------------------------------------------------------------------
--- FinCat n stage, parameterised by m with n = suc (suc m), so n ≥ 2
--- holds definitionally.
--- FinCat n 塔层，以 m 为参数，n = suc (suc m)，故 n ≥ 2 定义性成立。
+-- FinCat n stage
+--
+-- Parameterised by m with n = suc (suc m), so n ≥ 2 holds
+-- definitionally.
+--
+-- FinCat n 塔层
+--
+-- 以 m 为参数，n = suc (suc m)，故 n ≥ 2 定义性成立。
 
 module SewingObstruction (m : ℕ) where
 
@@ -92,6 +103,7 @@ module SewingObstruction (m : ℕ) where
   -- Non-singleton-shape container with singleton positions; the
   -- container functor is the identity on shapes (rigid), so rigidity
   -- is built into the M index rather than assumed.
+  --
   -- 非单点形状容器，位置单点；容器函子在形状上恒等作用（刚性），故
   -- 刚性内建于 M 索引而非另行假设。
   FinContainer : Container lzero lzero
@@ -117,13 +129,19 @@ module SewingObstruction (m : ℕ) where
 
   -- Object-preserving label with shape routing r : Fin n → Fin n;
   -- positions are singleton, so pts d s tt = r s.
+  --
   -- 形状路由为 r 的对象保持标签；位置单点，故 pts d s tt = r s。
   label : (r : Fin n → Fin n) → MO.CosmosData Cn FinFC
   label r = record { uf = ufId ; pts = λ s _ → r s }
 
   ----------------------------------------------------------------------
+  -- Return edges
+  --
   -- The M edge pins the target index by a homogeneous refl. For the
   -- label r, an edge from (A,s) back to (A,s) exists iff r s ≡ s.
+  --
+  -- 回边
+  --
   -- M 边以同质 refl 钉住目标索引。对标签 r，从 (A,s) 回到 (A,s) 的边
   -- 存在当且仅当 r s ≡ s。
 
@@ -142,10 +160,15 @@ module SewingObstruction (m : ℕ) where
     ne (sym (cong proj₂ q))
 
   ----------------------------------------------------------------------
-  -- Concrete obstruction: 1 ≠ 0 in Fin n (n ≥ 2); the constant routing
-  -- rChg sends every shape to fsuc fzero, so it moves fzero.
-  -- 具体障碍：Fin n（n ≥ 2）中 1 ≠ 0；常值路由 rChg 把每个形状送到
-  -- fsuc fzero，故它移动 fzero。
+  -- Concrete obstruction
+  --
+  -- 1 ≠ 0 in Fin n (n ≥ 2); the constant routing rChg sends every shape
+  -- to fsuc fzero, so it moves fzero.
+  --
+  -- 具体障碍
+  --
+  -- Fin n（n ≥ 2）中 1 ≠ 0；常值路由 rChg 把每个形状送到 fsuc fzero，
+  -- 故它移动 fzero。
 
   zero one : Fin n
   zero = fzero
@@ -162,6 +185,7 @@ module SewingObstruction (m : ℕ) where
 
   -- The routing-changed label has no return edge at (A , fzero) for any
   -- object A: the elements-category retract is replaced by the M edge.
+  --
   -- 路由改变的标签在 (A , fzero) 处对任意对象 A 都无回边：元素范畴
   -- retract 被 M 边取代。
   no-retract-routing-change
@@ -171,6 +195,7 @@ module SewingObstruction (m : ℕ) where
     no-return-edge rChg A fzero rChg-moves-fzero
 
   -- The universal outer-rule propagation fails at n ≥ 2.
+  --
   -- 全称 outer 规则传播在 n ≥ 2 失败。
   no-universal-return
     : ¬ (∀ (r : Fin n → Fin n) (A s : Fin n)
@@ -179,11 +204,14 @@ module SewingObstruction (m : ℕ) where
     no-retract-routing-change fzero (h rChg fzero fzero)
 
   ----------------------------------------------------------------------
-  -- DirectionDichotomy, M form (necessity at n ≥ 2): Fin n is not a
-  -- singleton, so by the category-free dichotomy the fixed-point
-  -- property fails; a return edge is exactly a fixed point.
-  -- 方向二分的 M 形态（n ≥ 2 的必要性）：Fin n 非单点，故由无范畴二
-  -- 分不动点性质失败；回边恰是一个不动点。
+  -- DirectionDichotomy, M form (necessity at n ≥ 2)
+  --
+  -- Fin n is not a singleton, so by the category-free dichotomy the
+  -- fixed-point property fails; a return edge is exactly a fixed point.
+  --
+  -- 方向二分的 M 形态（n ≥ 2 的必要性）
+  --
+  -- Fin n 非单点，故由无范畴二分不动点性质失败；回边恰是一个不动点。
 
   Fin-not-singleton : ¬ (∀ (x y : Fin n) → x ≡ y)
   Fin-not-singleton u = one≢zero (u one zero)

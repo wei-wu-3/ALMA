@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Exact finite-dimensional quantum amplitudes over Gaussian rationals.
+-- Exact finite-dimensional quantum amplitudes over Gaussian rationals
 --
 -- A state is a finite family of Gaussian amplitudes Fin n → ℂ. Its
 -- total squared norm is the (rational) mass of the state; a diagonal
@@ -7,7 +7,7 @@
 -- computational-basis Born weight is nonnegative. No analysis enters:
 -- every quantity and proof here is exact and algebraic.
 --
--- 高斯有理数上的精确有限维量子振幅。
+-- 高斯有理数上的精确有限维量子振幅
 --
 -- 态是有限振幅族 Fin n → ℂ；总平方范数即态的（有理）质量。坐标逐点
 -- 作用的单位模相位保持该质量，且每个计算基 Born 权重非负。此处不含
@@ -36,8 +36,19 @@ open import Relation.Binary.PropositionalEquality using
 open import ALMA.Physics.Quantum.Gaussian using
   (ℂ; _*ᶜ_; norm²; norm²-mul; Unit)
 
+------------------------------------------------------------------------
+-- Rational squares are nonnegative
+--
+-- Double negation, sign-product and square laws on ℚ, needed below to
+-- show each Born weight is nonnegative.
+--
+-- 有理平方非负
+--
+-- ℚ 上的双重否定、符号乘积与平方律，用于下面证明每个 Born 权重非负。
+
 private
   -- Double negation: -(-x) = x.
+  --
   -- 双重否定：-(-x) = x。
   ‿-‿ : ∀ x → - (- x) ≡ x
   ‿-‿ x = let open ≡-Reasoning in begin
@@ -54,6 +65,7 @@ private
     x ∎
 
   -- (-x)(-y) = xy; specialised below to (-x)² = x².
+  --
   -- 负负相乘：(-x)(-y) = xy，下取 (-x)² = x²。
   neg-neg-product : ∀ x → (- x) * (- x) ≡ x * x
   neg-neg-product x = let open ≡-Reasoning in begin
@@ -66,6 +78,7 @@ private
     x * x ∎
 
   -- |x|² = x² by sign cases on the normalised numerator.
+  --
   -- 按规范化分子的符号分情形：|x|² = x²。
   abs²≡² : ∀ x → ∣ x ∣ * ∣ x ∣ ≡ x * x
   abs²≡² (mkℚ +[1+ _ ] _ _) = refl
@@ -76,6 +89,7 @@ private
     x * x ∎
 
   -- Every rational square is nonnegative, via |x| ≥ 0.
+  --
   -- 由 |x| ≥ 0 得每个有理平方非负。
   0≤sq : ∀ x → 0ℚ ≤ x * x
   0≤sq x = begin
@@ -90,16 +104,18 @@ private
 
 ------------------------------------------------------------------------
 -- Finite sums and total squared norm
--- 有限求和与总平方范数
-------------------------------------------------------------------------
-
+--
 -- Sum over Fin n, peeling off the zero index.
+--
+-- 有限求和与总平方范数
+--
 -- 对 Fin n 求和，剥出零号指标。
 sumFin : ∀ {n} → (Fin n → ℚ) → ℚ
 sumFin {zero}  f = 0ℚ
 sumFin {suc n} f = f zero + sumFin (f ∘ suc)
 
 -- Pointwise equal families have equal sums.
+--
 -- 逐点相等的族求和相等。
 sumFin-cong : ∀ {n} {f g : Fin n → ℚ} →
               (∀ i → f i ≡ g i) → sumFin f ≡ sumFin g
@@ -108,21 +124,24 @@ sumFin-cong {suc n} h =
   cong₂ _+_ (h zero) (sumFin-cong (h ∘ suc))
 
 -- Total squared norm (total mass) of a finite state.
+--
 -- 有限态的总平方范数（总质量）。
 total : ∀ {n} → (Fin n → ℂ) → ℚ
 total ψ = sumFin (λ k → norm² (ψ k))
 
 ------------------------------------------------------------------------
 -- Diagonal phases preserve total mass
--- 对角相位保持总质量
-------------------------------------------------------------------------
-
+--
 -- Coordinate-wise multiplication by a family of phases.
+--
+-- 对角相位保持总质量
+--
 -- 逐点乘以一族相位。
 phase : ∀ {n} → (u : Fin n → ℂ) → (Fin n → ℂ) → (Fin n → ℂ)
 phase u ψ k = u k *ᶜ ψ k
 
 -- At a single coordinate a unit phase leaves the squared norm fixed.
+--
 -- 单位相位在单个坐标上保持平方范数。
 norm²-phase : ∀ {n} (u ψ : Fin n → ℂ) →
               (∀ k → Unit (u k)) →
@@ -131,6 +150,7 @@ norm²-phase u ψ hu k
   rewrite norm²-mul (u k) (ψ k) | hu k = *-identityˡ (norm² (ψ k))
 
 -- A diagonal unit-modulus transformation preserves total mass.
+--
 -- 对角单位模变换保持总质量。
 total-phase : ∀ {n} (u ψ : Fin n → ℂ) →
               (∀ k → Unit (u k)) →
@@ -139,20 +159,23 @@ total-phase u ψ hu = sumFin-cong (norm²-phase u ψ hu)
 
 ------------------------------------------------------------------------
 -- Computational-basis Born weights
--- 计算基 Born 权重
-------------------------------------------------------------------------
-
+--
 -- Born weight of outcome k: the squared amplitude at k.
+--
+-- 计算基 Born 权重
+--
 -- 结果 k 的 Born 权重：k 处振幅的平方范数。
 prob : ∀ {n} (ψ : Fin n → ℂ) (k : Fin n) → ℚ
 prob ψ k = norm² (ψ k)
 
 -- A state is normalised when its total mass is one.
+--
 -- 总质量为一的态称为归一化态。
 Normalized : ∀ {n} (ψ : Fin n → ℂ) → Set
 Normalized ψ = total ψ ≡ 1ℚ
 
 -- A squared norm is a sum of two squares, hence nonnegative.
+--
 -- 平方范数是两个平方之和，故非负。
 norm²-nonNeg : ∀ (z : ℂ) → 0ℚ ≤ norm² z
 norm²-nonNeg (a , b) = begin
@@ -164,11 +187,13 @@ norm²-nonNeg (a , b) = begin
   where open ≤-Reasoning
 
 -- Every Born weight is nonnegative.
+--
 -- 每个 Born 权重非负。
 prob-nonNeg : ∀ {n} (ψ : Fin n → ℂ) (k : Fin n) → 0ℚ ≤ prob ψ k
 prob-nonNeg ψ k = norm²-nonNeg (ψ k)
 
 -- For a normalised state the Born weights sum to one.
+--
 -- 归一化态的 Born 权重之和为一。
 probs-sum-to-one : ∀ {n} (ψ : Fin n → ℂ) →
                    Normalized ψ → sumFin (prob ψ) ≡ 1ℚ

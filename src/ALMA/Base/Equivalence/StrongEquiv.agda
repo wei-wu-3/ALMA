@@ -1,14 +1,16 @@
 ------------------------------------------------------------------------
--- Bridging FullyFaithful + EssSurj to StrongEquivalence. Given a
--- fully faithful, split essentially surjective functor F : C → D,
--- this module builds the inverse functor G : D → C explicitly, the
--- natural isomorphisms F ∘ G ≃ id and G ∘ F ≃ id, and assembles them
--- into a StrongEquivalence record.
+-- Bridging FullyFaithful + EssSurj to StrongEquivalence
 --
--- 从 FullyFaithful + EssSurj 桥接到 StrongEquivalence。给定完全忠实、
--- 分裂本质满射的函子 F : C → D，本模块显式构造逆函子 G : D → C、
--- 自然同构 F ∘ G ≃ id 与 G ∘ F ≃ id，并组装为 StrongEquivalence
--- 记录。
+-- Given a fully faithful, split essentially surjective functor
+-- F : C → D, this module builds the inverse functor G : D → C
+-- explicitly, the natural isomorphisms F ∘ G ≃ id and G ∘ F ≃ id, and
+-- assembles them into a StrongEquivalence record.
+--
+-- 从 FullyFaithful + EssSurj 桥接到 StrongEquivalence
+--
+-- 给定完全忠实、分裂本质满射的函子 F : C → D，本模块显式构造逆函子
+-- G : D → C、自然同构 F ∘ G ≃ id 与 G ∘ F ≃ id，并组装为
+-- StrongEquivalence 记录。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -55,6 +57,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
 
   -- D is written explicitly because _≅_ takes three parameters:
   -- category, source, target.
+  --
   -- D 显式写出，因为 _≅_ 需要三个参数：范畴、源、靶。
   isoAt : (Y : Category.Obj D) → _≅_ D (Fm.F₀ (Gm.F₀ Y)) Y
   isoAt Y = proj₂ (ses Y)
@@ -74,6 +77,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
   -- Essential characterisation of G₁: it factors through the chosen
   -- isomorphism F (G Y) ≅ Y. This is the key lemma driving all
   -- subsequent naturality and inverse proofs.
+  --
   -- G₁ 的本质刻画：它经由所选同构 F (G Y) ≅ Y 分解。这是驱动后续
   -- 所有自然性与逆证明的关键引理。
   F₁G₁-char : ∀ {Y Z} (f : Y D.⇒ Z)
@@ -136,6 +140,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
   GF-bwd-comm X = proj₂ (full (bwd (Fm.F₀ X)))
 
   -- Absorb the round-trip fwd Z ∘ bwd Z on the left.
+  --
   -- 在左侧吸收往返 fwd Z ∘ bwd Z。
   fwd-bwd-absorb : ∀ {W Z} (g : W D.⇒ Z)
                  → fwd Z D.∘ (bwd Z D.∘ g) D.≈ g
@@ -150,6 +155,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
       ∎
 
   -- Absorb the round-trip fwd W ∘ bwd W on the right.
+  --
   -- 在右侧吸收往返 fwd W ∘ bwd W。
   bwd-fwd-absorb : ∀ {W Z} (g : W D.⇒ Z)
                  → (g D.∘ fwd W) D.∘ bwd W D.≈ g
@@ -190,6 +196,7 @@ module _ {oc ℓc ec od ℓd ed : Level}
       ∎)
 
   -- Naturality of G∘F ≅ id, proved via faithfulness.
+  --
   -- G∘F ≅ id 的自然性，经忠实性证明。
   GF-comm : ∀ {X Y} (f : X C.⇒ Y)
           → GF-fwd Y C.∘ Gm.F₁ (Fm.F₁ f) C.≈ f C.∘ GF-fwd X

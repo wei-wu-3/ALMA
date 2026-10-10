@@ -1,10 +1,12 @@
 ------------------------------------------------------------------------
--- Transformation invariance of ScaleInvariant under a group action.
--- GroupInvariant is ScaleInvariant at Obs = G, step = act; the group
--- axioms yield two-sided invariance and the corresponding inverse
--- and round-trip lemmas.
+-- Transformation invariance of ScaleInvariant under a group action
 --
--- 群作用下 ScaleInvariant 的变换不变性。
+-- GroupInvariant is ScaleInvariant at Obs = G, step = act; the group
+-- axioms yield two-sided invariance and the corresponding inverse and
+-- round-trip lemmas.
+--
+-- 群作用下 ScaleInvariant 的变换不变性
+--
 -- GroupInvariant 是 Obs = G、step = act 处的 ScaleInvariant；群公理
 -- 给出双向不变性及相应的逆与往返引理。
 ------------------------------------------------------------------------
@@ -25,6 +27,7 @@ open import ALMA.Base.Equivalence.ScaleInvariant using (ScaleInvariant)
 
 ------------------------------------------------------------------------
 -- A minimal group record carrying the five axioms used below
+--
 -- 最小群记录，携带下面使用的五条公理
 
 record GroupStructure {g} (G : Set g) : Set g where
@@ -52,12 +55,15 @@ module GroupAction
 
   -- Universe is Set g: ScaleInvariant's universe does not depend on
   -- the universe of the state type X.
-  -- universe 是 Set g：ScaleInvariant 的 universe 不依赖状态类型 X 的 universe。
+  --
+  -- universe 是 Set g：ScaleInvariant 的 universe 不依赖状态类型 X
+  -- 的 universe。
   GroupInvariant : X → X → Set g
   GroupInvariant = ScaleInvariant act
 
   ----------------------------------------------------------------------
   -- Group lemmas: two dual pairs (invʳ / idˡ and invˡ / idʳ)
+  --
   -- 群论引理：两对对偶（invʳ / idˡ 与 invˡ / idʳ）
 
   g·g⁻¹·h≡h : ∀ (g h : G) → g · ((g ⁻¹) · h) ≡ h
@@ -106,6 +112,7 @@ module GroupAction
 
   ----------------------------------------------------------------------
   -- Inverse-action lemmas: dual pair consuming invʳ / invˡ
+  --
   -- 逆作用引理：消费 invʳ / invˡ 的对偶对
 
   act-inverseʳ : ∀ x (g : G) → act (act x g) (g ⁻¹) ≡ x
@@ -132,6 +139,7 @@ module GroupAction
 
   ----------------------------------------------------------------------
   -- Invariance, forward and dual
+  --
   -- 不变性，正向与对偶
 
   GI-invariant : ∀ {x y} (g : G)
@@ -149,6 +157,7 @@ module GroupAction
   ----------------------------------------------------------------------
   -- Inverses, forward and dual; each transports the recursive call
   -- along the corresponding group lemma via subst₂.
+  --
   -- 逆，正向与对偶；各自沿对应的群论引理经 subst₂ 传输递归调用。
 
   GI-inverse : ∀ {x y} (g : G)
@@ -174,6 +183,7 @@ module GroupAction
   ----------------------------------------------------------------------
   -- Round trips: compose the two invariance directions, then rewrite
   -- the endpoints back via the corresponding inverse-action lemma.
+  --
   -- 往返：复合两个不变性方向，再经对应的逆作用引理把端点重写回原处。
 
   GI-roundtrip : ∀ {x y} (g : G)
@@ -194,6 +204,7 @@ module GroupAction
 
   ----------------------------------------------------------------------
   -- Bundled two-sided invariance
+  --
   -- 打包的双向不变性
 
   GI-iff : ∀ {x y} (g : G)

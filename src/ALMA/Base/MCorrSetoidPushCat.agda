@@ -1,41 +1,42 @@
 ------------------------------------------------------------------------
 -- Category of setoid systems under forward (push / embedding)
--- simulations along an index function.
+-- simulations along an index function
 --
--- This is the push dual of MCorrSetoidCat.  A pull functor FMapˢ gives,
+-- This is the push dual of MCorrSetoidCat. A pull functor FMapˢ gives,
 -- for every target child, a canonical source child (a fibre adjunction,
 -- hence child-surjective); a forward embedding instead points from a
 -- finite stage into a richer target and carries no totality over target
--- children.  A PushMˢ therefore packs an index function u, the image
--- tree mapP x t : M Y (u x), a forward-simulation certificate leg
--- relating t to mapP x t along the graph of u (each source edge chooses
--- a target edge, with no pullback and no edge round-trip), and a
--- bisimulation congruence mapP-cong.  The image trees of a composite are
--- the ordinary function composition of the image maps; the certificates
--- compose relationally by push-comp and are rescoped to the composite
--- graph by push-map, whose only witness maps are pure Sigma
--- reassociations (trans/cong on the graph), so no transport is used.
--- Hom equality forgets the certificates and compares the index maps
--- pointwise and the image trees by the carried bisimulation ≈Mˢ, which
--- makes identity, associativity and congruence hold with definitional
--- index refl.  A fully relational index layer (u itself a relation) is a
+-- children. A PushMˢ therefore packs an index function u, the image tree
+-- mapP x t : M Y (u x), a forward-simulation certificate leg relating t
+-- to mapP x t along the graph of u (each source edge chooses a target
+-- edge, with no pullback and no edge round-trip), and a bisimulation
+-- congruence mapP-cong. The image trees of a composite are the ordinary
+-- function composition of the image maps; the certificates compose
+-- relationally by push-comp and are rescoped to the composite graph by
+-- push-map, whose only witness maps are pure Sigma reassociations
+-- (trans/cong on the graph), so no transport is used. Hom equality
+-- forgets the certificates and compares the index maps pointwise and the
+-- image trees by the carried bisimulation ≈Mˢ, which makes identity,
+-- associativity and congruence hold with definitional index refl. A
+-- fully relational index layer (u itself a relation) is a
 -- bicategory/proarrow equipment, not a plain 1-category: composition
 -- changes the layer to a Sigma middle and only closes up to layer
 -- rescoping, not definitional equality.
 --
--- setoid 系统在沿索引函数的前向（push / 嵌入）模拟下的范畴。
+-- setoid 系统在沿索引函数的前向（push / 嵌入）模拟下的范畴
 --
--- 这是 MCorrSetoidCat 的 push 对偶。pull 函子 FMapˢ 对每个目标子节点给
--- 出规范源子节点（纤维伴随，故子节点满）；前向嵌入则从有限阶段指向更丰富
--- 的目标，不对目标子节点求全。PushMˢ 因而打包索引函数 u、像树
--- mapP x t : M Y (u x)、沿 u 之图关联 t 与 mapP x t 的前向模拟证书 leg
--- （每条源边选一条目标边，无拉回、无边往返），以及互模拟同余 mapP-cong。
--- 复合的像树即像映射的普通函数复合；证书由 push-comp 关系复合，并由
--- push-map 重定域到复合图，其见证映射只是纯 Σ 重结合（图上的
--- trans/cong），故无传输。hom 相等忽略证书，逐点比较索引函数、以携带互模
--- 拟 ≈Mˢ 比较像树，故恒等、结合与同余在索引分量定义性 refl 下成立。完全
--- 关系化的索引层（u 本身也是关系）是双范畴/前伴随装备，而非普通 1-范畴：
--- 复合把层变成含中间项的 Σ，只在层重定域意义下闭合，而非定义性相等。
+-- 这是 MCorrSetoidCat 的 push 对偶。pull 函子 FMapˢ 对每个目标子节点
+-- 给出规范源子节点（纤维伴随，故子节点满）；前向嵌入则从有限阶段指向
+-- 更丰富的目标，不对目标子节点求全。PushMˢ 因而打包索引函数 u、像树
+-- mapP x t : M Y (u x)、沿 u 之图关联 t 与 mapP x t 的前向模拟证书
+-- leg（每条源边选一条目标边，无拉回、无边往返），以及互模拟同余
+-- mapP-cong。复合的像树即像映射的普通函数复合；证书由 push-comp 关系
+-- 复合，并由 push-map 重定域到复合图，其见证映射只是纯 Σ 重结合（图上
+-- 的 trans/cong），故无传输。hom 相等忽略证书，逐点比较索引函数、以
+-- 携带互模拟 ≈Mˢ 比较像树，故恒等、结合与同余在索引分量定义性 refl
+-- 下成立。完全关系化的索引层（u 本身也是关系）是双范畴/前伴随装备，
+-- 而非普通 1-范畴：复合把层变成含中间项的 Σ，只在层重定域意义下闭合，
+-- 而非定义性相等。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -63,16 +64,22 @@ open import ALMA.Base.MCorrSetoidCat using (relocateˢ; relocate-resp-≈Mˢ)
 open SysEq
 
 ------------------------------------------------------------------------
--- Fixed layer for an index function: its propositional graph, and the
--- trivial label correspondence (labels are tracked by the image tree
--- and compared by ≈Mˢ, not by an equation in the simulation witness).
--- 索引函数的固定层：其命题图，以及平凡标签对应（标签由像树承载并由
--- ≈Mˢ 比较，而非由模拟见证中的等式承载）。
+-- Fixed layer for an index function
+--
+-- The propositional graph of u, and the trivial label correspondence
+-- (labels are tracked by the image tree and compared by ≈Mˢ, not by an
+-- equation in the simulation witness).
+--
+-- 索引函数的固定层
+--
+-- u 的命题图，以及平凡标签对应（标签由像树承载并由 ≈Mˢ 比较，而非由
+-- 模拟见证中的等式承载）。
 
 Graph : ∀ {i : Level} {I J : Set i} (u : I → J) → I → J → Set i
 Graph u x v = u x ≡ v
 
 -- Trivial label correspondence over any index layer R.
+--
 -- 任意索引层 R 上的平凡标签对应。
 TopH : ∀ {i a b ℓa ℓe : Level}
          {X : SysEq i a b ℓa ℓe} {Y : SysEq i a b ℓa ℓe}
@@ -82,8 +89,9 @@ TopH : ∀ {i a b ℓa ℓe : Level}
 TopH _ _ _ _ _ = ⊤
 
 ------------------------------------------------------------------------
--- Identity forward simulation over the trivial label correspondence.
--- 平凡标签对应下的恒等前向模拟。
+-- Identity forward simulation over the trivial label correspondence
+--
+-- 平凡标签对应下的恒等前向模拟
 
 private
   push-reflᵗ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe}
@@ -97,11 +105,16 @@ private
     y , e , refl , push-reflᵗ (M.below t y e)
 
 ------------------------------------------------------------------------
--- Compose two forward simulations along graph layers, rescoping the
--- Sigma middle (v , r , s) to the composite graph by the pure map
--- (trans (cong ug) r) s and collapsing the middle-label Sigma to tt.
--- 沿图层复合两个前向模拟：用纯映射 (trans (cong ug) r) s 把含中间项的
--- Σ 见证 (v , r , s) 重定域到复合图，并把中间标签 Σ 坍缩为 tt。
+-- Composition of forward simulations along graph layers
+--
+-- Rescope the Sigma middle (v , r , s) to the composite graph by the
+-- pure map (trans (cong ug) r) s and collapse the middle-label Sigma
+-- to tt.
+--
+-- 沿图层复合两个前向模拟
+--
+-- 用纯映射 (trans (cong ug) r) s 把含中间项的 Σ 见证 (v , r , s) 重定域
+-- 到复合图，并把中间标签 Σ 坍缩为 tt。
 
 private
   pushF-comp :
@@ -134,8 +147,9 @@ private
                  (TopH {X = Y} {Y = Z} {R = Graph ug}) pf qg)
 
 ------------------------------------------------------------------------
--- Forward embedding morphism.
--- 前向嵌入态射。
+-- Forward embedding morphism
+--
+-- 前向嵌入态射
 
 record PushMˢ {i a b ℓa ℓe : Level}
              (X Y : SysEq i a b ℓa ℓe)
@@ -154,8 +168,9 @@ record PushMˢ {i a b ℓa ℓe : Level}
 open PushMˢ public
 
 ------------------------------------------------------------------------
--- Identity and composition.
--- 恒等与复合。
+-- Identity and composition
+--
+-- 恒等与复合
 
 idPMˢ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} → PushMˢ X X
 idPMˢ {X = X} = record
@@ -182,9 +197,14 @@ compPMˢ {X = X} {Y = Y} {Z = Z} g f = record
   ug = u g
 
 ------------------------------------------------------------------------
--- Index relocation round-trip lemmas, K-free: the equality argument is
--- matched as refl, which is not an appeal to K.
--- 索引重定位往返引理，不用 K：被匹配为 refl 的是等式参数本身，并非诉诸 K。
+-- Index relocation round-trip lemmas
+--
+-- K-free: the equality argument is matched as refl, which is not an
+-- appeal to K.
+--
+-- 索引重定位往返引理
+--
+-- 不用 K：被匹配为 refl 的是等式参数本身，并非诉诸 K。
 
 private
   relocate-round : ∀ {i a b ℓa ℓe : Level} {I : Set i}
@@ -211,6 +231,7 @@ private
 
   -- Relocation commutes with the image map past an index equality;
   -- matching the equality argument as refl is not an appeal to K.
+  --
   -- 重定位越过索引等式与像映射交换；将等式参数匹配为 refl 并非诉诸 K。
   mapP-cross : ∀ {i a b ℓa ℓe : Level}
                  {X Y : SysEq i a b ℓa ℓe} {f : PushMˢ X Y}
@@ -222,8 +243,13 @@ private
     ≈Mˢ-refl (≈A Y) (≈E Y) (mapP f _ t)
 
 ------------------------------------------------------------------------
--- Behavioural equality: index maps agree and image trees are bisimilar.
--- 行为相等：索引函数一致，像树互模拟。
+-- Behavioural equality
+--
+-- Index maps agree and image trees are bisimilar.
+--
+-- 行为相等
+--
+-- 索引函数一致，像树互模拟。
 
 module _ {i a b ℓa ℓe : Level} {X Y : SysEq i a b ℓa ℓe} where
 
@@ -263,8 +289,9 @@ module _ {i a b ℓa ℓe : Level} {X Y : SysEq i a b ℓa ℓe} where
     }
 
 ------------------------------------------------------------------------
--- Composition respects behavioural equality.
--- 复合尊重行为相等。
+-- Composition respects behavioural equality
+--
+-- 复合尊重行为相等
 
 module _ {i a b ℓa ℓe : Level} {X Y Z : SysEq i a b ℓa ℓe} where
 
@@ -292,9 +319,14 @@ module _ {i a b ℓa ℓe : Level} {X Y Z : SysEq i a b ℓa ℓe} where
               (hG i₂)))
 
 ------------------------------------------------------------------------
--- Category laws: the image maps compose as functions, so after the
--- index refl is grouped every law is bisimulation reflexivity.
--- 范畴律：像映射如函数般复合，故归并索引 refl 后每条律都是互模拟自反。
+-- Category laws
+--
+-- The image maps compose as functions, so after the index refl is
+-- grouped every law is bisimulation reflexivity.
+--
+-- 范畴律
+--
+-- 像映射如函数般复合，故归并索引 refl 后每条律都是互模拟自反。
 
 module _ {i a b ℓa ℓe : Level}
          {W X Y Z : SysEq i a b ℓa ℓe}
@@ -325,8 +357,9 @@ module _ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} where
   identity²PM x = refl , λ t → ≈Mˢ-refl (≈A X) (≈E X) t
 
 ------------------------------------------------------------------------
--- The category.
--- 范畴。
+-- The category
+--
+-- 范畴
 
 PushCatˢ : (i a b ℓa ℓe : Level)
          → Category (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe))

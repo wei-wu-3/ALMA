@@ -1,19 +1,9 @@
 ------------------------------------------------------------------------
--- Core definitions that the rest of Equivalence/ depends on.
+-- Core definitions for Equivalence/
 --
---   _⊣_          adjunction skeleton on shape-indexed fibres
---   Adj-Unit / Adj-Counit  the two components of the adjunction
---   LayeredEqGen    generic coinductive skeleton, as an application of Mᵢ
---   IndexedLayeredEq indexed skeleton, as an application of Mᵢ
---   LayeredEq       LayeredEqGen at a constant observation family
+-- This file contains core definitions for Equivalence/.
 --
--- Equivalence/ 其余模块所依赖的核心定义。
---
---   _⊣_          形状索引纤维上的伴随骨架
---   Adj-Unit / Adj-Counit  伴随骨架的两个分量
---   LayeredEqGen    通用余归纳骨架，作为 Mᵢ 的应用
---   IndexedLayeredEq 索引骨架，作为 Mᵢ 的应用
---   LayeredEq       LayeredEqGen 在常数观察族处的特化
+-- 本文件包含 Equivalence/ 的核心定义。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -30,7 +20,9 @@ open import ALMA.Base.IndexedMType using (Mᵢ)
 ------------------------------------------------------------------------
 -- Fibre-wise adjunction skeleton: unit and counit are independent
 -- round-trip propositions, so a product suffices.
--- 纤维层面的伴随骨架：unit 与 counit 是互相独立的往返命题，故乘积即可。
+--
+-- 纤维层面的伴随骨架：unit 与 counit 是互相独立的往返命题，
+-- 故乘积即可。
 
 module _ {a b c d e : Level}
          {S : Set a} {T : Set c} (P : T → Set b) (R : S → Set d)
@@ -46,9 +38,11 @@ module _ {a b c d e : Level}
   _⊣_ = Adj-Unit × Adj-Counit
 
 ------------------------------------------------------------------------
--- LayeredEqGen as an application of Mᵢ; index is X × X, and the
--- successor advances both components by step.
--- 作为 Mᵢ 应用的 LayeredEqGen；索引为 X × X，后继用 step 同时推进两个分量。
+-- Application of Mᵢ; index is X × X, and the successor advances both
+-- components by step.
+--
+-- 作为 Mᵢ 的应用；索引为 X × X，
+-- 后继用 step 同时推进两个分量。
 
 module _ {a b c : Level} {X : Set a}
          (Obs : X → Set b)
@@ -66,10 +60,10 @@ module _ {a b c : Level} {X : Set a}
       next (x , y) p s = step x s , step y (obs-map x y p s)
 
 ------------------------------------------------------------------------
--- IndexedLayeredEq as an application of Mᵢ; index is
--- Σ I (λ j → X' j × X' j), the successor moves the shared index by
--- next and advances both states with stepI.
--- 作为 Mᵢ 应用的 IndexedLayeredEq；索引为 Σ I (λ j → X' j × X' j)，
+-- Application of Mᵢ; index is Σ I (λ j → X' j × X' j), the successor
+-- moves the shared index by next and advances both states with stepI.
+--
+-- 作为 Mᵢ 的应用；索引为 Σ I (λ j → X' j × X' j)，
 -- 后继用 next 移动共享索引，并用 stepI 推进两个状态。
 
 module _ {a b c d : Level}
@@ -91,9 +85,10 @@ module _ {a b c d : Level}
       next' (i , x , y) p s = next i , stepI i x s , stepI i y s
 
 ------------------------------------------------------------------------
--- LayeredEq: LayeredEqGen at a constant observation family, with
--- obs-map the identity.
--- LayeredEq：LayeredEqGen 在常数观察族处的特化，obs-map 为恒等。
+-- Specialization at a constant observation family, with obs-map the
+-- identity.
+--
+-- 在常数观察族处的特化，obs-map 为恒等。
 
 LayeredEq : {a b c : Level} {X : Set a}
             (Obs : Set b) (step : X → Obs → X) (layer : X → X → Set c)

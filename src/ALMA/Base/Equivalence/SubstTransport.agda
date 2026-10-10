@@ -1,19 +1,20 @@
 ------------------------------------------------------------------------
--- Subst-transport and the adjunction bridge. Three modules:
---   SubstTransport-Right    pointwise equality with target-side
---                           transport (projection side, posR)
---   SubstTransport-Left     pointwise equality with source-side
---                           transport (embedding side, posL)
---   SubstTransport-Adjoint  bridge: under posL ⊣ posR the two layer
---                           relations interderive
--- These lift the fibre-wise adjunction skeleton _⊣_ from Core to
--- concrete same-layer relations on F.
+-- Subst-transport and the adjunction bridge
 --
--- subst 传输与伴随桥接。三个模块：
---   SubstTransport-Right    逐点相等 + 目标侧传输（投影侧，posR）
---   SubstTransport-Left     逐点相等 + 源侧传输（嵌入侧，posL）
---   SubstTransport-Adjoint  桥接：在 posL ⊣ posR 下两个同层关系互推
--- 这些模块把 Core 中的纤维伴随骨架 _⊣_ 提升为 F 上的具体同层关系。
+-- Three modules: SubstTransport-Right (pointwise equality with
+-- target-side transport, projection side, posR), SubstTransport-Left
+-- (pointwise equality with source-side transport, embedding side,
+-- posL), and SubstTransport-Adjoint (bridge: under posL ⊣ posR the two
+-- layer relations interderive). These lift the fibre-wise adjunction
+-- skeleton _⊣_ from Core to concrete same-layer relations on F.
+--
+-- subst 传输与伴随桥接
+--
+-- 三个模块：SubstTransport-Right（逐点相等 + 目标侧传输，投影侧，
+-- posR）、SubstTransport-Left（逐点相等 + 源侧传输，嵌入侧，posL）、
+-- 以及 SubstTransport-Adjoint（桥接：在 posL ⊣ posR 下两个同层关系
+-- 互推）。这些模块把 Core 中的纤维伴随骨架 _⊣_ 提升为 F 上的具体
+-- 同层关系。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -36,11 +37,14 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
          (R : S → Set d) {F : Set e} (shape : F → S → T) where
 
   ----------------------------------------------------------------------
-  -- Pointwise equality with target-side transport: shapes agree, and
-  -- pos-values agree after transporting the input along the shape
-  -- equality (via posR).
-  -- 逐点相等 + 目标侧传输：shape 一致，且把输入沿 shape 等式传输后
-  -- pos 值一致（经 posR）。
+  -- Pointwise equality with target-side transport
+  --
+  -- Shapes agree, and pos-values agree after transporting the input
+  -- along the shape equality (via posR).
+  --
+  -- 逐点相等 + 目标侧传输
+  --
+  -- shape 一致，且把输入沿 shape 等式传输后 pos 值一致（经 posR）。
 
   module SubstTransport-Right
       (pos : (f : F) → ∀ {s : S} → P (shape f s) → R s)
@@ -62,6 +66,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
 
     -- Symmetry: invert shape-eq and absorb the two subst round-trips
     -- via subst-subst-sym.
+    --
     -- 对称：反转 shape-eq，用 subst-subst-sym 吸收两个 subst 往返。
     ≈sr-sym : ∀ {f g} → f ≈sr g → g ≈sr f
     ≈sr-sym {f} {g} p = record
@@ -79,6 +84,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
 
     -- Transitivity: chain the two shape equalities, transport r
     -- through e₁ first, and merge the two subst steps via subst-subst.
+    --
     -- 传递：串联两个 shape 等式，先沿 e₁ 传输 r，再用 subst-subst
     -- 合并两个 subst 步骤。
     ≈sr-trans : ∀ {f g h} → f ≈sr g → g ≈sr h → f ≈sr h
@@ -114,9 +120,15 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
         }) public
 
   ----------------------------------------------------------------------
+  -- Pointwise equality with source-side transport
+  --
   -- Dual to SubstTransport-Right: the transport is applied to the
   -- output rather than the input (via posL).
-  -- 与 SubstTransport-Right 对偶：传输施加在输出而非输入上（经 posL）。
+  --
+  -- 逐点相等 + 源侧传输
+  --
+  -- 与 SubstTransport-Right 对偶：传输施加在输出而非输入上
+  -- （经 posL）。
 
   module SubstTransport-Left
       (pos : (f : F) → ∀ {s : S} → R s → P (shape f s))
@@ -138,6 +150,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
 
     -- Symmetry: invert shape-eq and collapse the two subst round-trips
     -- via subst-sym-subst.
+    --
     -- 对称：反转 shape-eq，用 subst-sym-subst 折叠两个 subst 往返。
     ≈sl-sym : ∀ {f g} → f ≈sl g → g ≈sl f
     ≈sl-sym {f} {g} p = record
@@ -155,6 +168,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
 
     -- Transitivity: split the composed transport via subst-subst,
     -- then chain the two position equalities.
+    --
     -- 传递：用 subst-subst 拆分复合传输，再串联两个 position 等式。
     ≈sl-trans : ∀ {f g h} → f ≈sl g → g ≈sl h → f ≈sl h
     ≈sl-trans {f} {g} {h} p q = record
@@ -188,8 +202,13 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
         }) public
 
   ----------------------------------------------------------------------
+  -- Adjunction bridge
+  --
   -- Under posL ⊣ posR, _≈R_ (from posR) and _≈L_ (from posL)
   -- interderive at the same shape-equality: each determines the other.
+  --
+  -- 伴随桥接
+  --
   -- 在 posL ⊣ posR 下，_≈R_（由 posR 给出）与 _≈L_（由 posL 给出）
   -- 在同一 shape 等式下互推：彼此互相确定。
 
@@ -210,6 +229,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
 
     -- _≈R_ implies _≈L_: apply _≈R_'s position-eq at posL f r, then
     -- collapse the g-side round-trip using counit and unit.
+    --
     -- _≈R_ 蕴含 _≈L_：先在 posL f r 处应用 _≈R_ 的 position-eq，
     -- 再用 counit 与 unit 折叠 g 侧往返。
     ≈R→≈L : ∀ {f g} → f ≈sr g → f ≈sl g
@@ -230,6 +250,7 @@ module _ {a b c d e : Level} {S : Set a} {T : Set c} (P : T → Set b)
       }
 
     -- _≈L_ implies _≈R_: dual to ≈R→≈L.
+    --
     -- _≈L_ 蕴含 _≈R_：与 ≈R→≈L 对偶。
     ≈L→≈R : ∀ {f g} → f ≈sl g → f ≈sr g
     ≈L→≈R {f} {g} p = record

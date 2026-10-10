@@ -1,15 +1,18 @@
 ------------------------------------------------------------------------
--- Composition of forward edge-following simulations. Two PushSimˢ
--- through a common middle system compose relationally: the composite
--- index layer is the Σ of the middle index and the two layer witnesses,
--- and the composite label correspondence carries the middle label. The
--- construction is coinductive (copatterns); it is the push counterpart
--- of compMˢ/compFMˢ and is the primitive needed for cocone coherence
--- and mediating triangles.
+-- Composition of forward edge-following simulations
 --
--- 前向边跟随模拟的复合。经过同一中间系统的两个 PushSimˢ 以关系方式复合：
--- 复合索引层是中间索引与两个层见证的 Σ，复合标签对应携带中间标签。构造为
--- 余归纳（copattern）；它是 compMˢ/compFMˢ 的 push 对偶，也是余锥相干性与
+-- Two PushSimˢ through a common middle system compose relationally:
+-- the composite index layer is the Σ of the middle index and the two
+-- layer witnesses, and the composite label correspondence carries the
+-- middle label. The construction is coinductive (copatterns); it is
+-- the push counterpart of compMˢ/compFMˢ and is the primitive needed
+-- for cocone coherence and mediating triangles.
+--
+-- 前向边跟随模拟的复合
+--
+-- 经过同一中间系统的两个 PushSimˢ 以关系方式复合：复合索引层是中间
+-- 索引与两个层见证的 Σ，复合标签对应携带中间标签。构造为余归纳
+-- （copattern）；它是 compMˢ/compFMˢ 的 push 对偶，也是余锥相干性与
 -- mediate 三角所需的原语。
 ------------------------------------------------------------------------
 
@@ -28,8 +31,9 @@ open import ALMA.Base.MCorrSetoidPush using (PushSimˢ)
 open SysEq
 
 ------------------------------------------------------------------------
--- Composite layer and label relations through the middle system Y.
--- 经中间系统 Y 的复合层关系与标签对应。
+-- Composite layer and label relations through the middle system Y
+--
+-- 经中间系统 Y 的复合层关系与标签对应
 
 module _ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓf ℓe3 ℓr ℓs ℓh ℓg : Level}
          {X : SysEq i a b ℓa ℓe}
@@ -44,12 +48,14 @@ module _ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓf ℓe3 ℓr ℓs ℓh ℓg :
          where
 
   -- Composite index relation: x is related to z through some middle v.
+  --
   -- 复合索引关系：x 经某个中间 v 与 z 相关。
   R∘S : I X → I Z → Set (j ⊔ ℓr ⊔ ℓs)
   R∘S x z = Σ (I Y) λ v → Σ (R x v) λ r → S v z
 
   -- Composite label correspondence: a middle label mediates the two
   -- cross-system label relations.
+  --
   -- 复合标签对应：一个中间标签居间连接两个跨系统标签关系。
   H∘G : (x : I X) (z : I Z) (w : R∘S x z)
       → A X x → A Z z → Set (c ⊔ ℓh ⊔ ℓg)
@@ -57,6 +63,7 @@ module _ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓf ℓe3 ℓr ℓs ℓh ℓg :
     Σ (A Y v) λ b → H x v r a b × G v z s b c
 
   -- Relational composition of forward simulations.
+  --
   -- 前向模拟的关系复合。
   push-comp : ∀ {x : I X} {v : I Y} {z : I Z}
                 {r : R x v} {s : S v z}

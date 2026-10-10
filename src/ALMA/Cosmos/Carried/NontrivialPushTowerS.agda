@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------
--- Nontrivial-fibre Fin push tower, kernel.
+-- Nontrivial-fibre Fin push tower, kernel
+--
 -- The trivial-fibre tower (LimitSystemS / FinPushColimitS) uses
 -- TrivDetˢ, whose label fibre is ⊤. Here the deterministic Fin position
 -- dynamics is kept (positions extended by inject₁, one deterministic
@@ -9,16 +10,16 @@
 -- id v, so its type mentions no Fin. The apex label Thread v is a
 -- stage-tagged element of L _ v; forward iteration changes only the
 -- stage, never a Fin index. Consequently labels cross stages purely by
--- function passing: no Fin alignment, no transport, no K, no retraction.
+-- function passing: no retraction.
 --
--- 非平凡纤维 Fin push 塔内核。
+-- 非平凡纤维 Fin push 塔内核
+--
 -- 平凡纤维塔（LimitSystemS / FinPushColimitS）采用 TrivDetˢ，标签纤维为
--- ⊤。此处保留确定性 Fin 位置动力（位置经 inject₁ 扩张，每节点一个确定
+-- ⊤。此处保留确定性 Fin 位置动力（位置经 inject₁ 扩展，每节点一个确定
 -- 性子节点），但标签按稳定全局 id ℕ 索引，而非依赖的 Fin 位置。阶段 m
 -- 位置 x 处的标签为 L m (toℕ x)；前向标签映射 l-emb m v 停留在同一全局
 -- id v，故其类型不涉及 Fin。顶点标签 Thread v 是 L _ v 的阶段标签化元素；
--- 前向迭代只改阶段，不改 Fin 索引。因此标签跨阶段纯由函数传递：无 Fin
--- 对齐、无传输、不用 K、无需收缩。
+-- 前向迭代只改阶段，不改 Fin 索引。因此标签跨阶段纯由函数传递：无需收缩。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -65,16 +66,17 @@ import ALMA.Cosmos.Carried.LimitSystemS as LS
 open SysEq
 
 ------------------------------------------------------------------------
--- One-position extension with definitional toℕ preservation.
+-- One-position extension with definitional toℕ preservation
 --
--- stdlib's inject₁ is defined via inject≥, so toℕ (inject₁ x) is only
+-- stdlib's inject₁ is defined via inject≤, so toℕ (inject₁ x) is only
 -- propositionally toℕ x. The stage embedding below recurses directly on
 -- Fin, giving toℕ (up x) = toℕ x definitionally; labels indexed by global
 -- id then align across stages with no index transport. up is
 -- propositionally inject₁.
 --
--- 保持 toℕ 定义性不变的单位置扩张。
--- 标准库 inject₁ 经 inject≥ 定义，toℕ (inject₁ x) 仅命题性等于 toℕ x。
+-- 保持 toℕ 定义性不变的单位置扩展
+--
+-- 标准库 inject₁ 经 inject≤ 定义，toℕ (inject₁ x) 仅命题性等于 toℕ x。
 -- 下面的阶段嵌入直接对 Fin 递归，使 toℕ (up x) 定义性等于 toℕ x；按全局
 -- id 索引的标签因而跨阶段对齐，无需索引传输。up 命题性等于 inject₁。
 
@@ -91,7 +93,7 @@ up-inject₁ zero    = refl
 up-inject₁ (suc x) = cong suc (up-inject₁ x)
 
 ------------------------------------------------------------------------
--- A deterministic Fin tower with labels indexed by global id.
+-- A deterministic Fin tower with labels indexed by global id
 --
 -- t is the deterministic position transition; embed-compat is its
 -- compatibility with the one-position extension inject₁. L m v is the
@@ -99,8 +101,9 @@ up-inject₁ (suc x) = cong suc (up-inject₁ x)
 -- not-yet-born positions are free). l-emb carries a label at global id v
 -- from stage m to stage m+1 at the SAME v.
 --
--- 标签按全局 id 索引的确定性 Fin 塔。
--- t 为确定性位置转移；embed-compat 是其与单位置扩张 inject₁ 的相容性。
+-- 标签按全局 id 索引的确定性 Fin 塔
+--
+-- t 为确定性位置转移；embed-compat 是其与单位置扩展 inject₁ 的相容性。
 -- L m v 是全局 id v 在阶段 m 的标签（对 v 全；未诞生位置的标签自由）。
 -- l-emb 把全局 id v 的标签从阶段 m 携带到阶段 m+1，v 不变。
 
@@ -119,10 +122,14 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   open LS.LimitSystemS t embed-compat using (s∞; read-coh)
 
   ----------------------------------------------------------------------
-  -- Stage systems. Labels are pulled from the global-id family via toℕ;
-  -- the edge fibre is the singleton proof y ≡ t m x (one child).
-  -- 阶段系统。标签经 toℕ 取自全局 id 族；边纤维为单点证明 y ≡ t m x
-  -- （唯一子节点）。
+  -- Stage systems
+  --
+  -- Labels are pulled from the global-id family via toℕ; the edge fibre
+  -- is the singleton proof y ≡ t m x (one child).
+  --
+  -- 阶段系统
+  --
+  -- 标签经 toℕ 取自全局 id 族；边纤维为单点证明 y ≡ t m x（唯一子节点）。
 
   LStage : (m : ℕ) → SysEq lzero ℓ lzero ℓ lzero
   LStage m = record
@@ -134,6 +141,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     }
 
   -- Deterministic orbit under a global labelling (lab by global id).
+  --
   -- 全局标签族（按全局 id）下的确定性轨道。
   orbit : (m : ℕ) (x : Fin (n-at m)) (lab : ∀ v → L m v)
         → M (A (LStage m)) (E (LStage m)) x
@@ -141,10 +149,12 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   orbit m x lab .M.below y _ = orbit m y lab
 
   ----------------------------------------------------------------------
-  -- One-step index embedding and the graph label correspondence.
-  -- 一步索引嵌入与图标签对应。
+  -- One-step index embedding and the graph label correspondence
+  --
+  -- 一步索引嵌入与图标签对应
 
   -- Compatibility of t with up, derived from embed-compat for inject₁.
+  --
   -- t 与 up 的相容性，由 inject₁ 的 embed-compat 导出。
   up-compat : (m : ℕ) (x : Fin (n-at m))
             → t (suc m) (up x) ≡ up (t m x)
@@ -158,6 +168,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- At y = up x the two positions share global id toℕ x definitionally,
   -- so the label correspondence is the graph of l-emb m (toℕ x): no Fin
   -- in its type, no transport.
+  --
   -- 在 y = up x 处两位置定义性共享全局 id toℕ x，故标签对应即
   -- l-emb m (toℕ x) 的图：类型中无 Fin，无传输。
   H-emb : (m : ℕ) (x : Fin (n-at m)) (y : Fin (n-at (suc m)))
@@ -168,6 +179,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
   -- The embedding as a forward simulation. lab₁ is the next-stage
   -- global labelling, coherent with lab under l-emb.
+  --
   -- 嵌入作为前向模拟。lab₁ 是下一阶段全局标签族，与 lab 经 l-emb 相干。
   emb-sim : (m : ℕ) (lab : ∀ v → L m v) (lab₁ : ∀ v → L (suc m) v)
           → (coh : ∀ v → l-emb m v (lab v) ≡ lab₁ v)
@@ -183,11 +195,16 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       edge = trans (cong up eq) (sym (up-compat m x))
 
   ----------------------------------------------------------------------
-  -- Eventual label at global id v: a stage-tagged element of L _ v.
-  -- There is no Fin position in the carrier; extend changes only the
-  -- stage and applies l-emb at the fixed v.
-  -- 全局 id v 处的最终标签：L _ v 的阶段标签化元素。载体内无 Fin 位置；
-  -- extend 只改阶段并在固定 v 上应用 l-emb。
+  -- Eventual label at global id v
+  --
+  -- A stage-tagged element of L _ v. There is no Fin position in the
+  -- carrier; extend changes only the stage and applies l-emb at the
+  -- fixed v.
+  --
+  -- 全局 id v 处的最终标签
+  --
+  -- L _ v 的阶段标签化元素。载体中无 Fin 位置；extend 只改阶段并在固定
+  -- v 上应用 l-emb。
 
   record Thread (v : ℕ) : Set ℓ where
     inductive
@@ -208,11 +225,16 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   thread-at v m a = mk m a
 
   ----------------------------------------------------------------------
-  -- Finest carried equivalence: two threads are the same ray when some
-  -- forward iterates coincide as full records. Built from ℕ iteration
-  -- arithmetic and cong only; labels always live in L _ v at the same v.
-  -- 最细携带等价：当某前向迭代作为整条记录重合时，两线程为同一射线。
-  -- 仅由 ℕ 迭代算术与 cong 构造；标签始终处于同一 v 的 L _ v 中。
+  -- Finest carried equivalence
+  --
+  -- Two threads are the same ray when some forward iterates coincide as
+  -- full records. Built from ℕ iteration arithmetic and cong only;
+  -- labels always live in L _ v at the same v.
+  --
+  -- 最细携带等价
+  --
+  -- 当某前向迭代作为整条记录重合时，两线程为同一射线。仅由 ℕ 迭代算术
+  -- 与 cong 构造；标签始终处于同一 v 的 L _ v 中。
 
   record _≈Thread_ {v : ℕ} (t u : Thread v) : Set ℓ where
     field
@@ -264,18 +286,24 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     }
 
   ----------------------------------------------------------------------
-  -- Apex system: ℕ index, deterministic dynamics s∞, Thread labels,
-  -- singleton deterministic edges.
-  -- 顶点系统：ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边。
+  -- Apex system
+  --
+  -- ℕ index, deterministic dynamics s∞, Thread labels, singleton
+  -- deterministic edges.
+  --
+  -- 顶点系统
+  --
+  -- ℕ 索引、确定性动力 s∞、Thread 标签、单点确定性边。
 
   -- Shared singleton-edge system over the fixed dynamics s∞. Every
   -- stage and the apex differ only in the label fibre and its EqOn; the
   -- index, edge fibre and edge EqOn are definitionally shared, so an
   -- identity-index carried functor reuses the source fibre adjunction in
   -- its map congruence with no edge transport.
-  -- 固定动力 s∞ 上共享单点边的系统。各阶段与顶点仅标签纤维及其 EqOn 不同；
-  -- 索引、边纤维与边 EqOn 定义性共享，故索引恒等的携带函子可在其 map 同余
-  -- 中直接复用源纤维伴随，无边传输。
+  --
+  -- 固定动力 s∞ 上共享单点边的系统。各阶段与顶点仅标签纤维及其 EqOn
+  -- 不同；索引、边纤维与边 EqOn 定义性共享，故索引恒等的携带函子可在其
+  -- map 同余中直接复用源纤维伴随，无边缘传输。
   nsys : (A₀ : ℕ → Set ℓ) → ((v : ℕ) → EqOn {ℓ = ℓ} (A₀ v))
        → SysEq lzero ℓ lzero ℓ lzero
   nsys A₀ ≈A₀ = record
@@ -290,7 +318,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   L∞ = nsys Thread ≈A∞
 
   ----------------------------------------------------------------------
-  -- ℕ-indexed stage chain on which the colimit universal property lives.
+  -- ℕ-indexed stage chain on which the colimit universal property lives
   --
   -- Every stage shares the fixed apex dynamics s∞ and differs only in its
   -- label fibre L m. The stage embedding is identity on the global id
@@ -298,26 +326,30 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- share a fibre definitionally: no Fin, no toℕ, no transport. The Fin
   -- tower above is one way to PRODUCE such a chain.
   --
-  -- 余极限泛性质所在的 ℕ 索引阶段链。
-  -- 每个阶段共享固定顶点动力 s∞，仅标签纤维 L m 不同。阶段嵌入在全局 id
-  -- 上恒等（R 为命题相等，恒取 refl），故跨阶段标签定义性共享纤维：无
-  -- Fin、无 toℕ、无传输。上面的 Fin 塔是产生这种链的一种方式。
+  -- 余极限泛性质所在的 ℕ 索引阶段链
+  --
+  -- 每个阶段共享固定顶点动力 s∞，仅标签纤维 L m 不同。阶段嵌入在全局
+  -- id 上恒等（R 为命题相等，恒取 refl），故跨阶段标签定义性共享纤维：
+  -- 无 Fin、无 toℕ、无传输。上面的 Fin 塔是产生这种链的一种方式。
 
   NStage : (m : ℕ) → SysEq lzero ℓ lzero ℓ lzero
   NStage m = nsys (L m) (λ v → propEqOn (L m v))
 
   -- Identity-index layer relation between consecutive stages.
+  --
   -- 相邻阶段间索引恒等的层关系。
   Rn : ℕ → ℕ → Set lzero
   Rn v w = v ≡ w
 
   -- Label correspondence at the refl layer: the graph of l-emb at the
   -- same global id.
+  --
   -- refl 层处的标签对应：同一全局 id 上 l-emb 的图。
   Hn : (m v w : ℕ) → Rn v w → L m v → L (suc m) w → Set ℓ
   Hn m v .v refl a b = l-emb m v a ≡ b
 
   -- Identity-index layer relation from a stage to the apex.
+  --
   -- 阶段到顶点的索引恒等层关系。
   Rl : ℕ → ℕ → Set lzero
   Rl v w = v ≡ w
@@ -326,15 +358,19 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   Hl m v .v refl a τ = τ ≈Thread mk m a
 
   ----------------------------------------------------------------------
-  -- Identity-index deterministic carried functor between two nsys
-  -- systems. u is the identity; the canonical source child of w is w;
-  -- the fibre adjunction is the identity. The edge EqOn of any two nsys
-  -- systems is definitionally the same propEqOn on the singleton edge,
-  -- so the map congruence reuses the source bisimulation's adjunction
-  -- unchanged: no edge transport.
-  -- 两个 nsys 系统间索引恒等的确定性携带函子。u 为恒等；w 的规范源子节点
-  -- 即 w；纤维伴随为恒等。任意两 nsys 系统的边 EqOn 定义性同为单点边上的
-  -- propEqOn，故 map 同余直接复用源互模拟的伴随：无边传输。
+  -- Identity-index deterministic carried functor between two nsys systems
+  --
+  -- u is the identity; the canonical source child of w is w; the fibre
+  -- adjunction is the identity. The edge EqOn of any two nsys systems is
+  -- definitionally the same propEqOn on the singleton edge, so the map
+  -- congruence reuses the source bisimulation's adjunction unchanged: no
+  -- edge transport.
+  --
+  -- 两个 nsys 系统间索引恒等的确定性携带函子
+  --
+  -- u 为恒等；w 的规范源子节点即 w；纤维伴随为恒等。任意两 nsys 系统的
+  -- 边 EqOn 定义性同为单点边上的 propEqOn，故 map 同余直接复用源互模拟
+  -- 的伴随：无边缘传输。
 
   idxFM : (A₀ : ℕ → Set ℓ) (≈A₀ : (v : ℕ) → EqOn {ℓ = ℓ} (A₀ v))
           (A₁ : ℕ → Set ℓ) (≈A₁ : (v : ℕ) → EqOn {ℓ = ℓ} (A₁ v))
@@ -368,6 +404,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         in adj , ((λ e₁ → go (fwd e₁)) , (λ e₂ → go (bwd e₂)))
 
   -- Stage embedding FMˢ: identity index, l-emb on labels.
+  --
   -- 阶段嵌入 FMˢ：索引恒等，标签经 l-emb。
   embFM : (m : ℕ) → FMˢ (NStage m) (NStage (suc m))
   embFM m =
@@ -377,12 +414,14 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
   -- A propositional label equality maps to the same-ray relation at the
   -- fixed stage.
+  --
   -- 命题性标签等式映射为固定阶段处的同一射线关系。
   leg-shc : ∀ {m v : ℕ} {a a' : L m v}
           → a ≡ a' → mk m a ≈Thread mk m a'
   leg-shc refl = ≈Thread-refl
 
   -- Stage-to-apex leg FMˢ: identity index, label to its stage-m thread.
+  --
   -- 阶段到顶点的腿 FMˢ：索引恒等，标签映为其阶段 m 线程。
   legFM : (m : ℕ) → FMˢ (NStage m) L∞
   legFM m =
@@ -390,6 +429,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           (λ v a → mk m a) leg-shc
 
   -- The ℕ-indexed nontrivial-fibre chain.
+  --
   -- ℕ 索引非平凡纤维链。
   nchain : Chainˢ lzero ℓ lzero ℓ lzero
   nchain = record { X = NStage ; emb = embFM }
@@ -397,6 +437,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- Colimit apex existence data. The stage injection is the identity on
   -- the global id and sends a stage-m label to its stage-m thread; it is
   -- coherent definitionally. Every apex node v is represented at stage v.
+  --
   -- 余极限顶点存在性数据。阶段注入在全局 id 上恒等，把阶段 m 标签送到其
   -- 阶段 m 线程；相干性定义性成立。每个顶点节点 v 由阶段 v 代表。
   nlimit : Limitˢ nchain
@@ -409,16 +450,22 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     }
 
   ----------------------------------------------------------------------
-  -- Canonical cocone. Embedding then the stage m+1 leg advances a thread
-  -- by one extend over the stage m leg; the two apex labels are the same
-  -- ray definitionally, and the singleton child trees agree coinductively.
-  -- The equality is behavioural (_≈FM_), never a label transport.
-  -- 规范余锥。先嵌入再走阶段 m+1 腿，相对阶段 m 腿只多一次 extend；两个
-  -- 顶点标签定义性为同一射线，单子树余归纳一致。相等是行为相等（_≈FM_），
-  -- 绝非标签传输。
+  -- Canonical cocone
+  --
+  -- Embedding then the stage m+1 leg advances a thread by one extend over
+  -- the stage m leg; the two apex labels are the same ray definitionally,
+  -- and the singleton child trees agree coinductively. The equality is
+  -- behavioural (_≈FM_), never a label transport.
+  --
+  -- 规范余锥
+  --
+  -- 先嵌入再走阶段 m+1 腿，相对阶段 m 腿只多一次 extend；两个顶点标签
+  -- 定义性为同一射线，单子树余归纳一致。相等是行为相等（_≈FM_），绝非
+  -- 标签传输。
 
   -- One extend is the same ray (zero iterations on the left, one on the
   -- right), definitionally.
+  --
   -- 一次 extend 即同一射线（左侧零次迭代、右侧一次），定义性成立。
   one-ray : ∀ (m v : ℕ) (a : L m v)
           → mk (suc m) (l-emb m v a) ≈Thread mk m a
@@ -449,18 +496,20 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         , (λ e₂ → coh-go m w (M.below t w e₂)) )
 
   -- One-step cocone coherence at behavioural equality.
+  --
   -- 行为相等下的一步余锥相干性。
   leg-coh-one : (m : ℕ)
               → compFMˢ (legFM (suc m)) (embFM m) ≈FM legFM m
   leg-coh-one m v = refl , coh-go m v
 
   -- The canonical cocone over nchain with apex L∞.
+  --
   -- 以 L∞ 为顶点、nchain 上的规范余锥。
   ncocone : Coconeˢ nchain L∞
   ncocone = record { leg = legFM ; coh = leg-coh-one }
 
   ----------------------------------------------------------------------
-  -- Canonical legs from a coherent global labelling.
+  -- Canonical legs from a coherent global labelling
   --
   -- lab (suc m) v is the forward image of lab m v under l-emb. The apex
   -- orbit at v carries the thread born at stage v. A leg's push returns
@@ -468,7 +517,9 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
   -- is used only as the apex edge witness, so every recursive simulation
   -- sits at r = refl with v = toℕ of the source position and labels share
   -- a fibre. No index transport.
-  -- 相干全局标签族下的规范腿。
+  --
+  -- 相干全局标签族下的规范腿
+  --
   -- lab (suc m) v 是 lab m v 经 l-emb 的前向像。顶点轨道在 v 处携带阶段
   -- v 诞生的线程。腿的 push 把源子节点自身的全局 id toℕ y 作为目标索引
   -- 返回；read-coh 仅用作顶点边见证，故每个递归模拟都停在 r = refl、
@@ -480,12 +531,14 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     where
 
     -- Apex orbit: thread at v born at stage v.
+    --
     -- 顶点轨道：v 处阶段 v 诞生的线程。
     orbit∞ : (v : ℕ) → M (A L∞) (E L∞) v
     orbit∞ v .M.here      = mk v (lab v v)
     orbit∞ v .M.below w _ = orbit∞ w
 
     -- Forward iteration of a stage label lands at the coherent label.
+    --
     -- 阶段标签的前向迭代落在相干标签上。
     forward-to : (k m v : ℕ)
                → extend^ k (mk m (lab m v)) ≡ mk (k + m) (lab (k + m) v)
@@ -496,6 +549,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
     -- The thread born at stage v and the stage-m label at v are the same
     -- ray: extend both to the common stage m + v.
+    --
     -- 阶段 v 诞生的线程与 v 处阶段 m 标签是同一射线：二者都前向到共同
     -- 阶段 m + v。
     leg-here : (m v : ℕ) → mk v (lab v v) ≈Thread mk m (lab m v)
@@ -508,34 +562,42 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                      (trans mk-eq (sym (forward-to v m v)))
 
     -- Layer relation: the apex node is the source global id.
+    --
     -- 层关系：顶点节点即源全局 id。
-    Rₘ : (m : ℕ) → Fin (n-at m) → ℕ → Set lzero
-    Rₘ m x v = toℕ x ≡ v
+    Rₙ : (m : ℕ) → Fin (n-at m) → ℕ → Set lzero
+    Rₙ m x v = toℕ x ≡ v
 
     -- Label correspondence at the refl layer witness: the apex thread
     -- and the stage-m label are the same ray.
+    --
     -- refl 层见证处的标签对应：顶点线程与阶段 m 标签是同一射线。
-    Hₘ : (m : ℕ) (x : Fin (n-at m)) (v : ℕ) → Rₘ m x v
+    Hₙ : (m : ℕ) (x : Fin (n-at m)) (v : ℕ) → Rₙ m x v
        → A (LStage m) x → Thread v → Set ℓ
-    Hₘ m x .(toℕ x) refl a τ = τ ≈Thread mk m a
+    Hₙ m x .(toℕ x) refl a τ = τ ≈Thread mk m a
 
     -- The canonical leg at position x; every push stays at refl by
     -- targeting the child's own global id.
+    --
     -- 位置 x 处的规范腿；每次 push 以子节点自身全局 id 为目标，停在 refl。
-    legₘ : (m : ℕ) (x : Fin (n-at m))
-         → PushSimˢ (LStage m) L∞ (Rₘ m) (Hₘ m) refl
+    legₙ : (m : ℕ) (x : Fin (n-at m))
+         → PushSimˢ (LStage m) L∞ (Rₙ m) (Hₙ m) refl
                      (orbit m x (lab m)) (orbit∞ (toℕ x))
-    legₘ m x .PushSimˢ.here-eq = leg-here m (toℕ x)
-    legₘ m x .PushSimˢ.push y (_ , eq) =
-      toℕ y , ((tt , edge) , (refl , legₘ m y))
+    legₙ m x .PushSimˢ.here-eq = leg-here m (toℕ x)
+    legₙ m x .PushSimˢ.push y (_ , eq) =
+      toℕ y , ((tt , edge) , (refl , legₙ m y))
       where
         edge : toℕ y ≡ s∞ (toℕ x)
         edge = trans (cong toℕ eq) (read-coh m x)
 
     --------------------------------------------------------------------
-    -- ℕ-indexed chain: deterministic orbits, the identity-index stage
-    -- embedding, and the identity-index leg into the apex.
-    -- ℕ 索引链：确定性轨道、索引恒等的阶段嵌入与索引恒等的顶点腿。
+    -- ℕ-indexed chain
+    --
+    -- Deterministic orbits, the identity-index stage embedding, and the
+    -- identity-index leg into the apex.
+    --
+    -- ℕ 索引链
+    --
+    -- 确定性轨道、索引恒等的阶段嵌入与索引恒等的顶点腿。
 
     norbit : (m v : ℕ) → M (A (NStage m)) (E (NStage m)) v
     norbit m v .M.here      = lab m v
@@ -544,6 +606,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- Total stage-m tree with an arbitrary head label a and canonical
     -- tails. Every head label (not only lab m v) is therefore reached by
     -- the stage-m leg at some total tree.
+    --
     -- 任意头标签 a、规范尾的全总阶段 m 树。故每个头标签（不限于
     -- lab m v）都被阶段 m 腿在某棵全总树处到达。
     stage-ray : (m v : ℕ) (a : L m v)
@@ -552,6 +615,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     stage-ray m v a .M.below w _ = norbit m w
 
     -- Stage embedding: identity index, l-emb on labels.
+    --
     -- 阶段嵌入：索引恒等，标签经 l-emb。
     n-sim : (m v : ℕ)
           → PushSimˢ (NStage m) (NStage (suc m)) Rn (Hn m) refl
@@ -561,6 +625,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       w , ((tt , eq) , (refl , n-sim m w))
 
     -- Leg into the apex: identity index, same-ray label correspondence.
+    --
     -- 顶点腿：索引恒等，标签为同一射线对应。
     nleg : (m v : ℕ)
          → PushSimˢ (NStage m) L∞ Rl (Hl m) refl
@@ -571,6 +636,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
     -- FMˢ-bisimulation form of nleg: the image of the canonical stage
     -- orbit under legFM m is bisimilar to the apex orbit orbit∞.
+    --
     -- nleg 的 FMˢ 互模拟形式：legFM m 下规范阶段轨道的像与顶点轨道
     -- orbit∞ 互模拟。
     mutual
@@ -595,7 +661,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           , (λ _ → legray-go   m w) )
 
     --------------------------------------------------------------------
-    -- Same-index nontrivial mediating simulation.
+    -- Same-index nontrivial mediating simulation
     --
     -- A competing cocone over the SAME index and dynamics (identity
     -- trajectory) carries an arbitrary label family ZL with its own
@@ -606,7 +672,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- uniqueness is relative to pointwise label agreement (carried
     -- data), never the automatic refl of the ⊤-fibre case.
     --
-    -- 同索引非平凡 mediate 模拟。
+    -- 同索引非平凡 mediate 模拟
+    --
     -- 同一索引与动力（恒等轨迹）上的竞争余锥携带任意标签族 ZL 及其
     -- EqOn，以及在 l-emb 下稳定的逐阶段求值映射 zm。所有层见证均为
     -- refl，故标签在共享 ℕ 索引上纯由函数作用传递：无纤维传输。目标
@@ -623,6 +690,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       where
 
       -- Target system: same ℕ index and s∞ dynamics, ZL labels.
+      --
       -- 目标系统：同一 ℕ 索引与 s∞ 动力，标签为 ZL。
       Z : SysEq lzero ℓ lzero ℓ lzero
       Z = record
@@ -634,6 +702,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         }
 
       -- Deterministic orbit induced by a label family.
+      --
       -- 标签族诱导的确定性轨道。
       orbit-of : (zl : (v : ℕ) → ZL v) (v : ℕ)
                → M (A Z) (E Z) v
@@ -641,6 +710,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       orbit-of zl v .M.below w _ = orbit-of zl w
 
       -- Canonical evaluation of the thread born at v.
+      --
       -- v 处诞生线程的规范求值。
       eval∞ : (v : ℕ) → ZL v
       eval∞ v = zm v v (lab v v)
@@ -649,6 +719,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       zorbit = orbit-of eval∞
 
       -- Stage-m target orbit and the identity-index label relation.
+      --
       -- 阶段 m 目标轨道与索引恒等标签关系。
       zorbit-stage : (m v : ℕ) → M (A Z) (E Z) v
       zorbit-stage m = orbit-of (λ v → zm m v (lab m v))
@@ -660,6 +731,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       Hz m v .v refl a b = EqOn._≈_ (≈ZL v) b (zm m v a)
 
       -- Each stage leg as a forward simulation into Z.
+      --
       -- 每条阶段腿作为到 Z 的前向模拟。
       zleg : (m v : ℕ)
            → PushSimˢ (NStage m) Z Rz (Hz m) refl
@@ -669,7 +741,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         w , ((tt , eq) , (refl , zleg m w))
 
       -- Evaluation of an arbitrary stage-tagged thread at its own index.
-      -- 任意阶段标签化线程在其自身索引处的求值。
+      --
+      -- 任意阶段标签化线程在自身索引处的求值。
       eval-ray : ∀ {v : ℕ} → Thread v → ZL v
       eval-ray {v} (mk m a) = zm m v a
 
@@ -677,6 +750,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       H∞ v .v refl τ b = EqOn._≈_ (≈ZL v) b (eval-ray τ)
 
       -- The mediating simulation from the apex to Z.
+      --
       -- 从顶点到 Z 的 mediate 模拟。
       zmed : (v : ℕ)
            → PushSimˢ L∞ Z Rz H∞ refl (orbit∞ v) (zorbit v)
@@ -688,6 +762,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       -- between two deterministic orbit families gives a bisimulation.
       -- This is not automatic: for a non-trivial fibre the agreement
       -- must be supplied at every node.
+      --
       -- 相对唯一性：两个确定性轨道族逐点标签一致（显式数据）即给出互
       -- 模拟。它不是自动的：非平凡纤维下，一致必须在每个节点显式给出。
       mutual
@@ -716,8 +791,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
       -- Any competing label family pointwise equal to the canonical
       -- evaluation induces the same target tree up to _≈Mˢ_.
-      -- 任何与规范求值逐点相等的竞争标签族诱导 _≈Mˢ_ 意义下相同的
-      -- 目标树。
+      --
+      -- 任何与规范求值逐点相等的竞争标签族诱导 _≈Mˢ_ 意义下相同的目标树。
       mediate-unique : (zl : (v : ℕ) → ZL v)
                      → (he : (v : ℕ) → EqOn._≈_ (≈ZL v) (zl v) (eval∞ v))
                      → (v : ℕ)
@@ -726,15 +801,20 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       mediate-unique zl he v = orb-bisim zl eval∞ he v
 
       ------------------------------------------------------------------
-      -- Total-function FMˢ form. Because the index is shared (identity
-      -- trajectory), evaluation lands in the fibre at the SAME index, so
-      -- the shape maps are total and need no transport. These are the
-      -- components from which the fixed Colimitˢ is assembled.
-      -- 全函数 FMˢ 形式。索引共享（恒等轨迹），求值落在同一索引的纤维
-      -- 中，故 shape 映射为全函数且无需传输。它们是装配固定 Colimitˢ
-      -- 的组件。
+      -- Total-function FMˢ form
+      --
+      -- Because the index is shared (identity trajectory), evaluation
+      -- lands in the fibre at the SAME index, so the shape maps are total
+      -- and need no transport. These are the components from which the
+      -- fixed Colimitˢ is assembled.
+      --
+      -- 全函数 FMˢ 形式
+      --
+      -- 索引共享（恒等轨迹），求值落在同一索引的纤维中，故 shape 映射为
+      -- 全函数且无需传输。它们是装配固定 Colimitˢ 的组件。
 
       -- Stage leg as a total setoid functor.
+      --
       -- 全函数 setoid 函子形式的阶段腿。
       legF : (m : ℕ) → FMapˢ (NStage m) Z
       legF m = record
@@ -771,6 +851,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         }
 
       -- Evaluation is invariant under one forward extend, up to ≈ZL.
+      --
       -- 求值在一次前向 extend 下不变（至 ≈ZL）。
       eval-ext : ∀ {v : ℕ} (τ : Thread v)
                → EqOn._≈_ (≈ZL v) (eval-ray (extend τ)) (eval-ray τ)
@@ -783,6 +864,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         EqOn.trans (≈ZL _) (eval-ext (extend^ k τ)) (eval-ext^ k τ)
 
       -- Same-ray threads evaluate to setoid-equal labels.
+      --
       -- 同一射线的线程求值为 setoid 相等的标签。
       med-shape-cong : ∀ {v : ℕ} {τ τ' : Thread v}
                      → τ ≈Thread τ'
@@ -829,6 +911,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       ------------------------------------------------------------------
       -- The same-index competing cocone with the zlegFM legs, and the
       -- factorisation triangle zmedFM ∘ legFM m ≈ zlegFM m.
+      --
       -- 以 zlegFM 为腿的同索引竞争余锥，以及因子分解三角
       -- zmedFM ∘ legFM m ≈ zlegFM m。
 
@@ -865,6 +948,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
       -- Factorisation: mediating after the apex leg is the stage leg.
       -- Labels agree definitionally (eval-ray (mk m a) = zm m v a).
+      --
       -- 因子分解：mediate 接顶点腿即阶段腿。标签定义性相等
       -- （eval-ray (mk m a) = zm m v a）。
       med-leg : (m : ℕ) → FMˢ (NStage m) Z
@@ -898,8 +982,9 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       -- family and the canonical eval∞ family agree pointwise, by
       -- carrying both forward to their common stage (EqOn only, no
       -- transport across fibres).
-      -- 目标侧射线重合：阶段 m 规范求值族与规范 eval∞ 族逐点一致，
-      -- 方法是把二者前向携带到共同阶段（仅用 EqOn，不跨纤维传输）。
+      --
+      -- 目标侧射线重合：阶段 m 规范求值族与规范 eval∞ 族逐点一致，方法
+      -- 是把二者前向携带到共同阶段（仅用 EqOn，不跨纤维传输）。
       zfwd : (k m w : ℕ)
            → EqOn._≈_ (≈ZL w)
                (zm (k + m) w (lab (k + m) w)) (zm m w (lab m w))
@@ -931,6 +1016,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
       -- The stage-leg image of the canonical orbit is bisimilar to the
       -- mediating-functor image of the colimit orbit.
+      --
       -- 阶段腿在规范轨道上的像与 mediate 函子在余极限轨道上的像互模拟。
       mutual
         zlegray-go : (m v : ℕ)
@@ -966,10 +1052,11 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       -- Free fibre labels are not in any leg image and are therefore
       -- outside the hypothesis; uniqueness is asserted only on the ray
       -- the legs actually reach.
-      -- 规范余极限轨道上的相对唯一性。任何全函数函子 h，只要其与每条
-      -- 阶段腿的复合等于该阶段腿（三角），就在 orbit∞ 处与 zmedFM 一致。
-      -- 自由纤维标签不在任何腿的像中、超出假设范围，故唯一性仅陈述于
-      -- 腿实际到达的射线上。
+      --
+      -- 规范余极限轨道上的相对唯一性。任何全函数函子 h，只要其与每条阶段
+      -- 腿的复合等于该阶段腿（三角），就在 orbit∞ 处与 zmedFM 一致。
+      -- 自由纤维标签不在任何腿的像中、超出假设范围，故唯一性仅陈述于腿
+      -- 实际到达的射线上。
       unique-ray : (h : FMˢ L∞ Z)
         (tr : (m : ℕ) → compFMˢ h (legFM m) ≈FM zlegFM m)
         (v : ℕ)
@@ -1020,7 +1107,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                  (zlegray-go v v)
 
       ------------------------------------------------------------------
-      -- Full coinductive uniqueness in the identity-index range.
+      -- Full coinductive uniqueness in the identity-index range
       --
       -- A competing mediator is an identity-index functor hFM (u = id,
       -- singleton child refl, identity fibre adjunction) given by a head
@@ -1032,7 +1119,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       -- mediators are pointwise bisimilar on EVERY total apex tree, not
       -- only on orbit∞. No index path and no transport are used.
       --
-      -- 索引恒等范围内的完整余归纳唯一性。
+      -- 索引恒等范围内的完整余归纳唯一性
+      --
       -- 竞争 mediate 是索引恒等函子 hFM（u=id、单子节点 refl、恒等纤维
       -- 伴随），由头映射 H 及其同余给出，并带逐阶段三角。每个顶点节点带
       -- 归纳阶段标签 mk m a；阶段 m 三角作用于 stage-ray m v a 在头部强制
@@ -1083,6 +1171,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         hFM = mkHFM H Hc
 
         -- The stage-m triangle forces the head label at every thread.
+        --
         -- 阶段 m 三角在每个线程处强制头标签。
         here-force : (m v : ℕ) (a : L m v)
                    → EqOn._≈_ (≈ZL v) (H v (mk m a)) (zm m v a)
@@ -1110,15 +1199,16 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           uniq˘ v t ._≈Mˢ_.below-eq w =
               idAdjˢ (≈E Z v (eval-ray (M.here t)) w)
             , ( (λ e₁ → uniq˘ w (M.below t w e₁))
-              , (λ e₂ → uniq   w (M.below t w e₂)) )
+              , (λ e₂ → uniq  w (M.below t w e₂)) )
 
         -- Full behavioural uniqueness of the identity-index mediator.
+        --
         -- 索引恒等 mediate 的完整行为唯一性。
         unique-full : hFM ≈FM zmedFM
         unique-full v = refl , λ t → uniq v t
 
     --------------------------------------------------------------------
-    -- Standard agda-categories Colimit of nchain in SameIndexCat.
+    -- Standard agda-categories Colimit of nchain in SameIndexCat
     --
     -- The stage systems and the apex are LabelSys over the fixed dynamics
     -- s∞; the embeddings and legs are Idx⇒ (definitionally identity
@@ -1129,7 +1219,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- identity-index wide subcategory where the polarity obstruction of
     -- Route 2 cannot arise.
     --
-    -- SameIndexCat 中 nchain 的 agda-categories 标准 Colimit。
+    -- SameIndexCat 中 nchain 的 agda-categories 标准 Colimit
+    --
     -- 阶段系统与顶点是固定动力 s∞ 上的 LabelSys；嵌入与腿是 Idx⇒（定义性
     -- 索引恒等）。竞争余锥提供逐阶段纤维映射 zm 与一步相干性，恰为
     -- SameIndexMediate 数据；mediate 为 eval-ray，FullUniqueness 给出每棵
@@ -1223,6 +1314,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     open import Categories.Diagram.Colimit chainFun using (Colimit)
 
     -- One-step and path coherence of the canonical legs.
+    --
     -- 规范腿的一步与路径相干性。
     one-coh-i : (m : ℕ)
               → _≈i_ s∞ (compi s∞ (legIdx (suc m)) (embIdx m)) (legIdx m)
@@ -1255,6 +1347,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       { coapex = record { ψ = legIdx ; commute = λ {m n} p → leg-path p } }
 
     -- Every restricted cocone factors uniquely through the apex.
+    --
     -- 每个受限余锥唯一地经顶点因子分解。
     module _ (K : Cocone) where
 
@@ -1291,12 +1384,12 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       mkMediate : Cocone⇒ nCocone K
       mkMediate = record { arr = medArr ; commute = λ {m} → med-comm {m} }
 
-      unique : (f⇒ : Cocone⇒ nCocone K)
-             → _≈i_ s∞ medArr (Cocone⇒.arr f⇒)
-      unique f⇒ = unique-i
+      unique : (f' : Cocone⇒ nCocone K)
+             → _≈i_ s∞ medArr (Cocone⇒.arr f')
+      unique f' = unique-i
         where
         farr : Idx⇒ s∞ apexLS N
-        farr = Cocone⇒.arr f⇒
+        farr = Cocone⇒.arr f'
 
         H  : (v : ℕ) → Thread v → ZL v
         H = Idx⇒.shape farr
@@ -1306,9 +1399,10 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
            → EqOn._≈_ (≈ZL v) (H v τ) (H v τ')
         Hc = Idx⇒.shape-cong farr
 
-        -- Constructor form of farr; Idx⇒ eta makes farr ≡ farr′, and the
+        -- Constructor form of farr; Idx⇒ eta makes farr ≡ farr′ and the
         -- latter unfolds under the category composition instead of
         -- staying stuck on the neutral Cocone⇒ projection.
+        --
         -- farr 的构造式；Idx⇒ 的 eta 使 farr ≡ farr′，后者在范畴复合下
         -- 可归约，不会卡在中性的 Cocone⇒ 投影上。
         farr′ : Idx⇒ s∞ apexLS N
@@ -1324,6 +1418,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         -- where identity/associativity are definitional; then read the
         -- triangle pointwise. Idx⇒ eta and the fact that mapF data depends
         -- only on the shape make both reindexings reflexive.
+        --
         -- 在 _≈i_ 层（恒等/结合均定义性成立）把卡在 Cocone⇒ 投影上的中性
         -- 范畴复合归位到构造式复合，再逐点读取三角。Idx⇒ 的 eta 以及 mapF
         -- 数据只依赖 shape，使两处重索引均为自反。
@@ -1335,6 +1430,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         fEta = reflc {f = farr′}
 
         -- commute reads  arr ∘ leg ≈ ψK  (composite on the left).
+        --
         -- commute 读作 arr ∘ leg ≈ ψK（复合在左）。
         rdx : (m : ℕ)
             → _≈i_ s∞ (Category._∘_ cat farr (Cocone.ψ nCocone m))
@@ -1355,7 +1451,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
                {f = Category._∘_ cat farr (Cocone.ψ nCocone m)}
                {g = compi s∞ farr′ (legIdx m)}
                (rdx m))
-            (Cocone⇒.commute f⇒ {m})
+            (Cocone⇒.commute f' {m})
 
         tr m v t =
           ≈Mˢ-trans ≈AZ ≈EZ
@@ -1370,7 +1466,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           compImg = FMapˢ.mapFˢ (FMˢ.mor (Idx⇒.mor (compi s∞ farr′ (legIdx m)))) v t
           tgtImg = FMapˢ.mapFˢ (Q.legF m) v t
 
-          -- nested two-map image ≈ single composite image.
+          -- Nested two-map image ≈ single composite image.
+          --
           -- 嵌套两次 mapF 的像 ≈ 单一复合像。
           c1 : _≈Mˢ_ ≈AZ ≈EZ
                  (FMapˢ.mapFˢ hmor v (FMapˢ.mapFˢ fmor v t))
@@ -1378,6 +1475,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
           c1 = ≈Mˢ-sym ≈AZ ≈EZ (mapFˢ-comp hmor fmor v t)
 
           -- compi fibre map and the kernel composite agree pointwise.
+          --
           -- compi 纤维映射与内核复合逐点一致。
           c2 : _≈Mˢ_ ≈AZ ≈EZ compImg (FMapˢ.mapFˢ compFMor v t)
           c2 = ≈Mˢ-refl ≈AZ ≈EZ (FMapˢ.mapFˢ compFMor v t)
@@ -1399,13 +1497,13 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         { ⊥ = nCocone
         ; ⊥-is-initial = record
           { ! = λ {K} → mkMediate K
-          ; !-unique = λ {K} f⇒ → unique K f⇒
+          ; !-unique = λ {K} f' → unique K f'
           }
         }
       }
 
     --------------------------------------------------------------------
-    -- Route 2 (negative): the total-function Colimit is a pull notion.
+    -- Route 2 (negative): the total-function Colimit is a pull notion
     --
     -- A perfectly valid competing push cocone may have a target index
     -- type not covered by the source trajectory. Take J = Nat ⊎ ⊤ with
@@ -1418,7 +1516,8 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
     -- Hence no total FMˢ mediate exists. The forward (push) colimit is
     -- the simulation of SameIndexMediate, not a total pull morphism.
     --
-    -- 路线 2（否定性）：全函数余极限是 pull 概念。
+    -- 路线 2（否定性）：全函数余极限是 pull 概念
+    --
     -- 完全合法的竞争 push 余锥其目标索引类型可以不被源轨迹覆盖。取
     -- J = ℕ ⊎ ⊤，额外点在 stepZ 下固定，轨迹 q = inj₁；q (s∞ v) ≡
     -- stepZ (q v) 定义性成立，故前向模拟可 mediate（永不需要到达额外
@@ -1440,6 +1539,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       q v = inj₁ v
 
       -- Trajectory coherence is definitional.
+      --
       -- 轨迹相干性定义性成立。
       q-coh : (v : ℕ) → q (s∞ v) ≡ stepZ (q v)
       q-coh _ = refl
@@ -1447,6 +1547,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
       -- Deterministic target system with trivial labels; the
       -- obstruction depends only on indices, hence holds a fortiori for
       -- any non-trivial label fibre.
+      --
       -- 平凡标签的确定性目标系统；障碍只依赖索引，故对任意非平凡标签
       -- 纤维更成立。
       ZJ : SysEq lzero lzero lzero lzero lzero
@@ -1470,6 +1571,7 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
 
       -- The forward simulation exists: it follows the inj₁ branch and
       -- never has to account for the unreachable inj₂ point.
+      --
       -- 前向模拟存在：它沿 inj₁ 支推进，永不需要处理不可达的 inj₂ 点。
       medj : (v : ℕ)
            → PushSimˢ L∞ ZJ Rj Hj refl (orbit∞ v) (zj-orbit (q v))
@@ -1478,11 +1580,13 @@ module Tower {ℓ : Level} (T : LabeledFinTower ℓ) where
         q w , ((tt , cong inj₁ eq) , (refl , medj w))
 
       -- The extra point has no preimage under q.
+      --
       -- 额外点在 q 下无原像。
       q-miss : ¬ Σ ℕ λ v → q v ≡ inj₂ tt
       q-miss (_ , ())
 
       -- No total FMˢ can mediate this cocone with index map q.
+      --
       -- 不存在以 q 为索引映射的全函数 FMˢ mediate。
       no-FM-mediate : (g : FMˢ L∞ ZJ)
                     → ((x : ℕ) → FMapˢ.u (FMˢ.mor g) x ≡ q x)

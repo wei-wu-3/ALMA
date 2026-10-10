@@ -1,36 +1,24 @@
 ------------------------------------------------------------------------
--- Standard colimit of a forward ω-chain with propositional fibres.
+-- Standard colimit of a forward ω-chain with propositional fibres
 --
--- This is the propositional-fibre special case of the direct-limit
--- construction.  Each stage fibre is a plain set with propositional
--- equality (propEqOn); the forward map emb m need not be injective or
--- surjective.  The direct-limit element Thread v is a stage-tagged
--- fibre element: the birth stage is an ordinary field, so comparing two
--- threads never compares across fibres -- eventual coincidence is stated
--- as propositional equality of the whole stage-tagged records, with the
--- ℕ iteration arithmetic carried on the record, not on a fibre.  Hence
--- no transport, no K, no function extensionality.
+-- The propositional-fibre special case of the direct-limit construction:
+-- each stage fibre is a plain set with propositional equality, and the
+-- forward map need be neither injective nor surjective. A direct-limit
+-- element is a stage-tagged fibre element, so comparing two threads
+-- never compares across fibres, and no transport, K or function
+-- extensionality is used. The general arbitrary-setoid, arbitrary-shape
+-- colimit is the Σ-plus-equivalence-closure construction in
+-- SameIndexColimitS, of which this is the propositional-fibre
+-- specialisation. Collapsing the closure to propositional equality
+-- remains independent of the flags.
 --
--- The general arbitrary-setoid, arbitrary-shape colimit is the
--- Σ-plus-equivalence-closure construction in SameIndexColimitS, which
--- needs no born-at-0 section or stage isomorphism; this Thread model is
--- that construction specialised to propositional fibres.  Collapsing the
--- closure to propositional equality remains independent of the flags (a
--- set quotient/HIT to construct it, a provably non-UIP fibre to refute
--- it).
+-- 命题纤维前向 ω-链的标准余极限
 --
--- 命题纤维前向 ω-链的标准余极限（直接极限构造的命题纤维特例）。
---
--- 每阶段纤维是带命题相等（propEqOn）的普通集合；前向映射 emb m 不必
--- 单射或满射。直接极限元素 Thread v 是带阶段标签的纤维元素：诞生阶段
--- 是普通字段，故比较两个线程从不跨纤维——最终重合陈述为整条阶段标签
--- 记录的命题相等，ℕ 迭代算术承载在记录上而非纤维上。因此无传输、不用
--- K、不用函数外延性。
---
--- 一般任意 setoid、任意形状的余极限是 SameIndexColimitS 中的 Σ 加等价
--- 闭包构造，无需诞生 0 截面或阶段同构；本 Thread 模型即该构造在命题纤维
--- 上的特化。把闭包压成命题相等仍与开关独立（构造需集合商/HIT，证伪需
--- 可证不满足 UIP 的纤维）。
+-- 直接极限构造的命题纤维特例：每阶段纤维是带命题相等的普通集合，前向
+-- 映射不必单射或满射。直接极限元素是带阶段标签的纤维元素，故比较两个
+-- 线程从不跨纤维，且无传输、不用 K、不用函数外延性。一般任意 setoid、
+-- 任意形状的余极限是 SameIndexColimitS 中的 Σ 加等价闭包构造，本模型
+-- 即其在命题纤维上的特化。把闭包压成命题相等仍与开关独立。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -62,9 +50,15 @@ import ALMA.Cosmos.Carried.SeqColimitCat as SQC
 module _ (d : ℕ → ℕ) {ℓ : Level} where
 
   ----------------------------------------------------------------------
-  -- A growing chain: stage label sets L m v and a forward map emb m.
-  -- Stage setoids are propositional.
-  -- 增长链：阶段标签集 L m v 与前向映射 emb m。阶段 setoid 为命题的。
+  -- A growing chain
+  --
+  -- Stage label sets L m v and a forward map emb m. Stage setoids are
+  -- propositional.
+  --
+  -- 增长链
+  --
+  -- 阶段标签集 L m v 与前向映射 emb m。阶段 setoid 为命题的。
+
   record ChainProp : Set (lsuc ℓ) where
     field
       L₀  : (m v : ℕ) → Set ℓ
@@ -78,11 +72,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       s = d
 
     -- Stage label system with propositional fibre equality.
+    --
     -- 命题纤维相等的阶段标签系统。
     stageLS : ℕ → LabelSys ℓ
     stageLS m = record { A₀ = L₀ m ; ≈A₀ = λ v → propEqOn (L₀ m v) }
 
     -- Forward identity-index arrow.
+    --
     -- 前向索引恒等箭头。
     embIdx : (m : ℕ) → Idx⇒ s (stageLS m) (stageLS (suc m))
     embIdx m = record
@@ -91,8 +87,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       }
 
     --------------------------------------------------------------------
-    -- Direct-limit element: a stage-tagged fibre element.
-    -- 直接极限元素：带阶段标签的纤维元素。
+    -- Direct-limit element
+    --
+    -- A stage-tagged fibre element.
+    --
+    -- 直接极限元素
+    --
+    -- 带阶段标签的纤维元素。
     record Thread (v : ℕ) : Set ℓ where
       inductive
       constructor mk
@@ -102,6 +103,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     open Thread public
 
     -- One forward step at the fixed label v.
+    --
     -- 固定标签 v 上的一步前向。
     extend : {v : ℕ} → Thread v → Thread v
     extend {v} (mk m a) = mk (suc m) (emb m v a)
@@ -111,6 +113,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
     extend^ (suc n) t = extend (extend^ n t)
 
     -- Eventual coincidence: some forward iterates coincide as records.
+    --
     -- 最终重合：某前向迭代作为记录重合。
     record _≈Thread_ {v : ℕ} (t u : Thread v) : Set ℓ where
       field
@@ -162,11 +165,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       }
 
     -- Colimit apex label system.
+    --
     -- 余极限顶点标签系统。
     apexLS : LabelSys ℓ
     apexLS = record { A₀ = Thread ; ≈A₀ = ≈A∞ }
 
     -- Injection: tag a stage element with its birth stage.
+    --
     -- 注入：用诞生阶段标签化阶段元素。
     legIdx : (m : ℕ) → Idx⇒ s (stageLS m) apexLS
     legIdx m = record
@@ -177,8 +182,9 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       }
 
     --------------------------------------------------------------------
-    -- Chain as a functor ω → SameIndexCat.
-    -- 链作为 ω → SameIndexCat 函子。
+    -- Chain as a functor ω → SameIndexCat
+    --
+    -- 链作为 ω → SameIndexCat 函子
     private
       cat : Category (lsuc ℓ) ℓ ℓ
       cat = SameIndexCat s {ℓ = ℓ}
@@ -244,12 +250,14 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
 
     -- Tagging after one forward step equals one extend of the tagged
     -- thread, definitionally.
+    --
     -- 前向一步后再标签化，等于对标签化线程做一次 extend，定义性成立。
     one-ray : (m v : ℕ) (a : L₀ m v)
             → mk (suc m) (emb m v a) ≈Thread mk m a
     one-ray m v a = record { dl = 0 ; dr = 1 ; same = refl }
 
     -- One-step leg coherence: leg (suc m) ∘ emb m ≈ leg m.
+    --
     -- 一步腿相干：leg (suc m) ∘ emb m ≈ leg m。
     one-coh-i : (m : ℕ)
               → _≈i_ s (compi s (legIdx (suc m)) (embIdx m)) (legIdx m)
@@ -259,6 +267,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
         (λ v a → one-ray m v a)
 
     -- Path leg coherence.
+    --
     -- 路径腿相干。
     leg-path : {m n : ℕ} (p : Chain⇒ m n)
              → _≈i_ s (compi s (legIdx n) (fold-emb p)) (legIdx m)
@@ -283,21 +292,25 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
            (leg-path p))
 
     -- The canonical direct-limit cocone (unconditional).
+    --
     -- 规范直接极限余锥（无条件）。
     nCocone : Cocone
     nCocone = record
       { coapex = record { ψ = legIdx ; commute = λ {m n} p → leg-path p } }
 
     --------------------------------------------------------------------
-    -- Pointwise cocones and the mediating functor.  A competing cocone
-    -- is a coapex Z with legs ψ m and one-step coherence
-    -- ψ (suc m) (emb m a) ≈ ψ m a in the fibre setoid.  The mediator
-    -- evaluates a thread at its birth stage; invariance under extend
-    -- makes it well-defined on _≈Thread_.  No injectivity, root,
+    -- Pointwise cocones and the mediating functor
+    --
+    -- A competing cocone is a coapex Z with legs ψ m and one-step
+    -- coherence ψ (suc m) (emb m a) ≈ ψ m a in the fibre setoid. The
+    -- mediator evaluates a thread at its birth stage; invariance under
+    -- extend makes it well-defined on _≈Thread_. No injectivity, root,
     -- isomorphism or global section is required at this pointwise
     -- level, and no transport, K or funExt is used.
     --
-    -- 逐点余锥与 mediate 函子。竞争余锥由余顶点 Z、腿 ψ m 与一步相干
+    -- 逐点余锥与 mediate 函子
+    --
+    -- 竞争余锥由余顶点 Z、腿 ψ m 与一步相干
     -- ψ (suc m)(emb m a) ≈ ψ m a 组成。mediate 在诞生阶段求值线程；
     -- extend 下不变性使其在 _≈Thread_ 上良定义。逐点层无需单射、根、
     -- 同构或全局截面，且无传输、不用 K 与函数外延性。
@@ -315,11 +328,13 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       private ≈Z = LabelSys.≈A₀ Z
 
       -- Evaluate a stage-tagged thread at its birth stage.
+      --
       -- 在诞生阶段求值阶段标签化线程。
       eval-ray : {v : ℕ} → Thread v → LabelSys.A₀ Z v
       eval-ray (mk m a) = Idx⇒.shape (ψc K m) _ a
 
       -- One forward extend leaves the evaluation unchanged.
+      --
       -- 一次前向 extend 下求值不变。
       eval-ext : {v : ℕ} (τ : Thread v)
                → EqOn._≈_ (≈Z v) (eval-ray (extend τ)) (eval-ray τ)
@@ -332,6 +347,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
         EqOn.trans (≈Z _) (eval-ext (extend^ k τ)) (eval-ext^ k τ)
 
       -- Same-ray threads evaluate to setoid-equal labels.
+      --
       -- 同一射线的线程求值为 setoid 相等标签。
       med-shape-cong : {v : ℕ} {τ τ' : Thread v}
                      → τ ≈Thread τ'
@@ -344,6 +360,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
              (eval-ext^ (dr r) _))
 
       -- The mediator.
+      --
       -- mediate。
       mediate : Idx⇒ s apexLS Z
       mediate = record
@@ -352,6 +369,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
         }
 
       -- Factorisation: mediate ∘ leg m is pointwise ψ m.
+      --
       -- 因子分解：mediate ∘ leg m 逐点等于 ψ m。
       triangle : (m v : ℕ) (a : L₀ m v)
                → EqOn._≈_ (≈Z v)
@@ -360,6 +378,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       triangle m v a = EqOn.refl (≈Z v)
 
       -- Any other factorising mediator is pointwise equal to mediate.
+      --
       -- 任何其他可因子分解的 mediate 与本 mediate 逐点相等。
       unique : (h : Idx⇒ s apexLS Z)
              → ((m v : ℕ) (a : L₀ m v)
@@ -372,16 +391,19 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
       unique h ht v (mk m a) = ht m v a
 
     --------------------------------------------------------------------
-    -- Standard colimit, conditionally.  A bisimulation cocone whose
-    -- stage objects carry, at every label, a total label-tree rooted at
-    -- that label (propositional fibres) admits a unique Cocone⇒ out of
-    -- nCocone.  The tree is used only to read the pointwise head
-    -- coherence off the bisimulation commute; factorisation and
-    -- uniqueness then lift by pointwise-i.
+    -- Standard colimit, conditionally
     --
-    -- 条件性标准余极限。若余锥的阶段对象在每个标签处带一棵以该标签为根
-    -- 的全总标签树（命题纤维），则存在从 nCocone 出发的唯一 Cocone⇒。
-    -- 树仅用于从双模拟 commute 读出逐点头部相干；因子分解与唯一性随后由
+    -- A bisimulation cocone whose stage objects carry, at every label,
+    -- a total label-tree rooted at that label (propositional fibres)
+    -- admits a unique Cocone⇒ out of nCocone. The tree is used only to
+    -- read the pointwise head coherence off the bisimulation commute;
+    -- factorisation and uniqueness then lift by pointwise-i.
+    --
+    -- 条件性标准余极限
+    --
+    -- 若余锥的阶段对象在每个标签处带一棵以该标签为根的全总标签树
+    -- （命题纤维），则存在从 nCocone 出发的唯一 Cocone⇒。树仅用于从
+    -- 双模拟 commute 读出逐点头部相干；因子分解与唯一性随后由
     -- pointwise-i 提升。
     module StandardColimit where
 
@@ -403,6 +425,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
 
           -- Move a head equation from the tree root M.here to the
           -- prescribed label a, along the propositional root equation.
+          --
           -- 沿命题根等式把头部等式从树根 M.here 搬到指定标签 a。
           relocate : (m v : ℕ)
                      (F G : Idx⇒ s (stageLS m) Zk)
@@ -422,6 +445,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
                  (Idx⇒.shape-cong G (tree-here m v a)))
 
           -- Forward cocone coherence as a head equation.
+          --
           -- 前向余锥相干作为头部等式。
           kcoh : (m v : ℕ) (a : L₀ m v)
                → EqOn._≈_ (LabelSys.≈A₀ Zk v)
@@ -438,6 +462,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
           Kpf = record { ψc = ψk ; coh = kcoh }
 
         -- The unique mediator and its cocone factorisation.
+        --
         -- 唯一 mediate 及其余锥因子分解。
         mediate-i : Idx⇒ s apexLS Zk
         mediate-i = mediate Kpf
@@ -452,6 +477,7 @@ module _ (d : ℕ → ℕ) {ℓ : Level} where
           }
 
         -- Any other mediator is bisimulation-equal to mediate-i.
+        --
         -- 任何其他 mediate 与 mediate-i 互模拟相等。
         !K-unique : (h : Cocone⇒ nCocone K)
                   → _≈i_ s (Cocone⇒.arr h) mediate-i

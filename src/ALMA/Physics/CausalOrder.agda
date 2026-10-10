@@ -1,8 +1,9 @@
 ------------------------------------------------------------------------
--- Emergent causal spacetime from an edge family. The M layer carries
--- no time, space, metric or causal-order field: all of these are read
--- off the directed edge family E. This module makes that reading
--- explicit in pure order-theoretic, constructive terms.
+-- Emergent causal spacetime from an edge family
+--
+-- The M layer carries no time, space, metric or causal-order field: all
+-- of these are read off the directed edge family E. This module makes
+-- that reading explicit in pure order-theoretic, constructive terms.
 --
 --   * _⇝_ / _⇝⁺_ : causal reachability (reflexive-transitive and
 --     positive closure of E). A path threads the label at every step,
@@ -24,6 +25,8 @@
 --
 -- Nothing here eliminates an equality: paths carry their labels and
 -- edges as data.
+--
+-- 从边族涌现的因果时空
 --
 -- 时间、空间、度规、因果序都不是 M 的字段，全部从有向边族 E 读出。本模块
 -- 以纯序论、构造性方式把这一“读出”显式化。
@@ -65,21 +68,28 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
     ℓord = i ⊔ a ⊔ b
 
   ----------------------------------------------------------------------
-  -- Causal reachability. here is the zero-length path; there prepends
-  -- one labelled edge. The label a is carried because E depends on it.
-  -- 因果可达。here 为零长路径；there 前置一条带标签的边。标签 a 被携带，
-  -- 因 E 依赖于它。
+  -- Causal reachability
+  --
+  -- here is the zero-length path; there prepends one labelled edge. The
+  -- label a is carried because E depends on it.
+  --
+  -- 因果可达
+  --
+  -- here 为零长路径；there 前置一条带标签的边。标签 a 被携带，因 E
+  -- 依赖于它。
   data _⇝_ : I → I → Set ℓord where
     here  : ∀ {x : I} → x ⇝ x
     there : ∀ {x y z : I} (a : A x) (e : E x a y) → y ⇝ z → x ⇝ z
 
   -- Positive (non-empty) reachability: strict causal precedence.
+  --
   -- 正（非空）可达：严格因果在先。
   data _⇝⁺_ : I → I → Set ℓord where
     step : ∀ {x y : I} (a : A x) (e : E x a y) → x ⇝⁺ y
     more : ∀ {x y z : I} (a : A x) (e : E x a y) → y ⇝⁺ z → x ⇝⁺ z
 
   -- A single edge is a one-step path.
+  --
   -- 单边即一步路径。
   edge : ∀ {x y : I} (a : A x) (e : E x a y) → x ⇝ y
   edge a e = there a e here
@@ -89,6 +99,7 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   pos⁺ (more a e p) = there a e (pos⁺ p)
 
   -- Path concatenation in both orders.
+  --
   -- 两种序的路径拼接。
   ⇝-trans : ∀ {x y z : I} → x ⇝ y → y ⇝ z → x ⇝ z
   ⇝-trans here        q = q
@@ -99,11 +110,16 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   ⇝⁺-trans (more a e p) q = more a e (⇝⁺-trans p q)
 
   ----------------------------------------------------------------------
-  -- Time arrow. Acyclicity is the carried hypothesis that no positive
-  -- path returns to its source; it makes strict precedence asymmetric,
-  -- i.e. the directed order is irreversible.
-  -- 时间箭头。无环是携带假设：没有正路径回到其源；它使严格在先不对称，
-  -- 即有向序不可逆。
+  -- Time arrow
+  --
+  -- Acyclicity is the carried hypothesis that no positive path returns
+  -- to its source; it makes strict precedence asymmetric, i.e. the
+  -- directed order is irreversible.
+  --
+  -- 时间箭头
+  --
+  -- 无环是携带假设：没有正路径回到其源；它使严格在先不对称，即有向序
+  -- 不可逆。
   Acyclic : Set ℓord
   Acyclic = ∀ {x : I} → ¬ (x ⇝⁺ x)
 
@@ -112,11 +128,15 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   arrow-asym ac p q = ac (⇝⁺-trans p q)
 
   ----------------------------------------------------------------------
-  -- Spatial reading. Two indices are spacelike separated when neither
-  -- positively precedes the other; an antichain (a cognitive / spatial
-  -- slice) is a family that is pairwise spacelike.
-  -- 空间读法。两个索引互不正在先则类空分离；反链（认知/空间切片）即逐
-  -- 对类空的族。
+  -- Spatial reading
+  --
+  -- Two indices are spacelike separated when neither positively precedes
+  -- the other; an antichain (a cognitive / spatial slice) is a family
+  -- that is pairwise spacelike.
+  --
+  -- 空间读法
+  --
+  -- 两个索引互不正在先则类空分离；反链（认知/空间切片）即逐对类空的族。
   _∥_ : I → I → Set ℓord
   x ∥ y = ¬ (x ⇝⁺ y) × ¬ (y ⇝⁺ x)
 
@@ -125,19 +145,24 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
 
   -- Under acyclicity every index is spacelike related to itself, so a
   -- one-point slice is admissible.
+  --
   -- 无环下每个索引与自身类空相关，故单点切片可取。
   self-spacelike : Acyclic → ∀ (x : I) → x ∥ x
   self-spacelike ac x = ac , ac
 
   ----------------------------------------------------------------------
-  -- Finite-tree occurrence. Reach w y says y occurs in the finite tree
-  -- w: either it is the root, or it is reached through one child edge
-  -- and then occurs in that child. Defined by recursion on the finite
-  -- tree (no indexed-by-tree datatype, so no constructor injectivity
-  -- is needed).
-  -- 有限树出现。Reach w y 表示 y 出现在有限树 w 中：或为根，或经一条子边
-  -- 到达并出现在该子树中。按有限树递归定义（不用以树为索引的数据类型，
-  -- 故无需构造子注入性）。
+  -- Finite-tree occurrence
+  --
+  -- Reach w y says y occurs in the finite tree w: either it is the
+  -- root, or it is reached through one child edge and then occurs in
+  -- that child. Defined by recursion on the finite tree (no
+  -- indexed-by-tree datatype, so no constructor injectivity is needed).
+  --
+  -- 有限树出现
+  --
+  -- Reach w y 表示 y 出现在有限树 w 中：或为根，或经一条子边到达并出现
+  -- 在该子树中。按有限树递归定义（不用以树为索引的数据类型，故无需构造
+  -- 子注入性）。
   Reach : ∀ {x : I} → Wˣ X x → I → Set ℓord
   Reach (sup {x = x} a k) y =
         (x ≡ y)
@@ -149,11 +174,13 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
     there a e (Reach→⇝ m)
 
   -- The root occurs in its own tree.
+  --
   -- 根出现在自身树中。
   root-Reach : ∀ {x : I} (w : Wˣ X x) → Reach w x
   root-Reach (sup a k) = inj₁ refl
 
   -- The target of every child edge occurs in the node's tree.
+  --
   -- 每条子边的目标都出现在该节点的树中。
   child-Reach : ∀ {x y : I} {a : A x}
                 {k : (z : I) (e : E x a z) → Wˣ X z}

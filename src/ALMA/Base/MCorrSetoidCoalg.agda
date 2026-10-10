@@ -1,7 +1,9 @@
 ------------------------------------------------------------------------
 -- Generic carried terminal coalgebra for an arbitrary setoid edge
--- family. M is coinductive, hence by construction the greatest fixpoint
--- of the indexed edge-family functor
+-- family
+--
+-- M is coinductive, hence by construction the greatest fixpoint of the
+-- indexed edge-family functor
 --   F X i = Σ (A i) λ a → (j : I) → E i a j → X j;
 -- guarded corecursion supplies existence and the carried bisimulation
 -- _≈Mˢ_ supplies uniqueness. Nothing here assumes determinism: the
@@ -13,14 +15,17 @@
 -- specialisation at E i a j = Σ Pos λ p → j ≡ nextOf i a p, where the
 -- carried edge is always (p , refl).
 --
--- 任意 setoid 边族的泛型携带式终余代数。M 是余归纳的，故按构造即索引
--- 边族函子 F X i = Σ (A i) λ a → (j : I) → E i a j → X j 的最大不动点；
--- 受保护余递归给存在性，携带式互模拟 _≈Mˢ_ 给唯一性。此处不假设确定性：
+-- 任意 setoid 边族的泛型携带式终余代数
+--
+-- M 是余归纳的，故按构造即索引边族函子
+-- F X i = Σ (A i) λ a → (j : I) → E i a j → X j 的最大不动点；受保护
+-- 余递归给存在性，携带式互模拟 _≈Mˢ_ 给唯一性。此处不假设确定性：
 -- child 映射携带边见证 e，而非容器的构造性边 (p , refl)，且不匹配任何
 -- 等式，故无 J、无 subst。
 --
 -- 确定性容器终余代数（Cosmos/M）是
--- E i a j = Σ Pos λ p → j ≡ nextOf i a p、携带边恒为 (p , refl) 处的特例。
+-- E i a j = Σ Pos λ p → j ≡ nextOf i a p、携带边恒为 (p , refl) 处的
+-- 特例。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -28,7 +33,7 @@
 module ALMA.Base.MCorrSetoidCoalg where
 
 open import Agda.Primitive using (Level; lsuc; _⊔_)
-open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Builtin.Sigma using (_,_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 
@@ -44,6 +49,7 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   open SysEq X
 
   -- The carrier trees and the carried bisimulation.
+  --
   -- 载体树与携带式互模拟。
   Mˣ : I → Set (i ⊔ a ⊔ b)
   Mˣ = M A E
@@ -61,13 +67,18 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   ≈ˣ-trans = ≈Mˢ-trans ≈A ≈E
 
   ----------------------------------------------------------------------
-  -- One-step state coalgebra. At index i the state x carries a label
-  -- and, for every target index j and edge e out of that label, a child
-  -- state at j. The edge witness is data: several e may share a j, so a
-  -- coalgebra may be nondeterministic.
-  -- 一步状态余代数。在索引 i，状态 x 携带一个标签，并对每个目标索引 j
-  -- 与该标签下的每条边 e 携带 j 处的子状态。边见证是数据：同一 j 可有
-  -- 多条 e，故余代数可以是非确定的。
+  -- One-step state coalgebra
+  --
+  -- At index i the state x carries a label and, for every target index
+  -- j and edge e out of that label, a child state at j. The edge
+  -- witness is data: several e may share a j, so a coalgebra may be
+  -- nondeterministic.
+  --
+  -- 一步状态余代数
+  --
+  -- 在索引 i，状态 x 携带一个标签，并对每个目标索引 j 与该标签下的每条
+  -- 边 e 携带 j 处的子状态。边见证是数据：同一 j 可有多条 e，故余代数
+  -- 可以是非确定的。
 
   record Coalgebra (u : Level) (Xst : I → Set u)
          : Set (i ⊔ u ⊔ a ⊔ b) where
@@ -80,8 +91,9 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   -- Anamorphism: read the head and, along every carried edge, recurse
   -- into the corresponding child. Copatterns are guarded and match e as
   -- a plain datum.
-  -- Anamorphism：读头部，并沿每条携带边递归到相应子状态。copattern 受
-  -- 保护，且把 e 当作普通数据匹配。
+  --
+  -- Anamorphism：读头部，并沿每条携带边递归到相应子状态。copattern
+  -- 受保护，且把 e 当作普通数据匹配。
   ana : ∀ {u : Level} {Xst : I → Set u}
         (γ : Coalgebra u Xst)
       → (xᵢ : I) (x : Xst xᵢ) → Mˣ xᵢ
@@ -89,19 +101,26 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
   ana γ xᵢ x .M.below y e = ana γ y (child γ xᵢ x y e)
 
   -- Observation coalgebra of a node: states are trees, label reads the
-  -- head and child is the raw continuation. ana of it rebuilds the tree.
-  -- 节点的观察余代数：状态即树，label 读头部，child 即原始延续。对其取
-  -- ana 即重建该树。
+  -- head and child is the raw continuation. ana of it rebuilds the
+  -- tree.
+  --
+  -- 节点的观察余代数：状态即树，label 读头部，child 即原始延续。对其
+  -- 取 ana 即重建该树。
   unfold-coalgebra : Coalgebra (i ⊔ a ⊔ b) Mˣ
   unfold-coalgebra .label xᵢ t     = M.here t
   unfold-coalgebra .child xᵢ t y e = M.below t y e
 
   ----------------------------------------------------------------------
-  -- Eta / terminality: ana of the observation coalgebra rebuilds a tree
-  -- bisimilar to the original, in both directions. The identity edge
-  -- adjunction aligns fibres, and every recursive call is guarded.
-  -- eta / 终性：对观察余代数取 ana，重建出与原树双向互模拟的树。恒等边
-  -- 伴随对齐纤维，每个递归调用均受保护。
+  -- Eta / terminality
+  --
+  -- ana of the observation coalgebra rebuilds a tree bisimilar to the
+  -- original, in both directions. The identity edge adjunction aligns
+  -- fibres, and every recursive call is guarded.
+  --
+  -- eta / 终性
+  --
+  -- 对观察余代数取 ana，重建出与原树双向互模拟的树。恒等边伴随对齐
+  -- 纤维，每个递归调用均受保护。
 
   mutual
     ana-unfold : ∀ {xᵢ : I} (t : Mˣ xᵢ)
@@ -121,16 +140,21 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
         , (λ e → ana-unfold (M.below t y e)) )
 
   ----------------------------------------------------------------------
-  -- Category of coalgebras at the tree's own universe, with the
-  -- observation coalgebra as terminal object. Objects are one-step
-  -- coalgebras; morphisms are state maps carrying the bisimulation that
-  -- the target anamorphism rebuilds the source one. Morphism equality is
-  -- pointwise propositional equality, so the category laws need no
-  -- function extensionality; terminality is up to bisimulation.
-  -- 树自身宇宙处的余代数范畴，观察余代数为终对象。对象是一步余代数；
-  -- 态射是状态映射，携带“目标 anamorphism 重建源 anamorphism”这一互
-  -- 模拟。态射相等取逐点命题相等，故范畴律无需函数外延性；终性在互
-  -- 模拟意义下成立。
+  -- Category of coalgebras
+  --
+  -- Objects are one-step coalgebras at the tree's own universe;
+  -- morphisms are state maps carrying the bisimulation that the target
+  -- anamorphism rebuilds the source one; the observation coalgebra is
+  -- the terminal object. Morphism equality is pointwise propositional
+  -- equality, so the category laws need no function extensionality;
+  -- terminality is up to bisimulation.
+  --
+  -- 余代数范畴
+  --
+  -- 对象是树自身宇宙处的一步余代数；态射是状态映射，携带“目标
+  -- anamorphism 重建源 anamorphism”这一互模拟；观察余代数为终对象。
+  -- 态射相等取逐点命题相等，故范畴律无需函数外延性；终性在互模拟意义
+  -- 下成立。
 
   private
     u0   = i ⊔ a ⊔ b
@@ -188,6 +212,7 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
 
   -- The terminal coalgebra and its unique anamorphism, up to
   -- bisimulation.
+  --
   -- 终余代数及其在互模拟意义下唯一的 anamorphism。
   terminal-coalgebra : CoalgObj
   terminal-coalgebra = mkCoalg Mˣ unfold-coalgebra
@@ -217,11 +242,14 @@ module _ {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe) where
     }
 
   ----------------------------------------------------------------------
-  -- Lambek's lemma up to bisimulation. The structure map is the
-  -- observation coalgebra and its inverse is ana of it; the two
-  -- round-trips are exactly the eta pair.
-  -- Lambek 引理（互模拟意义下）。结构映射即观察余代数，其逆即对其取
-  -- ana；两条往返恰为上述 eta 对。
+  -- Lambek's lemma up to bisimulation
+  --
+  -- The structure map is the observation coalgebra and its inverse is
+  -- ana of it; the two round-trips are exactly the eta pair.
+  --
+  -- Lambek 引理（互模拟意义下）
+  --
+  -- 结构映射即观察余代数，其逆即对其取 ana；两条往返恰为上述 eta 对。
 
   lambek-in∘out : ∀ {xᵢ : I} (t : Mˣ xᵢ)
                 → ≈ˣ (ana unfold-coalgebra xᵢ t) t

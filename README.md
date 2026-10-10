@@ -6,33 +6,9 @@
 
 ## Introduction / 简介
 
-ALMA is a formal framework grounded in type theory, category theory, edge-family-indexed M-types, and coalgebras. At its core is Cosmos—an infinite, unbounded, self-referential dynamic universe—which provides a mathematical model for philosophical ontology research.
+ALMA is a formal framework grounded in type theory and category theory, whose central construction is the E-M-type (an indexed M-type over an edge family). Its core instance Cosmos—an infinite, unbounded, self-referential dynamic universe—provides a mathematical model for philosophical ontology research.
 
-The project is organised into five source sub-trees:
-
-**Base/** — Foundational structures: the indexed coinductive skeleton Mᵢ and the two-axis degeneracy lattice Equivalence/. It originated when the uniqueness proof of the colimit's universal property in SecondPass/ was blocked; tracing the cause revealed that all equivalence relations share this single skeleton.
-
-**Cosmos/** — The active main line. It turns decisively to the carried M architecture, replacing the (B , next) presentation by edge-family indexing and carrying container structure, the intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference as data.
-
-**SecondPass/** — The second structural reorganisation. It introduced the MorphismObject / Unfolding framework, built the cross-universe cumulative hierarchy and the FinCatN tower, and concentrated the project's subst debt. Superseded by Cosmos/. Frozen for archival purposes.
-
-**InitialPass/** — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Frozen for archival purposes.
-
-**Prototype/** — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
-
-ALMA 是一个建立在类型论、范畴论、边族索引 M 型与余代数之上的形式化框架。其核心 Cosmos——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
-
-项目结构划分为五个源码子树：
-
-**Base/** —— 基础结构：索引余归纳骨架 Mᵢ 与两轴退化格Equivalence/。它起源于 SecondPass/ 中余极限泛性质唯一性证明受阻时的回溯：所有等价关系共享这一骨架。
-
-**Cosmos/** —— 当前活跃主线。彻底转向携带式 M 架构，以边族索引取代(B , next) 表示，把容器结构、内禀范畴、态射对形状的变换、余代数展开与动态自我指涉全部携带为数据。
-
-**SecondPass/** —— 第二次结构重组。引入 MorphismObject / Unfolding 框架，构建跨宇宙累积层级与 FinCatN 塔，集中了项目的 subst 债务。已被 Cosmos/ 取代。冻结存档。
-
-**InitialPass/** —— 吸纳社区反馈后的结构重组：将单体原型拆分为独立模块。冻结存档。
-
-**Prototype/** —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的"subst hell" 问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
+ALMA 是一个建立在类型论与范畴论之上的形式化框架，其中心构造是 E-M 型（边族上的索引 M 型）；Cosmos 是它的核心实例——一个无限、无界、动态且自我指涉的宇宙——为哲学本体论研究提供了数学模型。
 
 ## Motivation / 动机
 
@@ -50,19 +26,15 @@ The formalization has undergone three migrations across tools, each rooted in a 
 
 The ontological root of subst: when A is essentially determined by B at parameter p₀, yet is expressed independently, the misalignment between A's self-contained appearance and its instance-position must manifest as subst at every point of connection between A and B.
 
-The central construction of the formalization is Cosmos. It replaces the (B , next) presentation of indexed M-types with an edge-family-indexed M-type, so that no next function and no next-comm equation appear; container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference are all carried as data, thereby granting philosophical thought—an infinite, unbounded, dynamic and self-referential cosmology—a machine-checkable, subst-free, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
+The central construction of the formalization is Cosmos. It replaces the (B , next) presentation of indexed M-types with an E-M-type, so that no next function and no next-comm equation appear; container structure, an intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference are all carried as data, thereby granting philosophical thought—an infinite, unbounded, dynamic and self-referential cosmology—a machine-checkable, subst-free, rigorous expression. Its ontological commitment is as follows: what Cosmos characterizes is the structure of the Cosmos insofar as it can be determined by logical necessity, rather than a hypothetical model in the empirical-scientific sense subject to physical falsification—though this does not preclude the structure's trivialization under specific conditions, whereby it degenerates into precisely such a model.
 
 The Equivalence/ sub-tree mirrors this convergence at the level of observation equivalence. All degenerations—ScaleInvariant, DiscreteEq, and their specialisations to group actions, linear dynamics, topological and manifold equivalences—are instances of a single indexed coinductive skeleton Mᵢ, whose central instance LayeredEqGen organises them into a two-axis lattice. This aligns the code structure with the paper's three fundamental features of the stable world-structure (distinguishability, continuous variation, transformation invariance).
 
-The carried colimit theory reaches its boundary in the same-index wide subcategory SameIndexCatS. A zero-transport direct limit of a non-trivial-fibre forward ω-chain exists in exactly two complementary forms, neither using transport, K, or function extensionality: (i) propositional fibres with growth—ChainColimitPropS, whose Thread apex carries the birth stage as an ordinary field and identifies rays by eventual coincidence of whole records, with an unconditional cocone and pointwise mediator; (ii) arbitrary setoid fibres born at stage 0—ChainColimitS, whose compatible-family apex Fam is a forward-chain limit cone, while colimit injections require stage-wise setoid isomorphisms. In both branches the agda-categories standard Colimit/Limit is conditional on the competing apex carrying total label-trees; an arbitrary-setoid, late-born zero-transport quotient does not exist (the two unit laws of ℕ iteration cannot both hold definitionally). NontrivialPushTowerS and NontrivialPullTowerS develop the push and pull instances of the same polarity, including its negative obstruction theorems.
-
 subst 的本体论根源：当 A 本质上由 B 在参数 p₀ 处决定，却被独立表达时，A 的自足外观与其实例位置之间的错位，必然在 A 与 B 的每个连接点上以 subst 的形式显露。
 
-形式化的核心构造是 Cosmos。它以边族索引 M 型取代 (B , next) 索引 M 型表示，使 next 函数与 next-comm 交换等式不再出现；容器结构、内禀范畴、态射对形状的变换、余代数展开以及动态自我指涉，全部携带为数据，从而使哲学思想——无限、无界、动态且自我指涉的宇宙论——获得机器可检验的、无 subst 的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
+形式化的核心构造是 Cosmos。它以 E-M 型取代 (B , next) 表示的索引 M 型，使 next 函数与 next-comm 交换等式不再出现；容器结构、内禀范畴、态射对形状的变换、余代数展开以及动态自我指涉，全部携带为数据，从而使哲学思想——无限、无界、动态且自我指涉的宇宙论——获得机器可检验的、无 subst 的严格表达。其本体论承诺在于：Cosmos 所刻画的，是宇宙就其可被逻辑必然性所规定而言的结构，而非经验科学意义上可被物理检验的假设模型——这并不排斥该结构在特定条件下平凡化，从而退化为这样的模型。
 
 Equivalence/ 子树在观察等价层面呈现了同一收敛模式：所有退化——ScaleInvariant、DiscreteEq，及其在群作用、线性动力学、拓扑与流形等价上的特化——都是单一索引余归纳骨架 Mᵢ 的实例；其中心实例 LayeredEqGen 将它们组织为两轴退化格。这使代码结构与论文中稳定世界结构的三大特征（可区分性、连续变化性、变换不变性）逐项对应。
-
-携带式余极限理论在同索引宽子范畴 SameIndexCatS 中到达其边界。非平凡纤维前向 ω-链的零传输直接极限恰以两种互补形式存在，均不用传输、K 或函数外延性：(i) 命题纤维且增长——ChainColimitPropS，其 Thread 顶点把诞生阶段作为普通字段携带，以整条记录的最终重合等同射线，余锥与逐点 mediate 均无条件；(ii) 任意 setoid 纤维且诞生于阶段 0——ChainColimitS，其相容族顶点 Fam 是前向链极限锥，而余极限注入要求逐阶段 setoid 同构。两支中 agda-categories 标准 Colimit/Limit 均以竞争顶点携带全总标签树为条件；任意 setoid、晚诞生的零传输商不存在（ℕ 迭代的两条单位律不能同时定义性成立）。NontrivialPushTowerS 与 NontrivialPullTowerS 发展同一极性的 push 与 pull 实例，包括其否定性障碍定理。
 
 ## Dependencies & Build / 依赖与构建
 
@@ -84,160 +56,25 @@ agda -i src src/Everything.agda
 
 ## Architecture / 架构
 
-```text
-src/
-├── ALMA/
-│   ├── Base/                              Active main line — foundation
-│   │   ├── IndexedMType.agda             Indexed coinductive skeleton Mᵢ
-│   │   ├── MCategory.agda                Category of (co)algebras on Mᵢ
-│   │   ├── MCorr.agda                    Edge-family carried correspondence kernel
-│   │   ├── MCorrSetoid.agda              Setoid-parameterised kernel
-│   │   ├── MCorrSetoidCat.agda           Pull correspondence category
-│   │   ├── MCorrSetoidCoalg.agda         Carried terminal coalgebra
-│   │   ├── MCorrSetoidPush.agda          Forward (push) relation
-│   │   ├── MCorrSetoidPushMap.agda       Push map and congruence
-│   │   ├── MCorrSetoidPushComp.agda      Push relation composition
-│   │   ├── DetCat.agda                   Deterministic forward category
-│   │   ├── Equivalence.agda              Observation-equivalence umbrella
-│   │   └── Equivalence/                  Two-axis degeneracy lattice
-│   │       ├── Core.agda
-│   │       ├── SubstTransport.agda
-│   │       ├── Properties.agda
-│   │       ├── LayeredEqGenDepth.agda
-│   │       ├── Map.agda
-│   │       ├── ScaleInvariant.agda
-│   │       ├── DiscreteEq.agda
-│   │       ├── GroupInvariant.agda
-│   │       ├── LinearDynamics.agda
-│   │       ├── TopologicalEq.agda
-│   │       ├── ManifoldEq.agda
-│   │       ├── Lattice.agda
-│   │       └── StrongEquiv.agda
-│   │
-│   ├── Cosmos.agda                        Thin re-export entry point
-│   ├── Cosmos/                            Active main line — M-Cosmos
-│   │   ├── ContCategory.agda              Container primitives
-│   │   ├── ContCategoryLemmas.agda
-│   │   ├── ContFunctor.agda
-│   │   ├── ContCatEquiv.agda
-│   │   ├── M/                             Deterministic container M-Cosmos
-│   │   │   ├── Object.agda                M-Cosmos object layer
-│   │   │   ├── ContainerInstance.agda     I = ⊤ special case
-│   │   │   ├── Terminal.agda              Terminal coalgebra up to bisimulation
-│   │   │   ├── CoalgCat.agda              Category of M-Cosmos coalgebras
-│   │   │   ├── Lambek.agda                Lambek lemma
-│   │   │   ├── CosmosCategory.agda        M-Cosmos category
-│   │   │   ├── DetCongruence.agda         Fixed-label congruence engine
-│   │   │   ├── GenCongruence.agda         Label-action congruence engine
-│   │   │   ├── ListCosmos.agda            swap01 via DetCongruence
-│   │   │   ├── ListSwap.agda              ℕ/Fin swap via GenCongruence
-│   │   │   ├── ListSwapDef.agda
-│   │   │   ├── MorphismCorrespondence.agda
-│   │   │   ├── ContainerAutomorphism.agda
-│   │   │   ├── PermutationNonCommutative.agda
-│   │   │   ├── PermutedEmbedding.agda
-│   │   │   ├── TowerSeparation.agda       Bisimulation separation witness
-│   │   │   ├── NontrivialLimit.agda       No nontrivial limit over a trivial apex
-│   │   │   └── SewingObstruction.agda
-│   │   └── Carried/                       Zero-subst colimit machinery
-│   │       ├── FinNatUIP.agda             Hedberg UIP on ℕ/Fin
-│   │       ├── DetSys.agda                Deterministic stage systems
-│   │       ├── TrivProj.agda              Trivial-fibre projections
-│   │       ├── FinProj.agda               Fin-tower projections
-│   │       ├── SeqColimit.agda            Sequential colimits
-│   │       ├── LimitSystem.agda           Pull limit system (⊤ fibre)
-│   │       ├── FinEmbed.agda              Fin-tower embeddings
-│   │       ├── FinColimit.agda            Fin-tower colimits
-│   │       ├── FinTower.agda              Fin towers
-│   │       ├── DetColimit.agda            Deterministic colimits
-│   │       ├── Boundaries.agda            Negative polarity results
-│   │       ├── SeqColimitS.agda           Setoid sequential colimits
-│   │       ├── SeqColimitCat.agda         ω-chain category
-│   │       ├── ColimitPolarity.agda       Push/pull leg polarity
-│   │       ├── LimitSystemS.agda          Setoid push limit system
-│   │       ├── FinPushMediateS.agda       Setoid push mediators
-│   │       ├── FinPushColimitS.agda       Setoid Fin push colimits
-│   │       ├── FinPushColimitCat.agda     Standard Colimit bundling
-│   │       ├── SameIndexCatS.agda         Same-index wide subcategory
-│   │       ├── NontrivialPullTowerS.agda  Nontrivial-fibre pull towers
-│   │       ├── NontrivialPushTowerS.agda  Nontrivial-fibre push towers
-│   │       ├── ChainColimitS.agda         Arbitrary-setoid ω-chain colimit
-│   │       └── ChainColimitPropS.agda     Propositional-fibre growing-chain colimit
-│   │
-│   ├── SecondPass/                        Frozen archive
-│   │   ├── ContCatEquivFunctor.agda
-│   │   ├── Unfolding.agda
-│   │   ├── MorphismObject.agda
-│   │   ├── MorphismObject/
-│   │   │   ├── Covariant.agda
-│   │   │   └── MorphismObject.agda
-│   │   ├── ContCatEquivLemmas.agda
-│   │   ├── MorphismMorphism.agda
-│   │   ├── Cosmos.agda
-│   │   ├── Terminal.agda
-│   │   ├── CoalgCat.agda
-│   │   ├── Lambek.agda
-│   │   ├── CosmosCategory.agda
-│   │   ├── MorphismCorrespondence.agda
-│   │   ├── Closure.agda
-│   │   ├── ContainerAutomorphism.agda
-│   │   ├── ListCosmos.agda
-│   │   ├── CumulativeHierarchy.agda
-│   │   ├── CumulativeHierarchyInner.agda
-│   │   ├── StrictLift.agda
-│   │   ├── StrictLiftShape.agda
-│   │   ├── CumulativeHierarchyInstances.agda
-│   │   ├── CumulativeHierarchyLimit.agda
-│   │   ├── CumulativeHierarchySewing.agda
-│   │   ├── FinCatNInnerSewing.agda
-│   │   ├── FinCatNWitness.agda
-│   │   ├── FinCatNTowerLemmas.agda
-│   │   ├── ConditionalNontrivialLimit.agda
-│   │   ├── LayerZeroMediator.agda
-│   │   ├── FinCatNColimit.agda
-│   │   ├── FinCatNEmbeddingMismatch.agda
-│   │   ├── DependentEmbedding.agda
-│   │   ├── FinCatNColimitWithDep.agda
-│   │   ├── FinCatNSurjectivity.agda
-│   │   ├── FinCatNDefaultUnif.agda
-│   │   ├── FinCatNFunctorial.agda
-│   │   ├── FinCatNProjectiveObstruction.agda
-│   │   ├── FinCatNOuterObstruction.agda
-│   │   ├── FinCatNInnerObstruction.agda
-│   │   ├── FinCatNPermutedEmbedding.agda
-│   │   ├── FinCatNNonCommutative.agda
-│   │   ├── FinCatInfinity.agda
-│   │   ├── FinCatInfinityProjection.agda
-│   │   ├── FinCatInfinityTowerCompat.agda
-│   │   ├── FinCatInfinityColimit.agda
-│   │   ├── FinCatInfinityColimitUniversal.agda
-│   │   ├── Instances.agda
-│   │   └── WIP.agda                       (excluded from Everything.agda)
-│   │
-│   ├── InitialPass/                       Frozen archive
-│   │   ├── ObjEquivCat.agda
-│   │   ├── ObjEquivFunctor.agda
-│   │   ├── ContCategory.agda
-│   │   ├── ContCategoryLemmas.agda
-│   │   ├── ContCatEquiv.agda
-│   │   ├── ContCatEquivFunctor.agda
-│   │   ├── Unfolding.agda
-│   │   ├── MorphismObject.agda
-│   │   ├── ContCatEquivLemmas.agda
-│   │   ├── MorphismMorphism.agda
-│   │   └── Cosmos.agda
-│   │
-│   └── Prototype/                         Frozen archive
-│       ├── Prelude.agda
-│       ├── Cosmos.agda
-│       ├── Properties.agda                (excluded from Everything.agda)
-│       ├── Indestructibility.agda
-│       ├── Beings.agda
-│       ├── Universe.agda
-│       └── StandardModel.agda
-│
-└── Everything.agda                        Build entry — imports all of the above
-```
+**Base/** — Foundational structures: the indexed coinductive skeleton Mᵢ and the two-axis degeneracy lattice Equivalence/. It originated when the uniqueness proof of the colimit's universal property in SecondPass/ was blocked; tracing the cause revealed that all equivalence relations share this single skeleton.
+
+**Cosmos/** — The active main line. It turns decisively to the carried M architecture, replacing the (B , next) presentation by edge-family indexing and carrying container structure, the intrinsic category, the action of morphisms on shapes, coalgebraic unfolding, and dynamic self-reference as data.
+
+**SecondPass/** — The second structural reorganisation. It introduced the MorphismObject / Unfolding framework, built the cross-universe cumulative hierarchy and the FinCatN tower, and concentrated the project's subst debt. Superseded by Cosmos/. Frozen for archival purposes.
+
+**InitialPass/** — Structural reorganisation incorporating community feedback: splitting the monolithic prototype into separate modules. Frozen for archival purposes.
+
+**Prototype/** — The initial, fully self-contained and hand-unfolded prototype. It traces the trajectory from a one-to-one mapping of philosophical concepts to their convergence into a single coinductive record, where the resulting "subst hell" motivated all subsequent refactoring. Frozen for archival purposes as the first Agda formalisation of the paper's philosophical ideas.
+
+**Base/** —— 基础结构：索引余归纳骨架 Mᵢ 与两轴退化格 Equivalence/。它起源于 SecondPass/ 中余极限泛性质唯一性证明受阻时的回溯：所有等价关系共享这一骨架。
+
+**Cosmos/** —— 当前活跃主线。彻底转向携带式 M 架构，以边族索引取代 (B , next) 表示，把容器结构、内禀范畴、态射对形状的变换、余代数展开与动态自我指涉全部携带为数据。
+
+**SecondPass/** —— 第二次结构重组。引入 MorphismObject / Unfolding 框架，构建跨宇宙累积层级与 FinCatN 塔，集中了项目的 subst 债务。已被 Cosmos/ 取代。冻结存档。
+
+**InitialPass/** —— 吸纳社区反馈后的结构重组：将单体原型拆分为独立模块。冻结存档。
+
+**Prototype/** —— 完全自包含、手工展开的初始原型。它记录了从哲学概念的一对一映射到收敛为单一余归纳记录的演进轨迹；正是由此引发的"subst hell" 问题推动了后续全部重构。作为论文哲学思想在 Agda 中的首次形式化呈现，已冻结存档。
 
 ## Contributing / 贡献指南
 

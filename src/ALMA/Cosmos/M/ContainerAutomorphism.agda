@@ -1,21 +1,20 @@
 ------------------------------------------------------------------------
--- Position automorphisms on the carried M base. Two subst-free pieces:
---   Part A. The algebraic position-permutation group PosAutˢ over an
---           arbitrary indexed type family (S , P): a per-index
---           permutation with a carried two-sided inverse, with no
---           naturality field.
---   Part B. The induced fibre action: a position permutation acts on
---           edge fibres, and the induced bijection is a carried
---           FiberAdjˢ. Self-fibre adjunctions form a group pointwise
---           via idAdjˢ / compAdjˢ / symAdjˢ, whose inverse laws are the
---           carried η/ε.
+-- Position automorphisms on the carried M base
 --
--- 携带 M 底座上的位置自同构。两块内容，均零 subst：
---   A 部：任意索引类型族 (S , P) 上的代数位置置换群 PosAutˢ，即带携带
---         双侧逆的逐索引置换，无自然性字段。
---   B 部：诱导的纤维作用：位置置换作用于边纤维，诱导双射是携带的
---         FiberAdjˢ。自纤维伴随经 idAdjˢ / compAdjˢ / symAdjˢ 逐点成
---         群，其逆律即携带的 η/ε。
+-- Two subst-free pieces: Part A, the algebraic position-permutation
+-- group PosAutˢ over an arbitrary indexed type family (S , P), a
+-- per-index permutation with a carried two-sided inverse and no
+-- naturality field; Part B, the induced fibre action, where a position
+-- permutation acts on edge fibres and the induced bijection is a
+-- carried FiberAdjˢ. Self-fibre adjunctions form a group pointwise via
+-- idAdjˢ / compAdjˢ / symAdjˢ, whose inverse laws are the carried η/ε.
+--
+-- 携带 M 底座上的位置自同构
+--
+-- 两块内容，均零 subst：A 部，任意索引类型族 (S , P) 上的代数位置置换群
+-- PosAutˢ，即带携带双侧逆的逐索引置换，无自然性字段；B 部，诱导的纤维
+-- 作用，位置置换作用于边纤维，诱导双射是携带的 FiberAdjˢ。自纤维伴随经
+-- idAdjˢ / compAdjˢ / symAdjˢ 逐点成群，其逆律即携带的 η/ε。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -26,7 +25,6 @@ open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Agda.Builtin.Sigma using (_,_)
 open import Algebra.Bundles using (Group)
-open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality.Core using (cong; sym; trans)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open import Relation.Binary.Structures using (IsEquivalence)
@@ -34,14 +32,20 @@ open import Relation.Binary.Structures using (IsEquivalence)
 open import ALMA.Base.MCorrSetoid using (EqOn; FiberAdjˢ; idAdjˢ; symAdjˢ; compAdjˢ)
 
 ------------------------------------------------------------------------
--- Part A. The algebraic position-permutation group
--- A 部：代数位置置换群
+-- Part A
+--
+-- The algebraic position-permutation group.
+--
+-- A 部
+--
+-- 代数位置置换群。
 
 module PositionPermutationGroup {s p : Level}
                                 (S : Set s) (P : S → Set p) where
 
   -- No naturality field: positions at distinct shapes live in distinct
   -- fibres, related by a carried FiberAdjˢ (Part B), never by subst.
+  --
   -- 无自然性字段：不同形状处的位置属于不同纤维，由携带的 FiberAdjˢ
   -- （B 部）联系，绝不 subst。
   record PosAutˢ : Set (s ⊔ p) where
@@ -86,6 +90,7 @@ module PositionPermutationGroup {s p : Level}
 
   -- Swap forward and backward maps and exchange the two round-trip
   -- laws.
+  --
   -- 交换正反映射并对调两条往返律。
   invPosAutˢ : PosAutˢ → PosAutˢ
   invPosAutˢ φ = record
@@ -119,6 +124,7 @@ module PositionPermutationGroup {s p : Level}
     where open ≡-Reasoning
 
   -- The inverse permutation is uniquely determined by the forward map.
+  --
   -- 逆置换由正向映射唯一确定。
   τ⁻¹-unique : {φ ψ : PosAutˢ} → φ ≈PAˢ ψ
              → (sh : S) (q : P sh) → τ⁻¹ φ sh q ≡ τ⁻¹ ψ sh q
@@ -154,6 +160,11 @@ module PositionPermutationGroup {s p : Level}
   invPosAutˢ-right-inverse : ∀ φ → φ ∘PosAutˢ invPosAutˢ φ ≈PAˢ idPosAutˢ
   invPosAutˢ-right-inverse φ sh q = τ-τ⁻¹ φ sh q
 
+  ----------------------------------------------------------------------
+  -- The group PosAutˢ
+  --
+  -- 群 PosAutˢ
+
   posAutˢGroup : Group (s ⊔ p) (s ⊔ p)
   posAutˢGroup = record
     { Carrier = PosAutˢ
@@ -179,12 +190,17 @@ module PositionPermutationGroup {s p : Level}
     }
 
 ------------------------------------------------------------------------
--- Part B. The group of carried self-fibre adjunctions. A self-fibre
--- adjunction is a carried bijection of P to itself; the inverse laws
--- are the carried η/ε, so no equality is eliminated and no naturality
--- / subst appears.
--- B 部：携带自纤维伴随的群。自纤维伴随即 P 到自身的携带双射；逆律即
--- 携带的 η/ε，故不消去任何等式，也不出现自然性 / subst。
+-- Part B
+--
+-- The group of carried self-fibre adjunctions. A self-fibre adjunction
+-- is a carried bijection of P to itself; the inverse laws are the
+-- carried η/ε, so no equality is eliminated and no naturality / subst
+-- appears.
+--
+-- B 部
+--
+-- 携带自纤维伴随的群。自纤维伴随即 P 到自身的携带双射；逆律即携带的
+-- η/ε，故不消去任何等式，也不出现自然性 / subst。
 
 module FibreSelfAdjunctionGroup {c ℓ : Level} {P : Set c}
                                (E : EqOn {ℓ = ℓ} P) where
@@ -205,6 +221,7 @@ module FibreSelfAdjunctionGroup {c ℓ : Level} {P : Set c}
   -- Group laws on the forward direction: inverse laws are the carried
   -- ε/η, and associativity / identity are definitional because
   -- composition of the to-maps is ordinary function composition.
+  --
   -- 正向上的群律：逆律即携带的 ε/η；结合律与单位律是定义性的，因为
   -- to 映射的复合即普通函数复合。
   comp-identityʳ-to : (a : SelfAdj) (p : P)

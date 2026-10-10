@@ -1,22 +1,25 @@
 ------------------------------------------------------------------------
 -- Forward (push / embedding) edge-following simulations over setoid
--- systems. Stepˢ / Morphˢ in MCorrSetoid are pull notions: a step gives
--- a canonical source child for every target child. A direct-colimit
--- leg points the other way, from a finite stage into the limit, and is
--- not child-surjective (see ColimitPolarity). PushSimˢ is the forward
--- dual carried as a relation between two existing trees: for each
--- source edge it carries a target edge, a fresh index-layer witness and
--- the child simulation, with no totality over target indices and no
--- edge round-trip. The label correspondence H is a parameter, so the
+-- systems
+--
+-- Stepˢ / Morphˢ in MCorrSetoid are pull notions: a step gives a
+-- canonical source child for every target child. A direct-colimit leg
+-- points the other way, from a finite stage into the limit, and is not
+-- child-surjective (see ColimitPolarity). PushSimˢ is the forward dual
+-- carried as a relation between two existing trees: for each source
+-- edge it carries a target edge, a fresh index-layer witness and the
+-- child simulation, with no totality over target indices and no edge
+-- round-trip. The label correspondence H is a parameter, so the
 -- relation stays honest when labels of the two systems differ in type.
 --
--- setoid 系统上的前向（push / 嵌入）边跟随模拟。MCorrSetoid 中的
--- Stepˢ / Morphˢ 是 pull 概念：一步对每个目标子节点给出规范源子节点。
--- 直接余极限腿方向相反，从有限层指向极限，且不满足子节点满（见
--- ColimitPolarity）。PushSimˢ 是作为两棵已存在树之间关系的前向对偶：
--- 对每条源边携带一条目标边、一条新索引层见证与子模拟，既不对目标索引
--- 求满，也无边上的往返。标签对应 H 作为参数，使两系统标签类型不同时
--- 关系依然诚实。
+-- setoid 系统上的前向（push / 嵌入）边跟随模拟
+--
+-- MCorrSetoid 中的 Stepˢ / Morphˢ 是 pull 概念：一步对每个目标子节点
+-- 给出规范源子节点。直接余极限腿方向相反，从有限层指向极限，且不满足
+-- 子节点满（见 ColimitPolarity）。PushSimˢ 是作为两棵已存在树之间关系
+-- 的前向对偶：对每条源边携带一条目标边、一条新索引层见证与子模拟，既
+-- 不对目标索引求满，也无边上的往返。标签对应 H 作为参数，使两系统标签
+-- 类型不同时关系依然诚实。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -34,8 +37,13 @@ open SysEq
 
 ------------------------------------------------------------------------
 -- A forward simulation over index layer R with cross-system label
--- correspondence H. push is one-way: source edges only.
--- 索引层 R 上、具跨系统标签对应 H 的前向模拟。push 单向，只沿源边。
+-- correspondence H
+--
+-- push is one-way: source edges only.
+--
+-- 索引层 R 上、具跨系统标签对应 H 的前向模拟
+--
+-- push 单向，只沿源边。
 
 record PushSimˢ {i j a b c d ℓa ℓe ℓc ℓd ℓr ℓh : Level}
                (X : SysEq i a b ℓa ℓe)
@@ -59,9 +67,14 @@ record PushSimˢ {i j a b c d ℓa ℓe ℓc ℓd ℓr ℓh : Level}
 open PushSimˢ public
 
 ------------------------------------------------------------------------
--- Identity forward simulation: the layer is propositional index
--- equality and H is the carried label equivalence of the system.
--- 恒等前向模拟：索引层取命题相等，H 取系统携带的标签等价。
+-- Identity forward simulation
+--
+-- The layer is propositional index equality and H is the carried label
+-- equivalence of the system.
+--
+-- 恒等前向模拟
+--
+-- 索引层取命题相等，H 取系统携带的标签等价。
 
 EqH : {i a b ℓa ℓe : Level} (X : SysEq i a b ℓa ℓe)
     → (x v : I X) → x ≡ v → A X x → A X v → Set ℓa

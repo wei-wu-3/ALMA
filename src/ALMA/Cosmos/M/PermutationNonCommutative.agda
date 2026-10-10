@@ -1,23 +1,26 @@
 ------------------------------------------------------------------------
--- Non-commutativity of the position permutation group Sₙ for n ≥ 3,
--- and the 3-cycle, on the carried M base. The algebra lives in the
--- carried position automorphism group PosAutˢ of ContainerAutomorphism
--- (Part A): a per-shape permutation with a carried two-sided inverse,
--- no naturality / subst field. To keep everything definitional and
--- free of Fin indexed matching (and hence of DecUIP/K), the finite
--- position sets are ordinary NON-indexed enumerations Three / Two;
--- matching their constructors is legal under --cubical-compatible, the
--- transpositions are definitionally involutive, the 3-cycle reduces to
--- refl in three clauses, and every disequality is constructive
--- no-confusion absorbed by the empty pattern. This supplies the
--- group-level fact that makes the cosmos-level routing divergence
--- unavoidable for n ≥ 3 (the two orderings of s01, s12 already disagree
--- at position 1), together with the n = 2 abelian threshold.
+-- Non-commutativity of the position permutation group Sₙ for n ≥ 3, and
+-- the 3-cycle, on the carried M base
 --
--- 携带式 M 底座上位置置换群 Sₙ 在 n ≥ 3 时的非交换性与 3-循环。代数
--- 落在 ContainerAutomorphism（A 部）的携带位置自同构群 PosAutˢ：携带双
--- 侧逆的逐形状置换，无自然性 / subst 字段。为使一切定义性且免于 Fin
--- 索引匹配（也即免于 DecUIP/K），有限位置集声明为普通的非索引枚举
+-- The algebra lives in the carried position automorphism group PosAutˢ
+-- of ContainerAutomorphism (Part A): a per-shape permutation with a
+-- carried two-sided inverse, no naturality / subst field. To keep
+-- everything definitional and free of Fin indexed matching (and hence
+-- of DecUIP/K), the finite position sets are ordinary NON-indexed
+-- enumerations Three / Two; matching their constructors is legal under
+-- --cubical-compatible, the transpositions are definitionally
+-- involutive, the 3-cycle reduces to refl in three clauses, and every
+-- disequality is constructive no-confusion absorbed by the empty
+-- pattern. This supplies the group-level fact that makes the
+-- cosmos-level routing divergence unavoidable for n ≥ 3 (the two
+-- orderings of s01, s12 already disagree at position 1), together with
+-- the n = 2 abelian threshold.
+--
+-- 携带式 M 底座上位置置换群 Sₙ 在 n ≥ 3 时的非交换性与 3-循环
+--
+-- 代数落在 ContainerAutomorphism（A 部）的携带位置自同构群 PosAutˢ：
+-- 携带双侧逆的逐形状置换，无自然性 / subst 字段。为使一切定义性且免于
+-- Fin 索引匹配（也即免于 DecUIP/K），有限位置集声明为普通的非索引枚举
 -- Three / Two；在 --cubical-compatible 下匹配其构造子合法，对换定义
 -- 性对合，3-循环三条子句即归约为 refl，每个不等都是构造性无混淆、由
 -- 空模式吸收。这供给使宇宙层路由发散在 n ≥ 3 不可避免的群级事实
@@ -42,8 +45,9 @@ open import Relation.Binary.PropositionalEquality using (inspect; [_])
 import ALMA.Cosmos.M.ContainerAutomorphism as CA
 
 ------------------------------------------------------------------------
--- The two finite position fibres as ordinary non-indexed enumerations.
--- 两个有限位置纤维，作为普通非索引枚举。
+-- The two finite position fibres as ordinary non-indexed enumerations
+--
+-- 两个有限位置纤维，作为普通非索引枚举
 
 data Three : Set where
   t0 t1 t2 : Three
@@ -52,14 +56,20 @@ data Two : Set where
   w0 w1 : Two
 
 ------------------------------------------------------------------------
--- Part 1. S₃ is non-abelian and contains a 3-cycle.
--- 第一部分：S₃ 非阿贝尔且含一个 3-循环。
+-- Part 1
+--
+-- S₃ is non-abelian and contains a 3-cycle.
+--
+-- 第一部分
+--
+-- S₃ 非阿贝尔且含一个 3-循环。
 
 module S₃ where
 
   open CA.PositionPermutationGroup (⊤ {lzero}) (λ _ → Three) public
 
   -- s01 swaps t0 ↔ t1, fixing t2; s12 swaps t1 ↔ t2, fixing t0.
+  --
   -- s01 交换 t0 ↔ t1、固定 t2；s12 交换 t1 ↔ t2、固定 t0。
   s01 : Three → Three
   s01 t0 = t1
@@ -83,6 +93,7 @@ module S₃ where
 
   -- Lift an involutive function to a carried position automorphism whose
   -- two-sided inverse is itself.
+  --
   -- 把对合函数提升为双侧逆即自身的携带位置自同构。
   mkInvol : (f : Three → Three) → (∀ x → f (f x) ≡ x) → PosAutˢ
   mkInvol f invol = record
@@ -105,6 +116,7 @@ module S₃ where
   c' = a12 ∘PosAutˢ a01
 
   -- c = s01 ∘ s12 acts as the 3-cycle t0 ↦ t1 ↦ t2 ↦ t0.
+  --
   -- c = s01 ∘ s12 作用为 3-循环 t0 ↦ t1 ↦ t2 ↦ t0。
   c-at0 : τ c tt t0 ≡ t1
   c-at0 = refl
@@ -117,8 +129,10 @@ module S₃ where
   c'-at1 = refl
 
   ----------------------------------------------------------------------
-  -- Non-commutativity, witnessed at position 1.
-  -- 非交换性，在位置 1 处见证。
+  -- Non-commutativity, witnessed at position 1
+  --
+  -- 非交换性，在位置 1 处见证
+
   t2≢t0 : ¬ (t2 ≡ t0)
   t2≢t0 ()
 
@@ -126,13 +140,16 @@ module S₃ where
   s01-s12-noncommute eq = t2≢t0 (trans (eq tt t1) (sym c'-at1))
 
   -- Σ-witness form: a position at which the two composites disagree.
+  --
   -- Σ 见证形式：存在一个位置使两个复合不同。
   noncommute-witness : Σ Three λ x → τ c tt x ≢ τ c' tt x
   noncommute-witness = t1 , λ eq → t2≢t0 (trans eq (sym c'-at1))
 
   ----------------------------------------------------------------------
-  -- Exact period 3 of c = s01 ∘ s12.
-  -- c = s01 ∘ s12 恰周期 3。
+  -- Exact period 3 of c = s01 ∘ s12
+  --
+  -- c = s01 ∘ s12 恰周期 3
+
   c²-at0 : τ (c ∘PosAutˢ c) tt t0 ≡ t2
   c²-at0 = refl
 
@@ -145,6 +162,7 @@ module S₃ where
   t1≢t0 ()
 
   -- c ≠ id and c² ≠ id, together with c³ = id, make the order exactly 3.
+  --
   -- c ≠ id 且 c² ≠ id，连同 c³ = id，其阶恰为 3。
   c-nonid : ¬ (c ≈PAˢ idPosAutˢ)
   c-nonid eq = t1≢t0 (eq tt t0)
@@ -159,13 +177,19 @@ module S₃ where
 
   -- Routing divergence precondition for the cosmos-level argument: the
   -- two orderings act differently at position 1.
+  --
   -- 宇宙层论证所需的路由发散前提：两种次序在位置 1 处作用不同。
   routing-diverges : τ c tt t1 ≢ τ c' tt t1
   routing-diverges eq = t2≢t0 (trans eq (sym c'-at1))
 
 ------------------------------------------------------------------------
--- Part 2. S₂ = ℤ₂ is abelian (the n = 2 threshold).
--- 第二部分：S₂ = ℤ₂ 阿贝尔（n = 2 阈值）。
+-- Part 2
+--
+-- S₂ = ℤ₂ is abelian (the n = 2 threshold).
+--
+-- 第二部分
+--
+-- S₂ = ℤ₂ 阿贝尔（n = 2 阈值）。
 
 module S₂ where
 
@@ -196,10 +220,10 @@ module S₂ where
   -- A carried two-position automorphism is determined by its value at
   -- w0; the carried left-inverse law forces the value at w1 to be sw of
   -- it. Only the left-inverse law and disjointness of the Two
-  -- constructors are used; no subst, no equality elimination.
+  -- constructors are used.
+  --
   -- 携带的二元位置自同构由其在 w0 处的值决定；携带的左逆律强制其在 w1
-  -- 处的值为该值的 sw。仅用左逆律与 Two 构造子的不相交性；无 subst、
-  -- 不消去等式。
+  -- 处的值为该值的 sw。仅用左逆律与 Two 构造子的不相交性。
   at1-forced : (φ : PosAutˢ)
              → τ φ tt w1 ≡ sw (τ φ tt w0)
   at1-forced φ
@@ -210,9 +234,9 @@ module S₂ where
   ... | w1 | w1 | g1 | h = ⊥-elim (w1≢w0 (trans (sym h) g1))
 
   -- Pointwise equality with id / swap given the value at w0 as an
-  -- explicit equation; only trans/cong, never subst.
-  -- 给定 w0 处的值等式，给出与恒等 / 交换的逐点相等；仅用 trans/cong，
-  -- 绝不用 subst。
+  -- explicit equation.
+  --
+  -- 给定 w0 处的值等式，给出与恒等 / 交换的逐点相等。
   id-case : (φ : PosAutˢ) → τ φ tt w0 ≡ w0 → φ ≈PAˢ idPosAutˢ
   id-case φ e tt w0 = e
   id-case φ e tt w1 = trans (at1-forced φ) (cong sw e)
@@ -222,6 +246,7 @@ module S₂ where
   sw-case φ e tt w1 = trans (at1-forced φ) (cong sw e)
 
   -- Every two-position automorphism is either the identity or the swap.
+  --
   -- 每个二元位置自同构不是恒等就是该交换。
   classify : (φ : PosAutˢ)
            → (φ ≈PAˢ idPosAutˢ) ⊎ (φ ≈PAˢ swA)
@@ -236,8 +261,9 @@ module S₂ where
   -- S₂ is abelian: classifying both factors as id or sw leaves four
   -- cases, each closed by congruence up to pointwise equality (id is
   -- the identity function and sw is an involution).
-  -- S₂ 阿贝尔：把两个因子分类为 id 或 sw 后剩四种情形，每种在逐点相
-  -- 等下由同余闭合（id 为恒等函数、sw 对合）。
+  --
+  -- S₂ 阿贝尔：把两个因子分类为 id 或 sw 后剩四种情形，每种在逐点相等
+  -- 下由同余闭合（id 为恒等函数、sw 对合）。
   S₂-abelian : (φ ψ : PosAutˢ)
              → (φ ∘PosAutˢ ψ) ≈PAˢ (ψ ∘PosAutˢ φ)
   S₂-abelian φ ψ with classify φ | classify ψ

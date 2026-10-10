@@ -1,19 +1,21 @@
 ------------------------------------------------------------------------
--- Deterministic carried morphisms over setoid systems: the setoid
--- generalisation of FMap. A FMapˢ carries an index function u, a shape
--- map, a canonical source child with the graph witness u x' ≡ v, and a
--- whole-fibre carried adjunction FiberAdjˢ at that child; it induces a
--- tree map mapFˢ via Morphˢ along the graph relation (λ x v → u x ≡ v).
--- Compared with FMap, the edge adjunction is a FiberAdjˢ and the
--- propositional childF-coh field is dropped, its coherence being
--- absorbed by FiberAdjˢ's to-cong / fro-cong.
+-- Deterministic carried morphisms over setoid systems
 --
--- setoid 系统上的确定性携带态射：FMap 的 setoid 泛化。FMapˢ 携带索引
--- 函数 u、形状映射、连同图见证 u x' ≡ v 的规范源子节点，以及该子节点
--- 上的整纤维携带伴随 FiberAdjˢ；它沿图关系（λ x v → u x ≡ v）经
--- Morphˢ 诱导出树映射 mapFˢ。与 FMap 相比，边伴随为 FiberAdjˢ，命题
--- 版的 childF-coh 字段被去掉，其相干性由 FiberAdjˢ 的 to-cong /
--- fro-cong 吸收。
+-- The setoid generalisation of FMap. A FMapˢ carries an index function
+-- u, a shape map, a canonical source child with the graph witness
+-- u x' ≡ v, and a whole-fibre carried adjunction FiberAdjˢ at that
+-- child; it induces a tree map mapFˢ via Morphˢ along the graph
+-- relation (λ x v → u x ≡ v). Compared with FMap, the edge adjunction
+-- is a FiberAdjˢ and the propositional childF-coh field is dropped,
+-- its coherence being absorbed by FiberAdjˢ's to-cong / fro-cong.
+--
+-- setoid 系统上的确定性携带态射
+--
+-- FMap 的 setoid 泛化。FMapˢ 携带索引函数 u、形状映射、连同图见证
+-- u x' ≡ v 的规范源子节点，以及该子节点上的整纤维携带伴随
+-- FiberAdjˢ；它沿图关系（λ x v → u x ≡ v）经 Morphˢ 诱导出树映射
+-- mapFˢ。与 FMap 相比，边伴随为 FiberAdjˢ，命题版的 childF-coh 字段
+-- 被去掉，其相干性由 FiberAdjˢ 的 to-cong / fro-cong 吸收。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -41,6 +43,7 @@ open Morphˢ
 
 ------------------------------------------------------------------------
 -- Deterministic carried morphism
+--
 -- 确定性携带态射
 
 record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
@@ -52,6 +55,7 @@ record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
     shape  : (x : I X) → A X x → A Y (u x)
 
     -- Canonical source child of target child v, carrying u x' ≡ v.
+    --
     -- 目标子节点 v 的规范源子节点，携带 u x' ≡ v。
     childF : (x : I X) (a : A X x) (v : I Y)
            → Σ (I X) λ x' → u x' ≡ v
@@ -62,6 +66,7 @@ record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
 
   -- Pullback: canonical source child, the source edge via fro, and the
   -- graph witness.
+  --
   -- 拉回：规范源子节点、经 fro 的源边、图见证。
   pullFˢ : (x : I X) (a : A X x) (v : I Y)
            (q : E Y (u x) (shape x a) v)
@@ -71,6 +76,7 @@ record FMapˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
     in x' , fro (adjFˢ x a v) q , r'
 
   -- Deterministic map as a relation-general Morphˢ along the graph of u.
+  --
   -- 确定性映射作为沿 u 之图的关系泛化 Morphˢ。
   asMorphˢ : Morphˢ X Y (λ (x : I X) (v : I Y) → u x ≡ v)
   asMorphˢ .Morphˢ.step {x = x} {y = .(u x)} refl = record
@@ -86,6 +92,7 @@ open FMapˢ public
 
 ------------------------------------------------------------------------
 -- Identity and composition
+--
 -- 恒等与复合
 
 idFˢ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe}
@@ -135,11 +142,14 @@ compFˢ {X = X} {Y = Y} {Z = Z} g f = record
                 (FMapˢ.adjFˢ g (uf x) (shapef x a) w)
 
 ------------------------------------------------------------------------
--- Subst-free relocation along a propositional index equality; at refl
--- it is the identity, so every round-trip / congruence lemma collapses
--- to carried bisimulation reflexivity.
--- 沿命题索引等式的零 subst 重定位；在 refl 处为恒等，故所有往返/
--- 同余引理都坍缩为携带式互模拟自反。
+-- Subst-free relocation along a propositional index equality
+--
+-- At refl it is the identity, so every round-trip / congruence lemma
+-- collapses to carried bisimulation reflexivity.
+--
+-- 沿命题索引等式的零 subst 重定位
+--
+-- 在 refl 处为恒等，故所有往返/同余引理都坍缩为携带式互模拟自反。
 
 private
   relocate : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
@@ -180,6 +190,7 @@ private
 ------------------------------------------------------------------------
 -- Public re-export: relocating both trees along the same index
 -- equality preserves the carried bisimulation.
+--
 -- 公开重导出：沿同一索引等式 relocate 两棵树保持携带互模拟。
 relocate-resp-≈Mˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set a}
                  {E : (x : I) (a : A x) (y : I) → Set b}
@@ -191,6 +202,7 @@ relocate-resp-≈Mˢ : ∀ {i a b ℓa ℓe : Level} {I : Set i} {A : I → Set 
 relocate-resp-≈Mˢ = ≈rel-respˢ
 
 -- Public alias for the index relocation of an M-tree.
+--
 -- M-树索引重定位的公开别名。
 relocateˢ : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
                {E : (x : I) (a : A x) (y : I) → Set b} {x y : I}
@@ -198,12 +210,16 @@ relocateˢ : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
 relocateˢ = relocate
 
 ------------------------------------------------------------------------
--- Behavioural equivalence of deterministic carried morphisms.
+-- Behavioural equivalence of deterministic carried morphisms
+--
 -- The index functions agree; after matching that refl the two image
 -- trees share an index and are related by ≈Mˢ. In every category law
 -- the index component is definitionally refl.
--- 确定性携带态射的行为等价。索引函数一致；匹配该 refl 后两棵像树
--- 共享索引，由 ≈Mˢ 相关。所有范畴律中索引分量定义性地为 refl。
+--
+-- 确定性携带态射的行为等价
+--
+-- 索引函数一致；匹配该 refl 后两棵像树共享索引，由 ≈Mˢ 相关。所有
+-- 范畴律中索引分量定义性地为 refl。
 
 module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
          {X : SysEq i a b ℓa ℓe} {Y : SysEq j c d ℓc ℓd} where
@@ -251,17 +267,21 @@ module _ {i j a b c d ℓa ℓe ℓc ℓd : Level}
     }
 
 ------------------------------------------------------------------------
--- Coinductive fusion: compFˢ uses the same canonical child
--- decomposition as the nested mapR, so each output child is one
--- guarded recursive call and the carried fibre adjunction is the
--- identity.
--- 余归纳融合：compFˢ 采用与嵌套 mapR 相同的规范子节点分解，故每个输出
--- 子节点恰为一次受保护递归调用，携带的纤维伴随为恒等。
+-- Coinductive fusion
+--
+-- compFˢ uses the same canonical child decomposition as the nested
+-- mapR, so each output child is one guarded recursive call and the
+-- carried fibre adjunction is the identity.
+--
+-- 余归纳融合
+--
+-- compFˢ 采用与嵌套 mapR 相同的规范子节点分解，故每个输出子节点恰为
+-- 一次受保护递归调用，携带的纤维伴随为恒等。
 
-module Fusionˢ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+module Fusionˢ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓg ℓh : Level}
               {X : SysEq i a b ℓa ℓe}
               {Y : SysEq j c d ℓc ℓd}
-              {Z : SysEq k e fℓ ℓg ℓh}
+              {Z : SysEq k e f ℓg ℓh}
               (gm : FMapˢ Y Z) (fm : FMapˢ X Y) where
 
   uf     = FMapˢ.u fm
@@ -319,10 +339,10 @@ module Fusionˢ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                         FMapˢ.pullFˢ fm x (M.here t) y' eY
                  in fusionˢ ef eg (M.below t x'' eX)) )
 
-mapFˢ-comp : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+mapFˢ-comp : ∀ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                {X : SysEq i a b ℓa ℓe}
                {Y : SysEq j c d ℓc ℓd}
-               {Z : SysEq k e fℓ ℓg ℓh}
+               {Z : SysEq k e f ℓg ℓh}
                (gm : FMapˢ Y Z) (fm : FMapˢ X Y)
                (x : I X) (t : M (A X) (E X) x)
            → _≈Mˢ_ (≈A Z) (≈E Z)
@@ -330,10 +350,10 @@ mapFˢ-comp : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                     (FMapˢ.mapFˢ gm (FMapˢ.u fm x) (FMapˢ.mapFˢ fm x t))
 mapFˢ-comp gm fm x t = Fusionˢ.fusionˢ gm fm refl refl t
 
-mapFˢ-comp˘ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+mapFˢ-comp˘ : ∀ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓg ℓh : Level}
                 {X : SysEq i a b ℓa ℓe}
                 {Y : SysEq j c d ℓc ℓd}
-                {Z : SysEq k e fℓ ℓg ℓh}
+                {Z : SysEq k e f ℓg ℓh}
                 (gm : FMapˢ Y Z) (fm : FMapˢ X Y)
                 (x : I X) (t : M (A X) (E X) x)
             → _≈Mˢ_ (≈A Z) (≈E Z)
@@ -342,7 +362,8 @@ mapFˢ-comp˘ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
 mapFˢ-comp˘ gm fm x t = Fusionˢ.fusion˘ˢ gm fm refl refl t
 
 ------------------------------------------------------------------------
--- The identity tree map is the identity up to carried bisimulation.
+-- The identity tree map is the identity up to carried bisimulation
+--
 -- 恒等树映射在携带式互模拟意义下为恒等。
 
 module _ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} where
@@ -367,13 +388,16 @@ module _ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} where
         , (λ q → mapFˢ-id w (M.below t w q)) )
 
 ------------------------------------------------------------------------
--- Index-only reflow machine for FMapˢ. These change only the INDEX
--- witness of mapR; labels are untouched, so here-eq is EqOn.refl and
--- below-eq uses idAdjˢ. No label equation and no childF coherence is
--- involved.
--- FMapˢ 的纯索引重排机器。它们只改变 mapR 的索引见证；标签不变，故
--- here-eq 为 EqOn.refl，below-eq 用 idAdjˢ。不涉及标签等式与 childF
--- 相干。
+-- Index-only reflow machine for FMapˢ
+--
+-- These change only the INDEX witness of mapR; labels are untouched, so
+-- here-eq is EqOn.refl and below-eq uses idAdjˢ. No label equation and
+-- no childF coherence is involved.
+--
+-- FMapˢ 的纯索引重排机器
+--
+-- 它们只改变 mapR 的索引见证；标签不变，故 here-eq 为 EqOn.refl，
+-- below-eq 用 idAdjˢ。不涉及标签等式与 childF 相干。
 
 module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
                {X : SysEq i a b ℓa ℓe}
@@ -441,11 +465,16 @@ module CongIdxˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
                  in mapR-cross refl r' (M.below s₁ x' e)) )
 
 ------------------------------------------------------------------------
--- Deterministic carried setoid functor. Beyond the operational
--- FMapˢ, a setoid morphism preserves the carried label equivalence
--- and acts on bisimilar trees; both congruences are carried as data.
--- 确定性携带 setoid 函子。除操作性的 FMapˢ 外，setoid 态射还保持所
--- 携带的标签等价并作用于互模拟树；两个同余均作为数据携带。
+-- Deterministic carried setoid functor
+--
+-- Beyond the operational FMapˢ, a setoid morphism preserves the carried
+-- label equivalence and acts on bisimilar trees; both congruences are
+-- carried as data.
+--
+-- 确定性携带 setoid 函子
+--
+-- 除操作性的 FMapˢ 外，setoid 态射还保持所携带的标签等价并作用于互
+-- 模拟树；两个同余均作为数据携带。
 
 record FMˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
            (X : SysEq i a b ℓa ℓe)
@@ -455,6 +484,7 @@ record FMˢ {i j a b c d ℓa ℓe ℓc ℓd : Level}
     mor        : FMapˢ X Y
 
     -- The shape action preserves the carried label equivalence.
+    --
     -- shape 作用保持所携带的标签等价。
     shape-cong : ∀ {x : I X} {a₁ a₂ : A X x}
                → EqOn._≈_ (≈A X x) a₁ a₂
@@ -471,6 +501,7 @@ open FMˢ public
 
 ------------------------------------------------------------------------
 -- Identity and composition of setoid functors
+--
 -- setoid 函子的恒等与复合
 
 idFMˢ : ∀ {i a b ℓa ℓe : Level} {X : SysEq i a b ℓa ℓe} → FMˢ X X
@@ -483,10 +514,10 @@ idFMˢ {X = X} = record
         (≈Mˢ-trans (≈A X) (≈E X) h (mapFˢ-id˘ x s))
   }
 
-compFMˢ : ∀ {i j k a b c d e fℓ ℓa ℓe ℓc ℓd ℓg ℓh : Level}
+compFMˢ : ∀ {i j k a b c d e f ℓa ℓe ℓc ℓd ℓg ℓh : Level}
             {X : SysEq i a b ℓa ℓe}
             {Y : SysEq j c d ℓc ℓd}
-            {Z : SysEq k e fℓ ℓg ℓh}
+            {Z : SysEq k e f ℓg ℓh}
         → FMˢ Y Z → FMˢ X Y → FMˢ X Z
 compFMˢ {X = X} {Y = Y} {Z = Z} gm fm = record
   { mor        = compFˢ gm0 fm0
@@ -503,9 +534,13 @@ compFMˢ {X = X} {Y = Y} {Z = Z} gm fm = record
   fm0 = FMˢ.mor fm
 
 ------------------------------------------------------------------------
--- Hom equivalence: behavioural equality of the underlying carried
--- morphisms.
--- hom 等价：底层携带态射的行为相等。
+-- Hom equivalence
+--
+-- Behavioural equality of the underlying carried morphisms.
+--
+-- hom 等价
+--
+-- 底层携带态射的行为相等。
 
 module _ {i a b ℓa ℓe : Level}
          {X Y : SysEq i a b ℓa ℓe} where
@@ -530,7 +565,8 @@ module _ {i a b ℓa ℓe : Level}
     }
 
 ------------------------------------------------------------------------
--- Composition respects behavioural equality.
+-- Composition respects behavioural equality
+--
 -- 复合尊重行为相等。
 
 module _ {i a b ℓa ℓe : Level}
@@ -579,10 +615,14 @@ module _ {i a b ℓa ℓe : Level}
                       (mapFˢ-comp (FMˢ.mor G₂) (FMˢ.mor F₂) x t))))))
 
 ------------------------------------------------------------------------
--- Category laws, all at behavioural equality; the index components
--- are definitionally refl, so no index transport is used.
--- 范畴律，全部建立在行为相等上；索引分量定义性地为 refl，故不使用
--- 索引传输。
+-- Category laws
+--
+-- All at behavioural equality; the index components are definitionally
+-- refl, so no index transport is used.
+--
+-- 范畴律
+--
+-- 全部建立在行为相等上；索引分量定义性地为 refl，故不使用索引传输。
 
 module _ {i a b ℓa ℓe : Level}
          {W X Y Z : SysEq i a b ℓa ℓe}
@@ -645,8 +685,9 @@ module _ {i a b ℓa ℓe : Level}
 
 ------------------------------------------------------------------------
 -- The category of setoid systems and deterministic carried setoid
--- functors.
--- setoid 系统与确定性携带 setoid 函子的范畴。
+-- functors
+--
+-- setoid 系统与确定性携带 setoid 函子的范畴
 
 MCorrCatˢ : (i a b ℓa ℓe : Level)
           → Category (lsuc (i ⊔ a ⊔ b ⊔ ℓa ⊔ ℓe))

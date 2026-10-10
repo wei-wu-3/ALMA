@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------
--- ContCatEquiv: container isomorphisms transport along isos in C
+-- ContCatEquiv: container isomorphisms transport along isos in C;
 -- ContCatEquivEmbedding: lift this transport to natural transformations
--- via the embedding ContCat → [Setoids, Setoids]
--- ShapeCat: Grothendieck construction of the shape functor
+-- via the embedding ContCat → [Setoids, Setoids]; ShapeCat: Grothendieck
+-- construction of the shape functor.
 --
--- 分别定义：容器同构沿 C 中同构的传输结构 ContCatEquiv、
--- 通过容器嵌入将传输提升为自然变换的 ContCatEquivEmbedding、
--- 形状范畴 ShapeCat（由形状函子的 Grothendieck 构造得到）
+-- 分别定义：容器同构沿 C 中同构的传输结构 ContCatEquiv、通过容器嵌入
+-- 将传输提升为自然变换的 ContCatEquivEmbedding、形状范畴 ShapeCat
+-- （由形状函子的 Grothendieck 构造得到）。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -34,33 +34,43 @@ open import ALMA.Cosmos.ContCategory
   using (_≈sr_; ≈sr-sym; ∘M-assoc; ∘M-identityʳ; ∘M-resp-≈ˡ; ∘M-resp-≈ʳ; ContCat; module ≈sr-Reasoning)
 open import ALMA.Cosmos.ContFunctor using (ContEmbedding; ⟦_⟧)
 
--- ContCatEquiv: container isomorphism transport along isomorphisms
+------------------------------------------------------------------------
+-- ContCatEquiv
 --
--- 沿同构的容器传输结构（容器态射升级为容器同构）
+-- Container isomorphism transport along isomorphisms: packages the
+-- source category C and the functor containerFunctor as module context,
+-- upgrading container morphisms to container isomorphisms.
+--
+-- ContCatEquiv
+--
+-- 沿同构的容器传输结构：将源范畴 C 与函子 containerFunctor 封装为模块
+-- 上下文，把容器态射升级为容器同构。
+
 module _ {o h e s p : Level}
          (C : Category o h e)
          (containerFunctor : Functor C (ContCat s p)) where
 
   -- Parameterised record: packages the source category C and the
-  -- functor containerFunctor as module context; has no fields, so
-  -- instantiation is trivial (record {})
+  -- functor containerFunctor as module context; it has no fields, so
+  -- instantiation is trivial (record {}).
   --
-  -- 参数化 record：将源范畴 C 与函子 containerFunctor 封装为模块上下文；
-  -- 无字段，故实例化是平凡的（record {}）
+  -- 参数化 record：将源范畴 C 与函子 containerFunctor 封装为模块上下
+  -- 文；无字段，故实例化是平凡的（record {}）。
   record ContCatEquiv : Set where
 
-    -- The core groupoid of C
+    -- The core groupoid of C.
     --
-    -- C 的核心广群
+    -- C 的核心广群。
     private
       module C = Category C
       open Functor containerFunctor
       open import Categories.Category.Construction.Core C using (Core)
     CoreC = Core
 
-    -- Inclusion (forgetful) functor from the core to the original category
+    -- Inclusion (forgetful) functor from the core to the original
+    -- category.
     --
-    -- 从核心广群到原范畴的包含（遗忘）函子
+    -- 从核心广群到原范畴的包含（遗忘）函子。
     open import Categories.Morphism (ContCat s p) renaming (_≅_ to ContIso)
     open ContIso renaming (from to contFrom)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
@@ -76,21 +86,22 @@ module _ {o h e s p : Level}
       ; F-resp-≈     = λ {_ _ f g} f≃g → _≃_.from-≈ f≃g
       }
 
-    -- Transport functor along isomorphisms (now a composition of standard functors)
+    -- Transport functor along isomorphisms (now a composition of
+    -- standard functors).
     --
-    -- 沿同构的传输函子（此处为标准函子的复合）
+    -- 沿同构的传输函子（此处为标准函子的复合）。
     transportFunctor : Functor CoreC (ContCat s p)
     transportFunctor = containerFunctor ∘F Core→C
 
-    -- Coherence theorems: all come for free from the functor laws
+    -- Coherence theorems: all come for free from the functor laws.
     --
-    -- 融贯性定理：均由函子定律直接得出
+    -- 融贯性定理：均由函子定律直接得出。
     private
       module TF = Functor transportFunctor
 
-    -- Transport produces a container isomorphism (ContIso)
+    -- Transport produces a container isomorphism (ContIso).
     --
-    -- 传输产生容器同构 (ContIso)
+    -- 传输产生容器同构 (ContIso)。
     transpIso : ∀ {A₁ A₂} → A₁ ≅ A₂ → ContIso (F₀ A₁) (F₀ A₂)
     transpIso eq = [ containerFunctor ]-resp-≅ eq
 
@@ -99,16 +110,18 @@ module _ {o h e s p : Level}
         (TF.F₁ (C≅.sym eq) ∘ TF.F₁ eq) (id (F₀ A))
     transpCont-sym eq = ContIso.isoˡ (transpIso eq)
 
-    -- Transport of morphisms in C along isomorphisms
+    -- Transport of morphisms in C along isomorphisms.
     --
-    -- 沿同构传输 C 中的态射
+    -- 沿同构传输 C 中的态射。
     transportMorphism : ∀ {A₁ A₂ B₁ B₂} (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂) 
                       → (A₁ C.⇒ B₁) → (A₂ C.⇒ B₂)
     transportMorphism eqA eqB f = from eqB C.∘ f C.∘ to eqA
 
-    -- Naturality of container transport with respect to morphism transport
+    --------------------------------------------------------------------
+    -- Naturality of container transport with respect to morphism
+    -- transport.
     --
-    -- 容器传输关于态射传输的自然性
+    -- 容器传输关于态射传输的自然性。
     module _ where
       open ≈sr-Reasoning
       act-natural : ∀ {A₁ A₂ B₁ B₂} (eqA : A₁ ≅ A₂) (eqB : B₁ ≅ B₂) (f : A₁ C.⇒ B₁)
@@ -142,9 +155,16 @@ module _ {o h e s p : Level}
             FtB ∘ Ff
               ∎
 
--- ContCatEquivEmbedding: transport lifted to natural transformations
+------------------------------------------------------------------------
+-- ContCatEquivEmbedding
 --
--- 将同构传输通过容器嵌入提升为自然变换
+-- Lifts the isomorphism transport to natural transformations via the
+-- container embedding ContCat → [Setoids, Setoids].
+--
+-- ContCatEquivEmbedding
+--
+-- 将同构传输通过容器嵌入提升为自然变换。
+
 module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
          (C : Category o h e)
          (F : Functor C (ContCat s p)) where
@@ -153,46 +173,46 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
     CCE : ContCatEquiv C F
     CCE = record {}
 
-    -- Target category: functor category [Setoids, Setoids]
+    -- Target category: functor category [Setoids, Setoids].
     --
-    -- 目标范畴：函子范畴 [Setoids, Setoids]
+    -- 目标范畴：函子范畴 [Setoids, Setoids]。
     Tgt = Functors (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
     module TgtCat = Category Tgt
 
-    -- Combinators for natural transformation equivalence
+    -- Combinators for natural transformation equivalence.
     --
-    -- 自然变换等价组合子
+    -- 自然变换等价组合子。
     open TgtCat using (_≈_) renaming (_∘_ to _∙_; id to idF)
 
-    -- Import transport structure from ContCatEquiv
+    -- Import transport structure from ContCatEquiv.
     --
-    -- 从 ContCatEquiv 导入传输结构
+    -- 从 ContCatEquiv 导入传输结构。
     open ContCatEquiv CCE using (transportFunctor; transpCont-sym; CoreC)
     open import Categories.Morphism C using (_≅_) renaming (module ≅ to C≅)
 
-    -- Explicitly instantiate the polynomial functor interpretation
+    -- Explicitly instantiate the polynomial functor interpretation.
     --
-    -- 显式实例化多项式函子解释
+    -- 显式实例化多项式函子解释。
     ⟦_⟧′ : Container s p → Functor (Setoids (p ⊔ ℓ′) (p ⊔ ℓ′)) (Setoids (s ⊔ p ⊔ ℓ′) (s ⊔ p ⊔ ℓ′))
     ⟦_⟧′ = ⟦_⟧ {s = s} {p = p} {ℓ = ℓ′}
 
-  -- Container embedding functor ContCat → [Setoids, Setoids]
+  -- Container embedding functor ContCat → [Setoids, Setoids].
   --
-  -- 容器嵌入函子 ContCat → [Setoids, Setoids]
+  -- 容器嵌入函子 ContCat → [Setoids, Setoids]。
   ContEmb = ContEmbedding {s = s} {p = p} {ℓ = ℓ′}
   open Functor ContEmb
 
   module TF = Functor transportFunctor
 
-  -- Lifted transport functor: CoreC → [Setoids, Setoids]
+  -- Lifted transport functor: CoreC → [Setoids, Setoids].
   --
-  -- 提升的传输函子：CoreC → [Setoids, Setoids]
+  -- 提升的传输函子：CoreC → [Setoids, Setoids]。
   liftedTransport : Functor CoreC Tgt
   liftedTransport = ContEmb ∘F transportFunctor
 
-  -- Natural transformation induced by transport along isomorphism
+  -- Natural transformation induced by transport along an isomorphism.
   --
-  -- 沿同构传输的自然变换
+  -- 沿同构传输的自然变换。
   transpNat : ∀ {A B} (iso : A ≅ B) → NaturalTransformation ⟦ CF.F₀ A ⟧′ ⟦ CF.F₀ B ⟧′
   transpNat = Functor.F₁ liftedTransport
 
@@ -216,13 +236,20 @@ module ContCatEquivEmbedding {o h e s p} (ℓ′ : Level)
   transpNat-trans eq1 eq2 {X} {x} =
     Functor.homomorphism liftedTransport {f = eq1} {g = eq2} {X} {x}
 
--- ShapeCat: the category of shapes (Grothendieck construction)
+------------------------------------------------------------------------
+-- ShapeCat
 --
--- 形状范畴（Grothendieck 构造）
+-- The category of shapes (Grothendieck construction of the shape
+-- functor).
+--
+-- ShapeCat
+--
+-- 形状范畴（形状函子的 Grothendieck 构造）。
+
 module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
-  -- Functor forgetting positions, retaining only shapes
+  -- Functor forgetting positions, retaining only shapes.
   --
-  -- 遗忘位置、仅保留形状的函子
+  -- 遗忘位置、仅保留形状的函子。
   ShapeForget : Functor (ContCat s p) (Sets s)
   ShapeForget = record
     { F₀           = λ Ctr → Data.Container.Core.Shape Ctr
@@ -232,8 +259,9 @@ module _ {o h e s p} (C : Category o h e) (F : Functor C (ContCat s p)) where
     ; F-resp-≈     = λ f≈g x → _≈sr_.shape-eq f≈g x
     }
 
-  -- The category of shapes over C (Grothendieck construction / Elements)
+  -- The category of shapes over C (Grothendieck construction /
+  -- Elements construction).
   --
-  -- C 上的形状范畴（Grothendieck 构造 / Elements 构造）
+  -- C 上的形状范畴（Grothendieck 构造 / Elements 构造）。
   ShapeCat : Category (o ⊔ s) (h ⊔ s) e
   ShapeCat = Elements (ShapeForget ∘F F)

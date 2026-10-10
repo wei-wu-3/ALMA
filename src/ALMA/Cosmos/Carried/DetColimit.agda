@@ -1,10 +1,12 @@
 ------------------------------------------------------------------------
--- Universal property of the deterministic trivial-fibre tower colimit.
+-- Universal property of the deterministic trivial-fibre tower colimit
+--
 -- LimitSystem supplies the apex L∞, the forward edge-following legs
 -- Leg.leg, and det-unique; this slice closes the universal property
 -- with mediate / triangle / uniqueness.
 --
--- 确定性平凡纤维塔余极限的泛性质。
+-- 确定性平凡纤维塔余极限的泛性质
+--
 -- LimitSystem 已提供顶点 L∞、前向边跟随腿 Leg.leg 与 det-unique；
 -- 本切片用 mediate / triangle / uniqueness 闭合泛性质。
 ------------------------------------------------------------------------
@@ -27,8 +29,9 @@ open import ALMA.Cosmos.Carried.LimitSystem using (n-at; PushSim; module LimitSy
 
 ------------------------------------------------------------------------
 -- Deterministic colimit of a compatible tower of finite trivial
--- endofunctions, parameterised exactly as LimitSystem.
--- 相容有限平凡自函数塔的确定性余极限，参数与 LimitSystem 一致。
+-- endofunctions, parameterised exactly as LimitSystem
+--
+-- 相容有限平凡自函数塔的确定性余极限，参数与 LimitSystem 一致
 
 module DetColimit
   (t : (m : ℕ) → Fin (n-at m) → Fin (n-at m))
@@ -43,10 +46,15 @@ module DetColimit
   open TrivDet {i = lzero} ℕ s∞ renaming (DetM to DetM∞)
 
   ----------------------------------------------------------------------
-  -- mediate: apex L∞, leg at stage m is Leg.leg at the natural reading
-  -- toℕ x with graph witness refl.
-  -- mediate：顶点 L∞，第 m 层的腿即在自然读数 toℕ x 处、以 refl 为
-  -- 图见证的 Leg.leg。
+  -- mediate
+  --
+  -- Apex L∞, leg at stage m is Leg.leg at the natural reading toℕ x
+  -- with graph witness refl.
+  --
+  -- mediate
+  --
+  -- 顶点 L∞，第 m 层的腿即在自然读数 toℕ x 处、以 refl 为图见证的
+  -- Leg.leg。
 
   mediate-apex = L∞
 
@@ -60,11 +68,16 @@ module DetColimit
   mediate-leg m x = Leg.leg m x (toℕ x) refl
 
   ----------------------------------------------------------------------
-  -- Competing cocone apex: a trivial-fibre deterministic system on ℕ
-  -- with transition sZ whose stage-v leg agrees with the limit reading.
-  -- Stage v always contains v, so agreement is exactly sZ v ≡ s∞ v.
-  -- 竞争余锥顶点：ℕ 上转移为 sZ 的平凡纤维确定性系统，其第 v 层腿与
-  -- 极限读数一致。第 v 层永远包含 v，故相容恰为 sZ v ≡ s∞ v。
+  -- Competing cocone apex
+  --
+  -- A trivial-fibre deterministic system on ℕ with transition sZ whose
+  -- stage-v leg agrees with the limit reading. Stage v always contains
+  -- v, so agreement is exactly sZ v ≡ s∞ v.
+  --
+  -- 竞争余锥顶点
+  --
+  -- ℕ 上转移为 sZ 的平凡纤维确定性系统，其第 v 层腿与极限读数一致。
+  -- 第 v 层永远包含 v，故相容恰为 sZ v ≡ s∞ v。
 
   record DetCoconeApex : Set where
     field
@@ -73,9 +86,14 @@ module DetColimit
   open DetCoconeApex
 
   ----------------------------------------------------------------------
-  -- triangle: the apex orbit pushes to the L∞ orbit along the identity
-  -- index graph.
-  -- triangle：顶点轨道沿恒等索引图前推到 L∞ 轨道。
+  -- triangle
+  --
+  -- The apex orbit pushes to the L∞ orbit along the identity index
+  -- graph.
+  --
+  -- triangle
+  --
+  -- 顶点轨道沿恒等索引图前推到 L∞ 轨道。
 
   module _ (apex : DetCoconeApex) where
     private
@@ -99,6 +117,7 @@ module DetColimit
     -- Must stay general in both indices and in r: the guarded
     -- continuation recurses at the source child y, which equals stepZ x
     -- and only becomes s∞ v after r and leg-coh are carried through.
+    --
     -- 必须对两个索引与 r 一般化：受保护连续项在源子节点 y 处递归，
     -- y 等于 stepZ x，只有在穿过 r 与 leg-coh 后才成为 s∞ v。
     factor-push : ∀ (x v : ℕ) (r : R≡ x v)
@@ -117,6 +136,7 @@ module DetColimit
         )
       where
         -- y ≡ stepZ x ≡ stepZ v ≡ s∞ v, carrying r then leg-coh.
+        --
         -- y ≡ stepZ x ≡ stepZ v ≡ s∞ v，先后穿过 r 与 leg-coh。
         r' : R≡ y (s∞ v)
         r' = trans eq (trans (cong stepZ r) (lc v))
@@ -131,11 +151,16 @@ module DetColimit
     triangle v = factor-push v v refl
 
   ----------------------------------------------------------------------
-  -- uniqueness: at the transition level the leg coherence is by
-  -- definition sZ v ≡ s∞ v; at the tree level det-unique pins any two
-  -- L∞ trees at the same index.
-  -- 唯一性：转移层腿相容按定义即 sZ v ≡ s∞ v；树层 det-unique 钉住
-  -- 同一索引处任意两棵 L∞ 树。
+  -- uniqueness
+  --
+  -- At the transition level the leg coherence is by definition
+  -- sZ v ≡ s∞ v; at the tree level det-unique pins any two L∞ trees at
+  -- the same index.
+  --
+  -- 唯一性
+  --
+  -- 转移层腿相容按定义即 sZ v ≡ s∞ v；树层 det-unique 钉住同一索引处
+  -- 任意两棵 L∞ 树。
 
   factor-transition : (apex : DetCoconeApex)
     → ∀ v → sZ apex v ≡ s∞ v

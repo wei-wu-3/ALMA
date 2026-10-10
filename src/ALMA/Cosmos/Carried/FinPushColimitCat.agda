@@ -1,21 +1,26 @@
 ------------------------------------------------------------------------
 -- The Fin push colimit packaged as a standard agda-categories Colimit
--- in DetCat, the category of deterministic systems with forward
+-- in DetCat
+--
+-- DetCat is the category of deterministic systems with forward
 -- semiconjugacy maps. The shape ωCat is the free category on the
 -- successor edges. Stage m is (Fin (n-at m), t m); the successor arrow
--- is inject₁ (embed-compat is its semiconjugacy); the colimit apex is
--- (ℕ, s∞) with legs toℕ (read-coh is their semiconjugacy). A competing
--- cocone's legs are consistent across stages; the mediating map sends v
--- to the stage-v representative natToFin v, and its semiconjugacy uses
--- only s∞ v ≤ v+1 and iterated inject₁. Uniqueness is pointwise at the
--- representatives.
+-- is inject₁ with embed-compat as semiconjugacy; the colimit apex is
+-- (ℕ, s∞) with legs toℕ and read-coh as their semiconjugacy. A
+-- competing cocone's legs are consistent across stages; the mediating
+-- map sends v to the stage-v representative natToFin v, and its
+-- semiconjugacy uses only s∞ v ≤ v+1 and iterated inject₁. Uniqueness
+-- is pointwise at the representatives.
 --
--- Fin push 余极限在确定性前向范畴 DetCat 中装配为 agda-categories 标准
--- Colimit。形状 ωCat 是后继边上的自由范畴。第 m 层为 (Fin (n-at m),
--- t m)，后继箭头为 inject₁（embed-compat 即半共轭）；余极限 apex 为
--- (ℕ, s∞)，腿为 toℕ（read-coh 即半共轭）。竞争余锥的腿跨阶段一致；
--- mediate 把 v 送到第 v 层代表 natToFin v，其半共轭仅用 s∞ v ≤ v+1 与
--- 迭代 inject₁。唯一性在代表处逐点成立。
+-- Fin push 余极限在确定性前向范畴 DetCat 中装配为 agda-categories
+-- 标准 Colimit
+--
+-- DetCat 是带前向半共轭映射的确定性系统范畴。形状 ωCat 是后继边上的
+-- 自由范畴。第 m 层为 (Fin (n-at m), t m)，后继箭头为 inject₁（其半
+-- 共轭即 embed-compat）；余极限 apex 为 (ℕ, s∞)，腿为 toℕ，其半共轭
+-- 即 read-coh。竞争余锥的腿跨阶段一致；mediate 把 v 送到第 v 层代表
+-- natToFin v，其半共轭仅用 s∞ v ≤ v+1 与迭代 inject₁。唯一性在代表处
+-- 逐点成立。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -43,8 +48,13 @@ open DetSys using (I) renaming (step to step-det)
 open DM
 
 ------------------------------------------------------------------------
--- Shape category: paths over successor edges.
--- 形状范畴：后继边上的路径。
+-- Shape category
+--
+-- Paths over successor edges.
+--
+-- 形状范畴
+--
+-- 后继边上的路径。
 
 data Chain⇒ (m : ℕ) : ℕ → Set where
   stop : Chain⇒ m m
@@ -86,9 +96,13 @@ private
   }
 
 ------------------------------------------------------------------------
--- The Fin diagram and its colimit, parameterised by t and embedding
--- compatibility.
--- Fin 图及其余极限，以 t 与嵌入相容性为参数。
+-- The Fin diagram and its colimit
+--
+-- Parameterised by t and embedding compatibility.
+--
+-- Fin 图及其余极限
+--
+-- 以 t 与嵌入相容性为参数。
 
 module FinColimit
   (t : (m : ℕ) → Fin (n-at m) → Fin (n-at m))
@@ -109,6 +123,7 @@ module FinColimit
   Apex = record { I = ℕ ; step = s∞ }
 
   -- Successor arrow: inject₁, with embed-compat as semiconjugacy.
+  --
   -- 后继箭头：inject₁，embed-compat 即半共轭。
   emb : (m : ℕ) → DM (StageD m) (StageD (suc m))
   emb m = record { q = inject₁ ; coh = λ x → sym (embed-compat m x) }
@@ -137,14 +152,20 @@ module FinColimit
     }
 
   -- Canonical legs: toℕ, with read-coh as semiconjugacy.
+  --
   -- 规范腿：toℕ，read-coh 即半共轭。
   leg : (m : ℕ) → DM (StageD m) Apex
   leg m = record { q = toℕ ; coh = read-coh m }
 
   ----------------------------------------------------------------------
-  -- A competing cocone: legs ψ m into an apex Z and successor
-  -- coherence q (ψ (suc m)) (inject₁ x) ≡ q (ψ m) x.
-  -- 竞争余锥：腿 ψ m 进入 apex Z，后继相干
+  -- A competing cocone
+  --
+  -- Legs ψ m into an apex Z, with successor coherence
+  -- q (ψ (suc m)) (inject₁ x) ≡ q (ψ m) x.
+  --
+  -- 竞争余锥
+  --
+  -- 腿 ψ m 进入 apex Z，后继相干
   -- q (ψ (suc m)) (inject₁ x) ≡ q (ψ m) x。
 
   module WithCocone (Z : DetSys lzero)
@@ -162,6 +183,7 @@ module FinColimit
     private
       -- cl (suc v) k is inject₁ (cl v k) whenever k ≤ v; at k = suc v it
       -- is the stage-(suc v) representative.
+      --
       -- k ≤ v 时 cl (suc v) k 即 inject₁ (cl v k)；k = suc v 时为第
       -- suc v 层代表。
       cl-suc : ∀ v k (le : k ≤ v) → cl (suc v) k ≡ inject₁ (cl v k)
@@ -179,6 +201,7 @@ module FinColimit
 
       -- Q at the clamped stage-v representative of k agrees with the
       -- stage-k representative, by iterated successor coherence.
+      --
       -- 在 k 的第 v 层钳制代表处，Q 与第 k 层代表一致，由后继相干迭代。
       q-cl : ∀ v k (le : k ≤ v) → Q v (cl v k) ≡ q∞ k
       q-cl zero k le rewrite n≤0⇒n≡0 le =
@@ -193,6 +216,7 @@ module FinColimit
         cong (Q (suc v)) (cl-top v)
 
       -- Q v x' ≡ q∞ k when x' at stage v reads as k ≤ v.
+      --
       -- 当第 v 层的 x' 读数为 k ≤ v 时，Q v x' ≡ q∞ k。
       align-down : ∀ v k (le : k ≤ v) (x' : Fin (n-at v))
                  → toℕ x' ≡ k → Q v x' ≡ q∞ k
@@ -203,6 +227,7 @@ module FinColimit
         in trans (cong (Q v) eqfin) (q-cl v k le)
 
       -- q∞ (suc v) ≡ Q v x' when x' reads as suc v.
+      --
       -- 当 x' 读数为 suc v 时，q∞ (suc v) ≡ Q v x'。
       align-up : ∀ v (x' : Fin (n-at v)) → toℕ x' ≡ suc v
                → q∞ (suc v) ≡ Q v x'
@@ -215,6 +240,7 @@ module FinColimit
 
       -- One step of the mediating semiconjugacy, indexed by the read
       -- value k rather than s∞ v so the case split abstracts only k.
+      --
       -- mediate 半共轭的一步，按读数 k（而非 s∞ v）作索引，使分情况
       -- 只抽象 k。
       coh-case : ∀ v k (ek : toℕ (t v (natToFin v)) ≡ k)
@@ -229,6 +255,7 @@ module FinColimit
               (coh (ψ v) (natToFin v))
 
       -- Triangle at stage m, indexed by the read value k ≤ m+1.
+      --
       -- 第 m 层三角，按读数 k ≤ m+1 作索引。
       tri-case : ∀ m (x : Fin (n-at m)) k (ek : toℕ x ≡ k)
                    (lek : k ≤ suc m)
@@ -238,6 +265,7 @@ module FinColimit
       ... | inj₂ eqk rewrite eqk = align-up m x ek
 
     -- Semiconjugacy of the mediating map.
+    --
     -- mediate 映射的半共轭。
     q∞-coh : (v : ℕ) → q∞ (s∞ v) ≡ step-det Z (q∞ v)
     q∞-coh v = coh-case v (s∞ v) refl (≤-pred (toℕ<n (t v (natToFin v))))
@@ -246,12 +274,14 @@ module FinColimit
     mediate = record { q = q∞ ; coh = q∞-coh }
 
     -- Mediating triangle: mediate ∘ leg m ≈ ψ m, pointwise.
+    --
     -- mediate 三角：mediate ∘ leg m ≈ ψ m，逐点成立。
     triangle : (m : ℕ) → compDM mediate (leg m) ≈DM ψ m
     triangle m x =
       tri-case m x (toℕ x) refl (≤-pred (toℕ<n x))
 
     -- Pointwise uniqueness against any map satisfying the triangles.
+    --
     -- 对任何满足三角等式的映射逐点唯一。
     unique : (f : DM Apex Z)
            → ((m : ℕ) → compDM f (leg m) ≈DM ψ m)
@@ -261,10 +291,12 @@ module FinColimit
             (tri v (natToFin v))
 
   ----------------------------------------------------------------------
-  -- Standard agda-categories packaging.
-  -- 标准 agda-categories 装配。
+  -- Standard agda-categories packaging
+  --
+  -- 标准 agda-categories 装配
 
   -- Successor coherence of the canonical legs toℕ.
+  --
   -- 规范腿 toℕ 的后继相干。
   private
     leg-emb-eq : (m : ℕ) (x : Fin (n-at m))
@@ -272,6 +304,7 @@ module FinColimit
     leg-emb-eq m x = toℕ-inject₁ x
 
   -- Path coherence for any stage-consistent cocone.
+  --
   -- 任意跨阶段相容余锥在路径上的相干。
   coh-path : (Z : DetSys lzero) (ψ : (m : ℕ) → DM (StageD m) Z)
              (emb-eq : (m : ℕ) (x : Fin (n-at m))
@@ -297,6 +330,7 @@ module FinColimit
 
   -- A competing standard cocone gives exactly the data of WithCocone:
   -- its successor coherence is emb-eq.
+  --
   -- 竞争的标准余锥恰好给出 WithCocone 所需数据：其后继相干即 emb-eq。
   private
     module Rep (K : Cocone) where

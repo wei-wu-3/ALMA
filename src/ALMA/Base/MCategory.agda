@@ -2,7 +2,7 @@
 -- The category rooted in the indexed coinductive type Mᵢ, together with
 -- the ordinary container category as its trivial specialisation at I = ⊤.
 --
--- 扎根于索引余归纳类型 Mᵢ 的范畴，以及 I = ⊤ 处的普通容器范畴特化
+-- 扎根于索引余归纳类型 Mᵢ 的范畴，以及 I = ⊤ 处的普通容器范畴特化。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -28,6 +28,7 @@ open import ALMA.Base.IndexedMType using (Mᵢ; fst; snd)
 
 ------------------------------------------------------------------------
 -- Generic two-level dependent transport
+--
 -- 泛化两层依赖传输
 
 module DependentTransport
@@ -69,6 +70,7 @@ module DependentTransport
 
 ------------------------------------------------------------------------
 -- Indexed objects
+--
 -- 索引对象
 
 record Mᵢ-Obj (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -82,6 +84,7 @@ open Mᵢ-Obj public
 
 ------------------------------------------------------------------------
 -- Indexed morphisms; pos is contravariant on positions
+--
 -- 索引态射；pos 在位置上反变
 
 record Mᵢ-⇒ {i₁ a₁ b₁ i₂ a₂ b₂}
@@ -97,6 +100,7 @@ open Mᵢ-⇒ public
 
 ------------------------------------------------------------------------
 -- Identity and composition
+--
 -- 恒等与复合
 
 idᵢ : ∀ {i a b} {X : Mᵢ-Obj i a b} → Mᵢ-⇒ X X
@@ -115,6 +119,7 @@ _∘ᵢ_ g f = record
 
 ------------------------------------------------------------------------
 -- The flat morphism fibre over a source point and a fixed target index
+--
 -- 态射在一个源点、一个固定目标索引上的扁平纤维
 
 record Fiber {i₁ a₁ b₁ i₂ a₂ b₂}
@@ -132,6 +137,7 @@ fiber-of : ∀ {i₁ a₁ b₁ i₂ a₂ b₂}
 fiber-of f x = record { shp = shape f x ; pso = pos f x }
 
 -- Canonical J-transport of a flat fibre along a target-index equality.
+--
 -- 扁平纤维沿目标索引等式的规范 J 传输。
 
 fiber-tr : ∀ {i₁ a₁ b₁ i₂ a₂ b₂}
@@ -144,6 +150,7 @@ fiber-tr refl φ = φ
 
 ------------------------------------------------------------------------
 -- FE: flat shape+position equality on fibres
+--
 -- FE：纤维上的扁平形状+位置相等
 
 module FE {i₁ a₁ b₁ i₂ a₂ b₂}
@@ -180,6 +187,7 @@ module FE {i₁ a₁ b₁ i₂ a₂ b₂}
     }
 
   -- Symmetry absorbs the transport round-trip via subst-subst-sym.
+  --
   -- 对称用 subst-subst-sym 吸收传输往返。
   ≈sr-sym : ∀ {α β : Fib} → α ≈sr β → β ≈sr α
   ≈sr-sym {α = α} {β = β} p = record
@@ -198,6 +206,7 @@ module FE {i₁ a₁ b₁ i₂ a₂ b₂}
     }
 
   -- Transitivity merges transports via subst-subst.
+  --
   -- 传递用 subst-subst 合并传输。
   ≈sr-trans : ∀ {α β γ : Fib} → α ≈sr β → β ≈sr γ → α ≈sr γ
   ≈sr-trans {α = α} {β = β} {γ = γ} p q = record
@@ -220,6 +229,7 @@ module FE {i₁ a₁ b₁ i₂ a₂ b₂}
 
 ------------------------------------------------------------------------
 -- Morphism equality: outer index equality stacked with inner FE
+--
 -- 态射相等：外层索引相等与内层 FE 相堆叠
 
 module _ {i₁ a₁ b₁ i₂ a₂ b₂}
@@ -277,6 +287,7 @@ module _ {i₁ a₁ b₁ i₂ a₂ b₂}
 
 ------------------------------------------------------------------------
 -- Congruence of composition
+--
 -- 复合的同余
 
 module _ {i₁ a₁ b₁ i₂ a₂ b₂ i₃ a₃ b₃ : Level}
@@ -297,8 +308,9 @@ module _ {i₁ a₁ b₁ i₂ a₂ b₂ i₃ a₃ b₃ : Level}
     -- Naturality of a morphism's contravariant position with respect to
     -- a shape equality at a fixed target index; refl on independent
     -- shape variables.
-    -- 态射反变位置在固定目标索引处对形状等式的自然性；对独立形状变量
-    -- 为 refl。
+    --
+    -- 态射反变位置在固定目标索引处对形状等式的自然性；对独立形状
+    -- 变量为 refl。
     pos-nat-shape : (G : Mᵢ-⇒ Y Z) (y : I Y)
       → ∀ {b₁ b₂ : A Y y} (s : b₁ ≡ b₂)
           (qZ : B Z (idx G y) (shape G y b₁))
@@ -392,6 +404,7 @@ module _ {i₁ a₁ b₁ i₂ a₂ b₂ i₃ a₃ b₃ : Level}
 
 ------------------------------------------------------------------------
 -- Category laws
+--
 -- 范畴定律
 
 module _ {i a b} {W X Y Z : Mᵢ-Obj i a b}
@@ -426,6 +439,7 @@ module _ {i a b} {X : Mᵢ-Obj i a b} where
   private
     -- Rigid monomorphic identity, anchoring the implicit object and
     -- level arguments of Mᵢ-≈.
+    --
     -- 刚性单态恒等，为 Mᵢ-≈ 的隐式对象与层级参数提供锚点。
     idX : Mᵢ-⇒ X X
     idX = idᵢ
@@ -439,6 +453,7 @@ module _ {i a b} {X : Mᵢ-Obj i a b} where
 
 ------------------------------------------------------------------------
 -- Same-universe monomorphic aliases
+--
 -- 同宇宙单态别名
 
 private
@@ -467,6 +482,7 @@ private
 
 ------------------------------------------------------------------------
 -- The category MᵢCat
+--
 -- 范畴 MᵢCat
 
 MᵢCat : (i a b : Level) → Category (lsuc (i ⊔ a ⊔ b)) (i ⊔ a ⊔ b) (i ⊔ a ⊔ b)
@@ -490,6 +506,7 @@ MᵢCat i a b = record
 
 ------------------------------------------------------------------------
 -- The ordinary container category as the trivial specialisation I = ⊤
+--
 -- 普通容器范畴，即 I = ⊤ 的平凡特化
 
 module Container-Specialization (i a b : Level) where
@@ -520,6 +537,7 @@ module Container-Specialization (i a b : Level) where
 
 ------------------------------------------------------------------------
 -- The container final coalgebra at I = ⊤
+--
 -- I = ⊤ 处的容器终余代数
 
 module _ {i a b : Level} (S : Set a) (P : S → Set b) where

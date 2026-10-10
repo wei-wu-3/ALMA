@@ -1,14 +1,18 @@
 ------------------------------------------------------------------------
--- Witness rescoping for forward edge-following simulations. A PushSim
--- over layer relation R and label correspondence H is pushed to one
--- over R' and H' by pure functions: fR relabels the layer witness and
--- fH relabels each label witness. This is the function-passing
--- combinator that aligns a composite cocone leg (whose layer witness is
--- a Sigma) with a direct leg (whose witness is a projection).
+-- Witness rescoping for forward edge-following simulations
 --
--- 前向边跟随模拟的见证重定域。层关系 R、标签对应 H 上的 PushSim 经纯函数
--- 推到 R'、H'：fR 重标层见证，fH 重标每个标签见证。这是把复合余锥腿
--- （层见证为 Σ）与直接腿（见证为投影）对齐的函数传递组合子。
+-- A PushSim over layer relation R and label correspondence H is pushed
+-- to one over R' and H' by pure functions: fR relabels the layer
+-- witness and fH relabels each label witness. This is the
+-- function-passing combinator that aligns a composite cocone leg
+-- (whose layer witness is a Sigma) with a direct leg (whose witness is
+-- a projection).
+--
+-- 前向边跟随模拟的见证重定域
+--
+-- 层关系 R、标签对应 H 上的 PushSim 经纯函数推到 R'、H'：fR 重标层
+-- 见证，fH 重标每个标签见证。这是把复合余锥腿（层见证为 Σ）与直接腿
+-- （见证为投影）对齐的函数传递组合子。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -39,6 +43,7 @@ module _ {i j a b c d ℓa ℓe ℓc ℓd ℓr ℓr' ℓh ℓh' : Level}
          where
 
   -- Relabel both witnesses of a forward simulation by functions.
+  --
   -- 用函数重标前向模拟的两类见证。
   push-map : ∀ {x : I X} {v : I Y} {r : R x v}
                {t : M (A X) (E X) x}

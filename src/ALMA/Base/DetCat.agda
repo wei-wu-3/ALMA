@@ -1,16 +1,19 @@
 ------------------------------------------------------------------------
--- Category of deterministic transition systems with forward
--- semiconjugacy maps. Objects are pairs (I, step); a morphism X ⇒ Y is
--- an index map q with q (stepX x) ≡ stepY (q x). Unlike the pull
--- correspondences FMapˢ these maps need not hit every target index, so
--- the colimit legs of a forward chain are morphisms here. Hom equality
--- is pointwise propositional equality, so no function extensionality is
--- required and the category laws hold pointwise.
+-- Category of deterministic transition systems
 --
--- 确定性转移系统在前向半共轭映射下的范畴。对象为 (I, step) 对；态射
--- X ⇒ Y 是满足 q (stepX x) ≡ stepY (q x) 的索引映射。与 pull 对应
--- FMapˢ 不同，这些映射不必满射到每个目标索引，故前向链的余极限腿在此
--- 是态射。hom 相等取逐点命题相等，无需函数外延，范畴律逐点成立。
+-- Objects are pairs (I, step); a morphism X ⇒ Y is an index map q with
+-- q (stepX x) ≡ stepY (q x). Unlike the pull correspondences FMapˢ
+-- these maps need not hit every target index, so the colimit legs of a
+-- forward chain are morphisms here. Hom equality is pointwise
+-- propositional equality, so no function extensionality is required
+-- and the category laws hold pointwise.
+--
+-- 确定性转移系统的范畴
+--
+-- 对象为 (I, step) 对；态射 X ⇒ Y 是满足 q (stepX x) ≡ stepY (q x)
+-- 的索引映射。与 pull 对应 FMapˢ 不同，这些映射不必满射到每个目标
+-- 索引，故前向链的余极限腿在此是态射。hom 相等取逐点命题相等，
+-- 无需函数外延，范畴律逐点成立。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -24,8 +27,13 @@ open import Relation.Binary.PropositionalEquality.Core using (cong; trans; sym)
 open import Categories.Category.Core using (Category)
 
 ------------------------------------------------------------------------
--- Objects: deterministic transition systems.
--- 对象：确定性转移系统。
+-- Objects
+--
+-- Deterministic transition systems.
+--
+-- 对象
+--
+-- 确定性转移系统。
 
 record DetSys (i : Level) : Set (lsuc i) where
   field
@@ -35,8 +43,9 @@ record DetSys (i : Level) : Set (lsuc i) where
 open DetSys
 
 ------------------------------------------------------------------------
--- Forward semiconjugacy morphisms.
--- 前向半共轭态射。
+-- Forward semiconjugacy morphisms
+--
+-- 前向半共轭态射
 
 record DM {i : Level} (X Y : DetSys i) : Set i where
   field
@@ -46,16 +55,19 @@ record DM {i : Level} (X Y : DetSys i) : Set i where
 open DM
 
 -- Pointwise hom equality.
+--
 -- 逐点 hom 相等。
 _≈DM_ : ∀ {i : Level} {X Y : DetSys i} → DM X Y → DM X Y → Set i
 _≈DM_ f g = ∀ x → q f x ≡ q g x
 
 -- Identity.
+--
 -- 恒等。
 idDM : ∀ {i : Level} (X : DetSys i) → DM X X
 idDM X = record { q = λ x → x ; coh = λ _ → refl }
 
 -- Composition: g after f; the coherence chains the two semiconjugacies.
+--
 -- 复合：g 在 f 之后；相干性串联两个半共轭等式。
 compDM : ∀ {i : Level} {X Y Z : DetSys i}
        → DM Y Z → DM X Y → DM X Z
@@ -78,8 +90,9 @@ identityʳDM : ∀ {i : Level} {X Y : DetSys i} (f : DM X Y)
 identityʳDM _ _ = refl
 
 ------------------------------------------------------------------------
--- The category.
--- 范畴。
+-- The category
+--
+-- 范畴
 
 DetCat : (i : Level) → Category (lsuc i) i i
 DetCat i = record

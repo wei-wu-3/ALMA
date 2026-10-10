@@ -1,22 +1,20 @@
 ------------------------------------------------------------------------
 -- Non-trivial fibre inverse (pull / limit) system on identity-index
--- carried functors.
+-- carried functors
 --
--- The push tower only carries labels forward (l-emb).  A cochain needs
--- a backward arrow, so an inverse system adds l-proj, the retraction of
--- l-emb on the already-born part (proj-emb : l-proj ∘ l-emb ≡ id).  Every
--- arrow keeps the global id, hence is an identity-index Idx⇒ and the
--- construction lives in SameIndexCatS: no Fin alignment, no transport,
--- no K, no function extensionality (the limit fibre carries a pointwise
--- setoid).
+-- The push tower only carries labels forward (l-emb). A cochain needs a
+-- backward arrow, so an inverse system adds l-proj, the retraction of
+-- l-emb on the already-born part (proj-emb : l-proj ∘ l-emb ≡ id).
+-- Every arrow keeps the global id, hence is an identity-index Idx⇒ and
+-- the construction lives in SameIndexCatS: the limit fibre carries
+-- a pointwise setoid.
 --
--- 同索引携带函子上的非平凡纤维逆向（pull / limit）系统。
+-- 同索引携带函子上的非平凡纤维逆向（pull / limit）系统
 --
 -- push 塔只向前携带标签（l-emb）。余链需要反向箭头，故逆向系统加入
--- l-proj，即 l-emb 在已诞生部分上的收缩（proj-emb：l-proj ∘ l-emb ≡
--- id）。每条箭头保持全局 id，因而是索引恒等的 Idx⇒，构造落在
--- SameIndexCatS 中：无 Fin 对齐、无传输、不用 K、不用函数外延性（极限
--- 纤维携带逐点 setoid）。
+-- l-proj，即 l-emb 在已诞生部分上的收缩
+-- （proj-emb：l-proj ∘ l-emb ≡ id）。每条箭头保持全局 id，因而是索引
+-- 恒等的 Idx⇒，构造落在 SameIndexCatS 中：极限纤维携带逐点 setoid。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -51,8 +49,9 @@ import ALMA.Cosmos.Carried.SeqColimitCat as SQC
 open SysEq
 
 ------------------------------------------------------------------------
--- Inverse system of non-trivial label fibres.
--- 非平凡标签纤维的逆向系统。
+-- Inverse system of non-trivial label fibres
+--
+-- 非平凡标签纤维的逆向系统
 
 record LabeledInverseTower (ℓ : Level) : Set (lsuc ℓ) where
   field
@@ -71,6 +70,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     sYS = dsys s
 
   -- Stage label family (propositional fibre setoid).
+  --
   -- 阶段标签族（命题纤维 setoid）。
   stageLS : ℕ → LabelSys ℓ
   stageLS m = record
@@ -80,14 +80,19 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
 
   ----------------------------------------------------------------------
   -- Pointwise equality of two fibre maps into a propositional-fibre
-  -- family, as a pointwise label-tree bisimulation.  The source label
-  -- family may carry any setoid; only the target is propositional.  Both
+  -- family
+  --
+  -- Written as a pointwise label-tree bisimulation. The source label
+  -- family may carry any setoid; only the target is propositional. Both
   -- maps are identity-index, so the child index and child tree coincide:
   -- the head is the given equation and the children recurse guardedly.
   --
-  -- 两个进入命题纤维族的纤维映射逐点相等，写成逐点标签树互模拟。源标签族
-  -- 可带任意 setoid，仅目标为命题的。两映射索引恒等，故子节点索引与子树
-  -- 重合：头部为所给等式，子节点守卫递归。
+  -- 两个进入命题纤维族的纤维映射逐点相等
+  --
+  -- 写成逐点标签树互模拟。源标签族可带任意 setoid，仅目标为命题的。
+  -- 两映射索引恒等，故子节点索引与子树重合：头部为所给等式，子节点
+  -- 守卫递归。
+
   module _ (X : LabelSys ℓ) (Q : ℕ → Set ℓ) where
     private
       YQ : LabelSys ℓ
@@ -134,16 +139,17 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
             , (λ e → go w (M.below u w e)) )
 
   ----------------------------------------------------------------------
-  -- Forward embedding and backward restriction (the cochain arrow).
-  -- 前向嵌入与反向限制（余链箭头）。
-
-  -- Generalised pointwise lifting. Head equations in the target's own
-  -- setoid (any setoid, not only a propositional fibre) give morphism
-  -- bisimilarity; child trees recurse guardedly along the identity
-  -- index.
+  -- Generalised pointwise lifting
   --
-  -- 广义逐点提升。目标自身 setoid（任意 setoid，不限于命题纤维）中的头部
-  -- 等式给出态射互模拟；子树沿恒等索引守卫递归。
+  -- Head equations in the target's own setoid (any setoid, not only a
+  -- propositional fibre) give morphism bisimilarity; child trees recurse
+  -- guardedly along the identity index.
+  --
+  -- 广义逐点提升
+  --
+  -- 目标自身 setoid（任意 setoid，不限于命题纤维）中的头部等式给出
+  -- 态射互模拟；子树沿恒等索引守卫递归。
+
   pointwise-i : {X Y : LabelSys ℓ} (f g : Idx⇒ s X Y)
     → (∀ (v : ℕ) (a : LabelSys.A₀ X v)
         → EqOn._≈_ (LabelSys.≈A₀ Y v)
@@ -178,6 +184,11 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
           , ( (λ e → go˘ w (M.below u w e))
             , (λ e → go w (M.below u w e)) )
 
+  ----------------------------------------------------------------------
+  -- Forward embedding and backward restriction (the cochain arrow)
+  --
+  -- 前向嵌入与反向限制（余链箭头）
+
   embIdx : (m : ℕ) → Idx⇒ s (stageLS m) (stageLS (suc m))
   embIdx m = record
     { shape      = λ v a → l-emb m v a
@@ -191,6 +202,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     }
 
   -- Retraction triangle: restriction after embedding is the identity.
+  --
   -- 收缩三角：嵌入后限制为恒等。
   res-emb : (m : ℕ)
           → _≈i_ s (compi s (resIdx m) (embIdx m)) (idxi s (stageLS m))
@@ -201,12 +213,16 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       (λ v a → proj-emb m v a)
 
   ----------------------------------------------------------------------
-  -- Limit apex: a compatible family of stage labels at each global id.
-  -- Equality is pointwise over stages (a setoid), so uniqueness of the
-  -- mediating morphism needs no function extensionality and no K.
+  -- Limit apex
   --
-  -- 极限顶点：每个全局 id 处阶段标签的相容族。相等按阶段逐点给出（一个
-  -- setoid），故 mediate 态射的唯一性既不需函数外延性也不用 K。
+  -- A compatible family of stage labels at each global id. Equality is
+  -- pointwise over stages (a setoid), so uniqueness of the mediating
+  -- morphism needs no function extensionality and no K.
+  --
+  -- 极限顶点
+  --
+  -- 每个全局 id 处阶段标签的相容族。相等按阶段逐点给出（一个 setoid），
+  -- 故 mediate 态射的唯一性既不需函数外延性也不用 K。
   record LimLabel (v : ℕ) : Set ℓ where
     field
       at  : (m : ℕ) → L m v
@@ -229,7 +245,9 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     ; ≈A₀ = apex≈
     }
 
-  -- Projection legs: read the stage-m component of the compatible family.
+  -- Projection legs: read the stage-m component of the compatible
+  -- family.
+  --
   -- 投影锥腿：读取相容族的阶段 m 分量。
   projLeg : (m : ℕ) → Idx⇒ s apexLS (stageLS m)
   projLeg m = record
@@ -238,6 +256,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     }
 
   -- Limit cone coherence: resIdx m ∘ projLeg (m+1) ≈ projLeg m.
+  --
   -- 极限锥相干：resIdx m ∘ projLeg (m+1) ≈ projLeg m。
   cone-coh : (m : ℕ)
     → _≈i_ s (compi s (resIdx m) (projLeg (suc m))) (projLeg m)
@@ -248,12 +267,15 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       (λ v a → coh a m)
 
   ----------------------------------------------------------------------
-  -- The cochain is the ω-chain functor on the opposite shape category:
-  -- an ω^op arrow m→n is a forward path Chain⇒ n m, mapped to iterated
+  -- The cochain is the ω-chain functor on the opposite shape category
+  --
+  -- An ω^op arrow m→n is a forward path Chain⇒ n m, mapped to iterated
   -- restrictions from stage m down to stage n.
   --
-  -- 余链即对偶形状范畴上的 ω 链函子：ω^op 箭头 m→n 是一条前向路径
-  -- Chain⇒ n m，被映为从阶段 m 向下到阶段 n 的迭代限制。
+  -- 余链即对偶形状范畴上的 ω 链函子
+  --
+  -- ω^op 箭头 m→n 是一条前向路径 Chain⇒ n m，被映为从阶段 m 向下到
+  -- 阶段 n 的迭代限制。
   private
     cat = SameIndexCat s {ℓ = ℓ}
 
@@ -277,12 +299,14 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       ∘-resp-≈i s {ℓ = ℓ} {F₁ = F₁} {F₂ = F₂} {G₁ = G₁} {G₂ = G₂} p q
 
   -- Iterated restriction along a backward path.
+  --
   -- 沿反向路径迭代限制。
   fold-res : {n m : ℕ} → Chain⇒ n m → Idx⇒ s (stageLS m) (stageLS n)
   fold-res stop            = idxi s (stageLS _)
   fold-res (step {n = k} p) = compi s (fold-res p) (resIdx k)
 
   -- Folding a composite path is composing the folded restrictions.
+  --
   -- 折叠复合路径等于复合折叠后的限制。
   fold-res-comp : {x y z : ℕ} (f : Chain⇒ y x) (g : Chain⇒ z y)
     → _≈i_ s (fold-res (f SQC.∘ch g))
@@ -329,6 +353,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     }
 
   -- Path-level cone coherence: F₁ p ∘ projLeg m ≈ projLeg n.
+  --
   -- 路径级锥相干：F₁ p ∘ projLeg m ≈ projLeg n。
   projPath : {n m : ℕ} (p : Chain⇒ n m)
     → _≈i_ s (compi s (fold-res p) (projLeg m)) (projLeg n)
@@ -351,6 +376,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
   open import Categories.Diagram.Cone cochainFun
 
   -- The limit cone: apex LimLabel, projections projLeg.
+  --
   -- 极限锥：顶点 LimLabel，投影 projLeg。
   nCone : Cone
   nCone = record
@@ -361,17 +387,22 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     }
 
   ----------------------------------------------------------------------
-  -- Pointwise (strong) pull limit. Cone coherence is a pointwise head
-  -- equation, readable at a single label: no total tree, no transport.
-  -- The compatible-family apex is terminal among such cones; mediator
-  -- uniqueness is the pointwise apex setoid (no function extensionality).
+  -- Pointwise (strong) pull limit
   --
-  -- 逐点（强）pull 极限。锥相干是逐点头部等式，可在单个标签处读出，无需
-  -- 全总树、无传输。相容族顶点在此类锥中终；mediate 唯一性为顶点逐点
-  -- setoid（无需函数外延）。
+  -- Cone coherence is a pointwise head equation, readable at a single
+  -- label: no total tree, no transport. The compatible-family apex is
+  -- terminal among such cones; mediator uniqueness is the pointwise
+  -- apex setoid (no function extensionality).
+  --
+  -- 逐点（强）pull 极限
+  --
+  -- 锥相干是逐点头部等式，可在单个标签处读出，无需全总树、无传输。
+  -- 相容族顶点在此类锥中终；mediate 唯一性为顶点逐点 setoid（无需函数
+  -- 外延）。
   module PLimit where
 
     -- A pointwise pull cone over N.
+    --
     -- N 上的逐点 pull 锥。
     record PCone (N : LabelSys ℓ) : Set (lsuc ℓ) where
       field
@@ -382,6 +413,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     open PCone public
 
     -- Pointwise head equality of two identity-index morphisms.
+    --
     -- 两个同索引态射的逐点头部相等。
     _≈h_ : {X Y : LabelSys ℓ} (f g : Idx⇒ s X Y) → Set ℓ
     _≈h_ {X = X} f g =
@@ -389,6 +421,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       → Idx⇒.shape f v a ≡ Idx⇒.shape g v a
 
     -- The canonical pointwise limit cone.
+    --
     -- 规范逐点极限锥。
     nPCone : PCone apexLS
     nPCone = record
@@ -397,6 +430,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       }
 
     -- Leg heads form a compatible family, hence a mediator into apex.
+    --
     -- 各腿头部构成相容族，从而给出进入顶点的 mediate。
     mediate : {N : LabelSys ℓ} (K : PCone N) → Idx⇒ s N apexLS
     mediate K = record
@@ -409,12 +443,14 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       }
 
     -- Factorisation: projLeg m ∘ mediate ≈h ψ K m, definitionally.
+    --
     -- 因子分解：projLeg m ∘ mediate 逐点等于 ψ K m，定义性成立。
     triangle : {N : LabelSys ℓ} (K : PCone N) (m : ℕ)
              → _≈h_ (compi s (projLeg m) (mediate K)) (ψ K m)
     triangle K m v a = refl
 
     -- Uniqueness in the pointwise apex setoid.
+    --
     -- 顶点逐点 setoid 下的唯一性。
     unique : {N : LabelSys ℓ} (h : Idx⇒ s N apexLS) (K : PCone N)
            → ((m : ℕ) → _≈h_ (compi s (projLeg m) h) (ψ K m))
@@ -436,20 +472,24 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     cone-thread K v a = Idx⇒.shape (mediate K) v a
 
   ----------------------------------------------------------------------
-  -- Pull dual obstruction (negative). If the root 0 has no compatible
-  -- thread through the tower, the bisimulation limit cone is not
-  -- terminal. Take a dead apex labelled only at 0 (everywhere else
-  -- empty). No total label-tree is rooted anywhere, so the bisimulation
-  -- cone commute is vacuously true regardless of the leg heads; yet a
-  -- mediator into the limit apex would have to produce a LimLabel at 0,
-  -- which is empty. Hypotheses: every stage is inhabited at 0, the
-  -- dynamics leaves 0, and no compatible thread exists there.
+  -- Pull dual obstruction (negative)
   --
-  -- pull 对偶障碍（否定性）。若根 0 没有穿过塔的相容线程，则双模拟极限
-  -- 锥非终。取仅在 0 有标签（余处皆空）的死顶点：任何地方都没有全总标签
-  -- 树，故双模拟锥相干与腿头部无关地空洞成立；但进入极限顶点的
-  -- mediate 必须在 0 处给出 LimLabel，而其为空。假设：各阶段在 0 处有人、
-  -- 动力离开 0、该处无相容线程。
+  -- If the root 0 has no compatible thread through the tower, the
+  -- bisimulation limit cone is not terminal. Take a dead apex labelled
+  -- only at 0 (everywhere else empty). No total label-tree is rooted
+  -- anywhere, so the bisimulation cone commute is vacuously true
+  -- regardless of the leg heads; yet a mediator into the limit apex
+  -- would have to produce a LimLabel at 0, which is empty. Hypotheses:
+  -- every stage is inhabited at 0, the dynamics leaves 0, and no
+  -- compatible thread exists there.
+  --
+  -- pull 对偶障碍（否定性）
+  --
+  -- 若根 0 没有穿过塔的相容线程，则双模拟极限锥非终。取仅在 0 有标签
+  -- （余处皆空）的死顶点：任何地方都没有全总标签树，故双模拟锥相干与腿
+  -- 头部无关地空洞成立；但进入极限顶点的 mediate 必须在 0 处给出
+  -- LimLabel，而其为空。假设：各阶段在 0 处有人、动力离开 0、该处无
+  -- 相容线程。
   module NoThreadObstruction
     (b     : (m : ℕ) → L m 0)
     (d0≢0  : s 0 ≢ 0)
@@ -457,12 +497,14 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     where
 
     -- Fibre of the dead apex: inhabited only at 0.
+    --
     -- 死顶点的纤维：仅在 0 处有人。
     deadA : ℕ → Set ℓ
     deadA zero    = ⊤ {ℓ}
     deadA (suc _) = ⊥ {ℓ}
 
     -- Dead apex: labelled only at 0.
+    --
     -- 死顶点：仅在 0 处有标签。
     Ndead : LabelSys ℓ
     Ndead = record
@@ -477,6 +519,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     noA0 (suc _) _ ()
 
     -- No total label-tree is rooted at any index.
+    --
     -- 任何索引处都没有全总标签树。
     no-tree : (w : ℕ) → M (A sysN) (E sysN) w → ⊥ {ℓ}
     no-tree zero t =
@@ -484,6 +527,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
     no-tree (suc _) t = ⊥-elim (M.here t)
 
     -- Leg heads exist at 0 (b) and are impossible elsewhere.
+    --
     -- 腿头部在 0 处为 b，余处不可能。
     legShape : (m w : ℕ) → deadA w → L m w
     legShape m zero tt = b m
@@ -499,12 +543,14 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
 
     -- Any two morphisms out of the dead apex are bisimulation-equal,
     -- since the pointwise quantification is over no trees.
+    --
     -- 从死顶点出发的任意两个态射互模拟相等，因逐点量化的树集为空。
     vacuous-i : {Y : LabelSys ℓ} (f g : Idx⇒ s Ndead Y) → _≈i_ s f g
     vacuous-i f g w t with no-tree w t
     ... | ()
 
     -- A perfectly valid bisimulation cone over the dead apex.
+    --
     -- 死顶点上完全合法的双模拟锥。
     deadCone : Cone
     deadCone = record
@@ -517,6 +563,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
 
     -- No mediator from the dead cone into the canonical limit cone:
     -- its head at 0 would be a compatible thread, assumed absent.
+    --
     -- 不存在从死锥到规范极限锥的 mediate：其在 0 处的头部将是一条相容
     -- 线程，而假设其不存在。
     no-mediate : Cone⇒ deadCone nCone → ⊥ {ℓ}
@@ -525,20 +572,25 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
         (no-thread (Idx⇒.shape (Cone⇒.arr mk) 0 tt))
 
   ----------------------------------------------------------------------
-  -- Standard limit, conditionally. A bisimulation cone whose apex
-  -- carries a total label-tree at every label admits a unique Cone⇒
-  -- into the canonical limit cone. The ray is needed only to read the
-  -- pointwise head coherence off the bisimulation commute; the
-  -- factorisation and uniqueness then lift by pointwise-i (no ray).
+  -- Standard limit, conditionally
   --
-  -- 条件性标准极限。若一个双模拟锥的顶点在每个标签处都带一棵全总标签
-  -- 树，则存在进入规范极限锥的唯一 Cone⇒。射线仅用于从双模拟 commute 读出
-  -- 逐点头部相干；因子分解与唯一性随后由 pointwise-i 提升（无需射线）。
+  -- A bisimulation cone whose apex carries a total label-tree at every
+  -- label admits a unique Cone⇒ into the canonical limit cone. The ray
+  -- is needed only to read the pointwise head coherence off the
+  -- bisimulation commute; the factorisation and uniqueness then lift by
+  -- pointwise-i (no ray).
+  --
+  -- 条件性标准极限
+  --
+  -- 若一个双模拟锥的顶点在每个标签处都带一棵全总标签树，则存在进入规范
+  -- 极限锥的唯一 Cone⇒。射线仅用于从双模拟 commute 读出逐点头部相干；
+  -- 因子分解与唯一性随后由 pointwise-i 提升（无需射线）。
   module StandardLimit where
 
     open PLimit
 
     -- The op-arrow from stage m+1 back to stage m.
+    --
     -- 从阶段 m+1 回到阶段 m 的 op 箭头。
     private res-arrow : ∀ {m} → SQC.Chain⇒ m (suc m)
             res-arrow = SQC.step SQC.stop
@@ -555,6 +607,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
 
       -- Move a head equation from the tree root M.here (tree v a) to
       -- the prescribed label a along the root equation.
+      --
       -- 沿根等式把头部等式从树根 M.here (tree v a) 搬到指定标签 a。
       private
         relocate : {Q : Set ℓ} (v : ℕ)
@@ -567,6 +620,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
                 (trans h0 (cong g (tree-here v a)))
 
       -- Read the restriction coherence as a head equation.
+      --
       -- 将限制相干读为头部等式。
       kcoh : (m : ℕ) (v : ℕ) (a : LabelSys.A₀ Nk v)
            → l-proj m v (Idx⇒.shape (ψk (suc m)) v a)
@@ -583,6 +637,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
       Kpc = record { ψ = ψk ; coh = kcoh }
 
       -- The unique mediator and its cone factorisation.
+      --
       -- 唯一 mediate 及其锥因子分解。
       mediate-i : Idx⇒ s Nk apexLS
       mediate-i = mediate Kpc
@@ -596,6 +651,7 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
         }
 
       -- Any other mediator is bisimulation-equal to mediate-i.
+      --
       -- 任何其他 mediate 与 mediate-i 互模拟相等。
       !K-unique : (h : Cone⇒ K nCone)
                 → _≈i_ s (Cone⇒.arr h) mediate-i
@@ -608,4 +664,3 @@ module PullTower {ℓ : Level} (T : LabeledInverseTower ℓ) where
                 (Idx⇒.shape (ψk X) v) a
                 (_≈Mˢ_.here-eq
                   (Cone⇒.commute h {X = X} v (tree v a)))))
-

@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Classical weighted edge families: stochastic kernels and composition.
+-- Classical weighted edge families: stochastic kernels and composition
 --
 -- A Kernel m n maps each input to every outcome carrying a rational
 -- weight, with each column summing to one. Composition is the classical
@@ -13,7 +13,7 @@
 -- orthogonality of columns. That hypothesis is not assumed here; the
 -- classical law below needs no such assumption.
 --
--- 经典带权边族：随机核及其复合。
+-- 经典带权边族：随机核及其复合
 --
 -- Kernel m n 把每个输入送到所有结果并携带有理权重，每列权重和为一。
 -- 复合遵循经典（L1）规则：两步路径上权重相乘，对中间结果求和。仅用
@@ -41,11 +41,12 @@ open import ALMA.Physics.Quantum.FiniteVec using (sumFin; sumFin-cong)
 
 ------------------------------------------------------------------------
 -- Finite-sum algebra over ℚ
+--
 -- ℚ 上的有限和代数
-------------------------------------------------------------------------
 
 private
   -- The sum of the constant-zero family is zero.
+  --
   -- 常零族之和为零。
   sumFin-zero : ∀ n → sumFin {n} (λ (_ : Fin n) → 0ℚ) ≡ 0ℚ
   sumFin-zero Nat.zero    = refl
@@ -57,6 +58,7 @@ private
     0ℚ ∎
 
   -- (a + b) + (c + d) = (a + c) + (b + d).
+  --
   -- 加法交叉重排。
   +-interchange : ∀ a b c d → (a + b) + (c + d) ≡ (a + c) + (b + d)
   +-interchange a b c d = let open ≡-Reasoning in begin
@@ -73,6 +75,7 @@ private
     (a + c) + (b + d) ∎
 
   -- Pointwise addition lifts to sums.
+  --
   -- 逐点加法提升至求和。
   sumFin-+ : ∀ {n} (g h : Fin n → ℚ) →
              sumFin (λ i → g i + h i) ≡ sumFin g + sumFin h
@@ -87,6 +90,7 @@ private
     (g zero + sumFin (g ∘ suc)) + (h zero + sumFin (h ∘ suc)) ∎
 
   -- A constant factor pulls out of a sum.
+  --
   -- 常数因子提出求和号。
   sumFin-*ˡ : ∀ {n} (c : ℚ) (f : Fin n → ℚ) →
               sumFin (λ i → c * f i) ≡ c * sumFin f
@@ -99,6 +103,7 @@ private
     c * (f zero + sumFin (f ∘ suc)) ∎
 
   -- Finite double sums interchange: Σ_i Σ_k a i k = Σ_k Σ_i a i k.
+  --
   -- 有限双重求和可交换：Σ_i Σ_k a i k = Σ_k Σ_i a i k。
   sumFin-comm : ∀ {m p} (a : Fin m → Fin p → ℚ) →
                 sumFin (λ i → sumFin (λ k → a i k)) ≡
@@ -114,23 +119,31 @@ private
 
 ------------------------------------------------------------------------
 -- Stochastic kernels
+--
 -- 随机核
-------------------------------------------------------------------------
 
--- A kernel from n inputs to m outcomes: cell i j is the weight of
--- outcome i for input j, and every column sums to one.
--- 从 n 个输入到 m 个结果的随机核：cell i j 是输入 j 得结果 i 的权重，
--- 每列和为一。
+-- A kernel from n inputs to m outcomes
+--
+-- cell i j is the weight of outcome i for input j, and every column sums
+-- to one.
+--
+-- 从 n 个输入到 m 个结果的随机核
+--
+-- cell i j 是输入 j 得结果 i 的权重，每列和为一。
 record Kernel (m n : ℕ) : Set where
   field
     cell   : Fin m → Fin n → ℚ
     totals : (j : Fin n) → sumFin (λ i → cell i j) ≡ 1ℚ
 open Kernel
 
--- Kernel composition: V (n→p) followed by U (p→m) yields a kernel
--- n→m whose cell sums over the shared intermediate index k.
--- 随机核复合：V（n→p）后接 U（p→m）得 n→m 的核，其格子对共享中间
--- 指标 k 求和。
+-- Kernel composition
+--
+-- V (n→p) followed by U (p→m) yields a kernel n→m whose cell sums over
+-- the shared intermediate index k.
+--
+-- 随机核复合
+--
+-- V（n→p）后接 U（p→m）得 n→m 的核，其格子对共享中间指标 k 求和。
 comp : ∀ {m p n} → Kernel p n → Kernel m p → Kernel m n
 comp {m} {p} {n} V U = record
   { cell   = λ i j → sumFin (λ k → cell U i k * cell V k j)
@@ -141,8 +154,8 @@ comp {m} {p} {n} V U = record
 
   -- For a fixed intermediate k, pull the V-weight out of the sum over
   -- outcomes and use that column k of U sums to one.
-  -- 固定中间结果 k，把 V 的权重提出对结果的求和，并用 U 的第 k 列
-  -- 和为一。
+  --
+  -- 固定中间结果 k，把 V 的权重提出对结果的求和，并用 U 的第 k 列和为一。
   inner : ∀ (j : Fin n) (k : Fin p) →
           sumFin (λ i → cell U i k * cell V k j) ≡ cell V k j
   inner j k = begin

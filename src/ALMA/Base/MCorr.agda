@@ -1,10 +1,13 @@
 ------------------------------------------------------------------------
--- Indexed M-types and carried functional correspondences
--- Subst-free edge-family presentation, yielding the category MCorrCat
--- of edge-indexed M-types and deterministic correspondences.
+-- E-M-types: indexed M-types over an edge family
 --
--- 索引 M 型与携带式功能对应
--- 零 subst 边族表示，导出边索引 M 型与确定性对应的范畴 MCorrCat。
+-- Carried functional correspondences on this indexed M-type, presented
+-- subst-free over an edge family, form the category MCorrCat of
+-- E-M-types and deterministic correspondences.
+--
+-- E-M 型：边族上的索引 M 型
+--
+-- 携带式功能对应，零 subst 边族表示，导出 E-M 型与确定性对应的范畴 MCorrCat。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -22,8 +25,13 @@ open import Relation.Binary.Structures using (IsEquivalence)
 open import Categories.Category.Core using (Category)
 
 ------------------------------------------------------------------------
--- Edge-family indexed M-type
--- 边族索引 M 型
+-- E-M-types: Indexed M-types over an edge family
+--
+-- Indexed by the vertex set I; parameterised by the edge family E.
+--
+-- E-M 型：边族上的索引 M 型
+--
+-- 以顶点集 I 为索引、以边族 E 为参数。
 
 record M {i a b : Level} {I : Set i}
          (A : I → Set a)
@@ -37,6 +45,7 @@ open M public
 
 ------------------------------------------------------------------------
 -- Fibre adjunction between homogeneous edge sets
+--
 -- 同质边集间的纤维伴随
 
 record FiberAdj {ℓp ℓr : Level} (P : Set ℓp) (R : Set ℓr)
@@ -53,6 +62,7 @@ open FiberAdj public
 
 ------------------------------------------------------------------------
 -- Identity and composition of fibre adjunctions
+--
 -- 纤维伴随的恒等与复合
 
 idAdj : ∀ {ℓ : Level} (P : Set ℓ) → FiberAdj P P
@@ -74,6 +84,7 @@ compAdj R G H a₁ a₂ = record
 
 ------------------------------------------------------------------------
 -- Coinductive bisimulation at the same index
+--
 -- 同一索引处的余归纳互模拟
 
 record _≈M_ {i a b : Level} {I : Set i} {A : I → Set a}
@@ -101,6 +112,7 @@ open _≈M_
 
 ------------------------------------------------------------------------
 -- Children along homogeneously equal edges in the same fibre
+--
 -- 同一纤维内同质相等边上的子树
 
 edge-≈ : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
@@ -133,6 +145,7 @@ edge-≈ u {e = z} {e' = .z} refl = ≈M-refl (below u _ z)
 
 ------------------------------------------------------------------------
 -- One-step functional correspondence over an index layer R
+--
 -- 索引层 R 上的一步功能对应
 
 record Step {i j a b c d ℓr : Level}
@@ -146,11 +159,15 @@ record Step {i j a b c d ℓr : Level}
        : Set (i ⊔ j ⊔ a ⊔ b ⊔ c ⊔ d ⊔ ℓr) where
   field
     shapeᴿ : A x → C y
+
     -- Canonical source child of target child v, edge-independent.
+    --
     -- 目标子节点 v 的规范源子节点，与边无关。
     child : (a : A x) (v : J) → Σ I λ x' → R x' v
+
     -- Whole-fibre adjunction at the canonical child; fro is the edge
     -- pullback.
+    --
     -- 规范子节点上的整纤维伴随；fro 即边拉回。
     edge-adj : (a : A x) (v : J)
              → FiberAdj (D y (shapeᴿ a) v)
@@ -165,6 +182,7 @@ open Step public
 
 ------------------------------------------------------------------------
 -- Morphism and subst-free tree action
+--
 -- 态射与零 subst 树作用
 
 record Morph {i j a b c d ℓr : Level}
@@ -181,7 +199,9 @@ record Morph {i j a b c d ℓr : Level}
 
   mapR : ∀ {x : I} {y : J} → R x y → M A E x → M C D y
   mapR r t .here   = shapeᴿ (step r) (here t)
+
   -- `let` (not `with`) keeps the continuation definitionally unfolding.
+  --
   -- 用 `let`（非 `with`）保持连续化定义性展开。
   mapR r t .below v q =
     let x' , e , r' = pull (step r) (here t) v q
@@ -190,6 +210,7 @@ open Morph public
 
 ------------------------------------------------------------------------
 -- Relational composition of index layers
+--
 -- 索引层的关系复合
 
 infixr 9 _⍮_
@@ -201,6 +222,7 @@ _⍮_ : ∀ {i j k ℓ₁ ℓ₂ : Level}
 
 ------------------------------------------------------------------------
 -- Composition of carried correspondences
+--
 -- 携带式对应的复合
 
 compM :
@@ -233,6 +255,7 @@ compM {E = E} {D = D} {F = F} φ ψ .step {x = x} {y = z} (ym , r , s) =
 
 ------------------------------------------------------------------------
 -- Free path-groupoid instance
+--
 -- 自由路径广群实例
 
 idM : ∀ {i a b : Level} {I : Set i}
@@ -252,6 +275,7 @@ idM-edge-adj {E = E} {x₁ = z} {x₀ = .z} a refl = idAdj (E _ a z)
 
 ------------------------------------------------------------------------
 -- Bundled edge-family system
+--
 -- 束装的边族系统
 
 record Sys (i a b : Level) : Set (lsuc (i ⊔ a ⊔ b)) where
@@ -263,6 +287,7 @@ open Sys public
 
 ------------------------------------------------------------------------
 -- Deterministic carried morphism
+--
 -- 确定性携带态射
 
 record FMap {i j a b c d : Level}
@@ -271,18 +296,24 @@ record FMap {i j a b c d : Level}
   field
     u     : I X → I Y
     shape : (x : I X) → A X x → A Y (u x)
+
     -- Canonical source child of target child v, edge-independent,
     -- carrying the graph witness u x' ≡ v.
+    --
     -- 目标子节点 v 的规范源子节点，与边无关，携带图见证 u x' ≡ v。
     childF : (x : I X) (a : A X x) (v : I Y)
            → Σ (I X) λ x' → u x' ≡ v
+
     -- Whole-fibre adjunction at the canonical child.
+    --
     -- 规范子节点上的整纤维伴随。
     adjF  : (x : I X) (a : A X x) (v : I Y)
           → FiberAdj (E Y (u x) (shape x a) v)
                      (E X x a (proj₁ (childF x a v)))
+
     -- Index-layer coherence: carries both the child-index equation d
     -- and the witness compatibility r₁ ≡ trans (cong u d) r₀.
+    --
     -- 索引层相干性：同时携带子索引等式 d 与见证相容性
     -- r₁ ≡ trans (cong u d) r₀。
     childF-coh : (x : I X) {a a' : A X x} (e : a ≡ a') (v : I Y)
@@ -311,6 +342,7 @@ open FMap public
 
 ------------------------------------------------------------------------
 -- Identity and composition
+--
 -- 恒等与复合
 
 idF : ∀ {i a b : Level} (X : Sys i a b) → FMap X X
@@ -347,6 +379,7 @@ compF {X = X} {Y = Y} {Z = Z} g f = record
 
     -- Same canonical decomposition as childcomp, so its fro is
     -- definitionally the two-stage pullback used by nested mapR.
+    --
     -- 与 childcomp 采用相同规范分解，故其 fro 定义性等于嵌套 mapR
     -- 的两段边拉回。
     adjcomp : (x : I X) (a : A X x) (w : I Z)
@@ -370,6 +403,7 @@ compF {X = X} {Y = Y} {Z = Z} g f = record
 
 ------------------------------------------------------------------------
 -- Subst-free relocation
+--
 -- 零 subst 重定位
 
 relocate : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
@@ -379,6 +413,7 @@ relocate {A = A} {E = E} refl t = t
 
 ------------------------------------------------------------------------
 -- Behavioural equivalence
+--
 -- 行为等价
 
 _≈F_ : ∀ {i j a b c d : Level}
@@ -392,6 +427,7 @@ _≈F_ {X = X} {Y = Y} f g =
 
 ------------------------------------------------------------------------
 -- Relocation along refl is the identity up to bisimulation
+--
 -- 沿 refl 重定位在互模拟意义下是恒等
 
 mutual
@@ -420,6 +456,7 @@ mutual
 
 ------------------------------------------------------------------------
 -- Groupoid action of relocation
+--
 -- 重定位的广群作用
 
 ≈rel-resp : ∀ {i a b : Level} {I : Set i} {A : I → Set a}
@@ -493,6 +530,7 @@ rel-child-nat {E = E} {x = x} {x₁ = z} {x₀ = .z} u refl e0 =
 
 ------------------------------------------------------------------------
 -- Coinductive fusion
+--
 -- 余归纳融合
 
 module Fusion {i j k a b c d e fℓ : Level}
@@ -550,6 +588,7 @@ module Fusion {i j k a b c d e fℓ : Level}
 
 ------------------------------------------------------------------------
 -- Consequences of fusion
+--
 -- 融合的推论
 
 mapF-comp : ∀ {i j k a b c d e fℓ : Level}
@@ -581,6 +620,7 @@ mutual
 
 ------------------------------------------------------------------------
 -- Congruence of the deterministic tree action
+--
 -- 确定性树作用的同余
 
 module Cong {i j a b c d : Level}
@@ -610,6 +650,7 @@ module Cong {i j a b c d : Level}
 
     -- The two directions are a mutual pair; each child calls the
     -- matching direction bare (never wrapped by ≈M-sym).
+    --
     -- 两方向构成互逆对；每个子节点裸调用匹配方向（不被 ≈M-sym 包裹）。
     mapR-cross : ∀ {x₁ x₀ : I X} {v : I Y}
                    (d : x₁ ≡ x₀) (r₀ : uf x₀ ≡ v)
@@ -642,6 +683,7 @@ module Cong {i j a b c d : Level}
     -- Fused congruence engine. All index equations are J-eliminated
     -- up front; the ascribed copy h' forces the refl conversion once
     -- at tree level. Each output child is one bare gow / gow˘ call.
+    --
     -- 融合同余引擎。所有索引等式前端 J 消去；带类型标注的副本 h' 在
     -- 树层级强制一次 refl 转换。每个输出子节点恰为一次裸 gow / gow˘
     -- 调用。
@@ -824,6 +866,7 @@ module Cong {i j a b c d : Level}
 
 ------------------------------------------------------------------------
 -- Composition respects behavioural equivalence
+--
 -- 复合同余于行为等价
 
 trans-refl-≡ : ∀ {ℓ} {A : Set ℓ} {x y : A} (p : x ≡ y)
@@ -870,6 +913,7 @@ trans-refl-≡ refl = refl
 
 ------------------------------------------------------------------------
 -- Category laws
+--
 -- 范畴定律
 
 assoc-f : ∀ {i a b : Level} {W X Y Z : Sys i a b}
@@ -910,6 +954,7 @@ identity²-f {X = X} = identityˡ-f (idF X)
 
 ------------------------------------------------------------------------
 -- The category MCorrCat
+--
 -- 范畴 MCorrCat
 
 MCorrCat : (i a b : Level)

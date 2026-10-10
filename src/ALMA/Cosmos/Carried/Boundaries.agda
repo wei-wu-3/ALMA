@@ -1,24 +1,16 @@
 ------------------------------------------------------------------------
--- Machine-checked negative results for the carried FinCat colimit.
--- Three object-level boundaries:
+-- Machine-checked negative results for the carried FinCat colimit
 --
---   (1) inject₁ is injective but not surjective: the new top of
---       Fin (n-at (suc m)) has no preimage in Fin (n-at m).
---   (2) Every carried FMap has a surjective index map, since childF
---       asks for a source preimage of every target index; hence no
---       FMap between consecutive trivial stages has index map inject₁.
---   (3) The total clamp saturates: suc k and suc (suc k) map to the
---       same Fin top, so it is not injective.
+-- Three object-level boundaries: inject₁ is injective but not
+-- surjective; every carried FMap has a surjective index map, so no FMap
+-- between consecutive trivial stages has index map inject₁; and the
+-- total clamp saturates and is therefore not injective.
 --
--- 携带式 FinCat 余极限的机检否定结果。三条对象层边界：
+-- 携带式 FinCat 余极限的机检否定结果
 --
---   (1) inject₁ 单射但非满射：Fin (n-at (suc m)) 的新末位在
---       Fin (n-at m) 中无原像。
---   (2) 每个携带式 FMap 的索引映射必满，因 childF 对每个目标索引
---       都要求源原像；故相邻平凡层之间不存在索引映射为 inject₁ 的
---       FMap。
---   (3) 全函数 clamp 饱和：suc k 与 suc (suc k) 送到同一 Fin 末位，
---       故非单射。
+-- 三条对象层边界：inject₁ 单射但非满射；每个携带式 FMap 的索引映射
+-- 必满，故相邻平凡层之间不存在索引映射为 inject₁ 的 FMap；全函数
+-- clamp 饱和，因而非单射。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -48,6 +40,7 @@ open import ALMA.Cosmos.Carried.FinProj using (clamp; clamp-val)
 
 ------------------------------------------------------------------------
 -- Surjectivity of a plain function
+--
 -- 普通函数的满射性
 
 Surjective : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
@@ -55,10 +48,13 @@ Surjective f = ∀ y → Σ _ λ x → f x ≡ y
 
 ------------------------------------------------------------------------
 -- The new top has no preimage under inject₁
+--
 -- The claimed equality forces toℕ x ≡ n-at m, while x being a position
 -- of stage m gives toℕ x < n-at m; <⇒≢ is irreflexivity as a function
 -- of the equality.
+--
 -- 新末位在 inject₁ 下无原像
+--
 -- 所声称的等式迫使 toℕ x ≡ n-at m，而 x 是第 m 层位置给出
 -- toℕ x < n-at m；<⇒≢ 即以等式为参数的反自反性。
 
@@ -77,11 +73,14 @@ inject₁-notSurj m surj with surj (fromℕ (n-at m))
 
 ------------------------------------------------------------------------
 -- Every FMap has a surjective index map
+--
 -- childF returns a source index x' together with the graph witness
 -- u x' ≡ v, i.e. a chosen preimage of v; a pointed source suffices.
+--
 -- 每个 FMap 的索引映射都满
--- childF 返回源索引 x' 与图见证 u x' ≡ v，即 v 的一个选定原像；
--- 只需源端带点。
+--
+-- childF 返回源索引 x' 与图见证 u x' ≡ v，即 v 的一个选定原像；只需
+-- 源端带点。
 
 FMap-u-surjective
   : ∀ {i j a b c d} {X : Sys i a b} {Y : Sys j c d}
@@ -90,9 +89,11 @@ FMap-u-surjective
 FMap-u-surjective f x₀ a₀ v = FMap.childF f x₀ a₀ v
 
 -- No FMap between consecutive trivial stages has index map inject₁:
--- childF would supply a preimage of the new top, impossible by (1).
--- 相邻平凡层之间不存在索引映射为 inject₁ 的 FMap：childF 必须为新
--- 末位提供原像，而 (1) 表明这不可能。
+-- childF would supply a preimage of the new top, impossible by the
+-- previous section.
+--
+-- 相邻平凡层之间不存在索引映射为 inject₁ 的 FMap：childF 必须为新末位
+-- 提供原像，而上一节表明这不可能。
 module _ (m : ℕ)
          (tm : Fin (n-at m) → Fin (n-at m))
          (ts : Fin (n-at (suc m)) → Fin (n-at (suc m)))
@@ -110,8 +111,11 @@ module _ (m : ℕ)
 
 ------------------------------------------------------------------------
 -- clamp saturates and is therefore not injective
+--
 -- clamp {k} fixes every x ≥ k to the top fromℕ k.
+--
 -- clamp 饱和，因而非单射
+--
 -- clamp {k} 把每个 x ≥ k 固定为末位 fromℕ k。
 
 private
@@ -124,6 +128,7 @@ private
                  (sym (toℕ-fromℕ k)))))
 
 -- Two distinct naturals that clamp identifies.
+--
 -- 被 clamp 等同的两个不同自然数。
 clamp-collapses : ∀ (k : ℕ)
   → Σ ℕ λ x → Σ ℕ λ y
@@ -133,6 +138,7 @@ clamp-collapses k =
   where
     -- n ≡ suc n is impossible: n<1+n gives n < suc n, and <⇒≢ is
     -- irreflexivity as a function of the equality.
+    --
     -- n ≡ suc n 不可能：n<1+n 给 n < suc n，<⇒≢ 即以等式为参数的反
     -- 自反性。
     neq-refl : ∀ n → n ≡ suc n → ⊥

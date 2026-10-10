@@ -1,12 +1,15 @@
 ------------------------------------------------------------------------
--- Local charts as a LayeredEqGen instance, single-directional.
--- ManifoldStructure carries single-directional support inclusion
--- under restriction, matching standard manifolds; consequently
--- ManifoldEq is a preorder, not an equivalence relation.
+-- Local charts as a LayeredEqGen instance
 --
--- 局部坐标卡作为 LayeredEqGen 实例，单向。
--- ManifoldStructure 携带限制下的单向支撑包含，匹配标准流形；
--- 因此 ManifoldEq 是预序，不是等价关系。
+-- The construction is single-directional: ManifoldStructure carries
+-- support inclusion under restriction in one direction only, matching
+-- standard manifolds; consequently ManifoldEq is a preorder, not an
+-- equivalence relation.
+--
+-- 局部坐标卡作为 LayeredEqGen 实例
+--
+-- 该构造是单向的：ManifoldStructure 仅单向携带限制下的支撑包含，
+-- 匹配标准流形；因此 ManifoldEq 是预序，不是等价关系。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -34,6 +37,7 @@ open import ALMA.Base.Equivalence.Properties using (module LayeredEqGen-Properti
 
 ------------------------------------------------------------------------
 -- Manifold structure with local charts
+--
 -- 带局部坐标卡的流形结构
 
 record ManifoldStructure {a} (X : Set a) : Set (lsuc a) where
@@ -45,6 +49,7 @@ record ManifoldStructure {a} (X : Set a) : Set (lsuc a) where
     restrict : (x : X) (c : Chart x) (y : X) (h : Support x c y) → Chart y
 
     -- Single-directional support inclusion under restriction.
+    --
     -- 限制下的单向支撑包含。
     support-mono
       : (x y : X) (c : Chart x) (h : Support x c y)
@@ -57,6 +62,7 @@ record ManifoldStructure {a} (X : Set a) : Set (lsuc a) where
         ≡ readout y (restrict x c y h) w hw'
 
     -- Naturality of restriction with respect to layer.
+    --
     -- 限制关于 layer 的自然性。
     layer-preserve
       : (x y : X) (c : Chart x) (d : Chart y)
@@ -71,12 +77,16 @@ record ManifoldStructure {a} (X : Set a) : Set (lsuc a) where
                     ≡ readout pt (restrict y d pt (f pt hpt)) w (f' w hw))
 
 ------------------------------------------------------------------------
--- ManifoldEq as a LayeredEqGen instance: state is a point together
--- with a chart, observation is a point in its support, step restricts
--- the chart, and layer is single-directional coverage with readout
--- agreement.
--- ManifoldEq 作为 LayeredEqGen 的实例：状态是点加坐标卡，观察是支撑
--- 中的点，步进限制坐标卡，layer 是单向覆盖加读出一致。
+-- ManifoldEq as a LayeredEqGen instance
+--
+-- State is a point together with a chart, observation is a point in
+-- its support, step restricts the chart, and layer is
+-- single-directional coverage with readout agreement.
+--
+-- ManifoldEq 作为 LayeredEqGen 的实例
+--
+-- 状态是点加坐标卡，观察是支撑中的点，步进限制坐标卡，
+-- layer 是单向覆盖加读出一致。
 
 module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
   open ManifoldStructure 𝕄
@@ -92,6 +102,7 @@ module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
 
   -- f maps the source support into the target support, preserving
   -- readout.
+  --
   -- f 将源支撑映入目标支撑，保持读数。
   layer : State → State → Set a
   layer (x , c) (y , d) =
@@ -100,6 +111,7 @@ module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
              → readout x c w hw ≡ readout y d w (f w hw))
 
   -- Keeps the point, transports the support proof along the coverage.
+  --
   -- 保持点不变，沿覆盖搬送支撑证明。
   obs-map : (s t : State) → layer s t → Obs s → Obs t
   obs-map (x , c) (y , d) l (w , hw) = (w , proj₁ l w hw)
@@ -129,6 +141,7 @@ module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
 
   -- The composite coverage is definitionally f₂ ∘ f₁, so the equality
   -- is refl.
+  --
   -- 复合覆盖定义上为 f₂ ∘ f₁，故相等为 refl。
   obs-trans-map : ∀ {s t u} (l : layer s t) (m : layer t u) (obs : Obs s)
                 → obs-map t u m (obs-map s t l obs)
@@ -147,6 +160,7 @@ module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
       (λ l m obs → obs-trans-map l m obs)
 
   -- Layer is stable under step, by layer-preserve.
+  --
   -- layer 在 step 下稳定，由 layer-preserve 给出。
   layer-stable
     : ∀ {s t} (l : layer s t) (pt : X)
@@ -156,13 +170,17 @@ module ManifoldEq {a} {X : Set a} (𝕄 : ManifoldStructure X) where
     layer-preserve x y c d f coh pt hpt
 
 ------------------------------------------------------------------------
--- Concrete ℚ instance: charts are open intervals (a, b), support is
--- membership, readout is the identity, and restriction intersects the
--- chart with the unit neighbourhood (y - 1, y + 1) of the restriction
--- point. support-mono is interval inclusion.
--- ℚ 上的具体实例：坐标卡是开区间 (a, b)，支撑是成员关系，读数是恒等，
--- 限制取坐标卡与限制点单位邻域 (y - 1, y + 1) 的交。support-mono 是
--- 区间包含。
+-- Concrete ℚ instance
+--
+-- Charts are open intervals (a, b), support is membership, readout is
+-- the identity, and restriction intersects the chart with the unit
+-- neighbourhood (y - 1, y + 1) of the restriction point.
+-- support-mono is interval inclusion.
+--
+-- ℚ 上的具体实例
+--
+-- 坐标卡是开区间 (a, b)，支撑是成员关系，读数是恒等，限制取坐标卡
+-- 与限制点单位邻域 (y - 1, y + 1) 的交。support-mono 是区间包含。
 
 private
   -1<0 : (- 1ℚ) < 0ℚ
@@ -224,11 +242,15 @@ private
   }
 
 ------------------------------------------------------------------------
--- Obstruction: ManifoldEq is not symmetric on ℚManifold. The chart
--- (0, 1) is contained in (-1, 1) but not vice versa; the witness is
--- w = 0.
--- 障碍：ManifoldEq 在 ℚManifold 上不对称。坐标卡 (0, 1) 包含于
--- (-1, 1)，反之不成立；见证点 w = 0。
+-- Obstruction
+--
+-- ManifoldEq is not symmetric on ℚManifold. The chart (0, 1) is
+-- contained in (-1, 1) but not vice versa; the witness is w = 0.
+--
+-- 障碍
+--
+-- ManifoldEq 在 ℚManifold 上不对称。坐标卡 (0, 1) 包含于 (-1, 1)，
+-- 反之不成立；见证点 w = 0。
 
 module ℚManifoldEqObstruction where
   open ManifoldEq ℚManifold
@@ -251,6 +273,7 @@ module ℚManifoldEqObstruction where
     t = 0ℚ , (- 1ℚ , 1ℚ , -1<1)
 
   -- Coinductive closure of layer-preserve.
+  --
   -- layer-preserve 的余归纳闭包。
   layer→ManifoldEq : ∀ {s t} → layer s t → ManifoldEq s t
   layer→ManifoldEq {s = x , c} {t = y , d} l .Mᵢ.fst = l
@@ -265,6 +288,7 @@ module ℚManifoldEqObstruction where
 
   -- Applying symmetry to Mst would send w = 0 with proof
   -- (-1 < 0, 0 < 1) to a proof of 0 < 0.
+  --
   -- 把对称性应用于 Mst 会把 w = 0 连同证明 (-1 < 0, 0 < 1) 送到
   -- 0 < 0 的证明。
   not-symmetric : ¬ (∀ {s t} → ManifoldEq s t → ManifoldEq t s)

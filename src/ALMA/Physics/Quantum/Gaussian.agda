@@ -1,41 +1,31 @@
 ------------------------------------------------------------------------
--- Quantitative scalar fiber: Gaussian rationals as exact amplitudes.
+-- Quantitative scalar fiber: Gaussian rationals as exact amplitudes
 --
 -- The carried setoid equipment (FiberAdjˢ) moves equivalences between
 -- fibers; it cannot carry a number. Quantum amplitudes and Born
 -- probabilities are quantitative, so the fiber must be extended with a
 -- scalar carrying conjugation and a squared norm. This module fixes an
 -- exact, constructive scalar -- Gaussian rationals ℚ[i] = ℚ × ℚ with
--- i² = -1 -- on which the structural identities hold by ring algebra,
--- with no real analysis and no approximation.
---
---   * conj is complex conjugation; norm² z = (re z)² + (im z)² is the
---     real squared modulus (the Born weight of z).
---   * norm²-mul : |uv|² = |u|²|v|² -- multiplicativity of the modulus,
---     the identity behind probability conservation under unitaries.
---   * norm²-conj : conjugation preserves the modulus.
---   * Unit, unit-norm-mul : unit-modulus phases (norm² = 1) are closed
---     under multiplication, the phase group used by diagonal unitaries.
---
--- All identities are short ring-algebra chains (no reflection tactic),
+-- i² = -1 -- on which the structural identities hold by ring algebra:
+-- conj is complex conjugation; norm² z = (re z)² + (im z)² is the real
+-- squared modulus (the Born weight of z); norm²-mul : |uv|² = |u|²|v|²
+-- is multiplicativity of the modulus, the identity behind probability
+-- conservation under unitaries; norm²-conj says conjugation preserves
+-- the modulus; and Unit, unit-norm-mul say unit-modulus phases
+-- (norm² = 1) are closed under multiplication, the phase group used by
+-- diagonal unitaries. All identities are short ring-algebra chains,
 -- keeping proof terms small under --double-check.
 --
--- 定量标量纤维：高斯有理数作为精确振幅。
+-- 定量标量纤维：高斯有理数作为精确振幅
 --
--- 携带式 setoid 装备（FiberAdjˢ）只在纤维间搬运等价，携带不了数。量子振
--- 幅与 Born 概率是定量的，故纤维必须扩展为携带共轭与平方范数的标量。本模块
--- 取精确、构造性的标量——高斯有理数 ℚ[i] = ℚ × ℚ，i² = -1——结构恒等式由
--- 环代数成立，无需实分析、无近似。
---
---   * conj 为复共轭；norm² z = (re z)² + (im z)² 为实平方模（z 的 Born
---     权重）。
---   * norm²-mul：|uv|² = |u|²|v|²——模的乘法性，幺正下概率守恒背后的恒等
---     式。
---   * norm²-conj：共轭保模。
---   * Unit、unit-norm-mul：单位模相位（norm² = 1）对乘法封闭，即对角幺正
---     所用的相位群。
---
--- 全部恒等式为简短环等式链（不用反射战术），使 --double-check 下证明项保持
+-- 携带式 setoid 装备（FiberAdjˢ）只在纤维间搬运等价，携带不了数。量子
+-- 振幅与 Born 概率是定量的，故纤维必须扩展为携带共轭与平方范数的标量。
+-- 本模块取精确、构造性的标量——高斯有理数 ℚ[i] = ℚ × ℚ，i² = -1——
+-- 结构恒等式由环代数成立：conj 为复共轭；norm² z = (re z)² + (im z)²
+-- 为实平方模（z 的 Born 权重）；norm²-mul：|uv|² = |u|²|v|² 是模的
+-- 乘法性，幺正下概率守恒背后的恒等式；norm²-conj 说共轭保模；Unit、
+-- unit-norm-mul 说单位模相位（norm² = 1）对乘法封闭，即对角幺正所用的
+-- 相位群。全部恒等式为简短环等式链，使 --double-check 下证明项保持
 -- 精小。
 ------------------------------------------------------------------------
 
@@ -55,8 +45,15 @@ open import Relation.Binary.PropositionalEquality
 
 open ≡-Reasoning
 
--- Gaussian rationals in rectangular form: real part , imaginary part.
--- 矩形形式的高斯有理数：实部 , 虚部。
+------------------------------------------------------------------------
+-- Gaussian rationals in rectangular form
+--
+-- Real part and imaginary part.
+--
+-- 矩形形式的高斯有理数
+--
+-- 实部与虚部。
+
 ℂ : Set
 ℂ = ℚ × ℚ
 
@@ -71,6 +68,8 @@ _+ᶜ_ : ℂ → ℂ → ℂ
 (a , b) +ᶜ (c , d) = (a + c , b + d)
 
 -- (a + bi)(c + di) = (ac - bd) + (ad + bc)i
+--
+-- (a + bi)(c + di) = (ac - bd) + (ad + bc)i
 _*ᶜ_ : ℂ → ℂ → ℂ
 (a , b) *ᶜ (c , d) = (a * c - b * d , a * d + b * c)
 
@@ -82,6 +81,7 @@ conj : ℂ → ℂ
 conj (a , b) = (a , - b)
 
 -- Squared modulus; real on ℚ (a² + b²).
+--
 -- 平方模；在 ℚ 上为实（a² + b²）。
 norm² : ℂ → ℚ
 norm² z = re z * re z + im z * im z
@@ -93,12 +93,18 @@ norm²-1ᶜ : norm² 1ᶜ ≡ 1ℚ
 norm²-1ᶜ = refl
 
 ------------------------------------------------------------------------
--- Rational ring algebra kit.
--- 有理数环代数工具。
+-- Rational ring algebra kit
+--
+-- Short ring-algebra chains used by the structural identities below.
+--
+-- 有理数环代数工具
+--
+-- 下面结构恒等式所用的简短环等式链。
 
 private
 
   -- Double negation: -(-x) = x.
+  --
   -- 双重否定：-(-x) = x。
   ‿-‿ : ∀ x → - (- x) ≡ x
   ‿-‿ x = begin
@@ -115,6 +121,7 @@ private
     x ∎
 
   -- Product of two negatives: (-x)(-y) = xy.
+  --
   -- 负负得正：(-x)(-y) = xy。
   -‿*- : ∀ x y → (- x) * (- y) ≡ x * y
   -‿*- x y = begin
@@ -127,6 +134,8 @@ private
     x * y ∎
 
   -- (x + y)² = x² + y² + 2xy.
+  --
+  -- (x + y)² = x² + y² + 2xy。
   sq+ : ∀ x y →
         (x + y) * (x + y)
       ≡ x * x + (y * y + (x * y + x * y))
@@ -146,6 +155,8 @@ private
     x * x + (y * y + (x * y + x * y)) ∎
 
   -- (x - y)² = x² + y² - 2xy.
+  --
+  -- (x - y)² = x² + y² - 2xy。
   sq- : ∀ x y →
         (x - y) * (x - y)
       ≡ x * x + (y * y - (x * y + x * y))
@@ -168,6 +179,7 @@ private
       y * y - (x * y + x * y) ∎
 
   -- (xy)² = x²y²: squares commute across a product.
+  --
   -- 平方跨过乘积交换：(xy)² = x²y²。
   sq-comm : ∀ x y → (x * y) * (x * y) ≡ (x * x) * (y * y)
   sq-comm x y = begin
@@ -183,8 +195,9 @@ private
     ≡⟨ sym (*-assoc x x (y * y)) ⟩
     (x * x) * (y * y) ∎
 
-  -- Both mixed products reorder to the same monomial abcd, so the
-  -- cross terms coincide: (ac)(bd) = (ad)(bc).
+  -- Both mixed products reorder to the same monomial abcd, so the cross
+  -- terms coincide: (ac)(bd) = (ad)(bc).
+  --
   -- 两个混合积都重排为同一单项式 abcd，故交叉项相同：(ac)(bd)=(ad)(bc)。
   cross-eq : ∀ a b c d → (a * c) * (b * d) ≡ (a * d) * (b * c)
   cross-eq a b c d = trans canon₁ (sym canon₂)
@@ -219,6 +232,7 @@ private
       (a * b) * (c * d) ∎
 
   -- A paired positive and negative copy of t cancels additively.
+  --
   -- 一正一负两份 t 在加法下相消。
   kill : ∀ U V t →
          (U - (t + t)) + (V + (t + t)) ≡ U + V
@@ -241,6 +255,7 @@ private
 
   -- Reorder the four collected monomials to match the distributive
   -- expansion (wy + wz) + (xy + xz).
+  --
   -- 将四个单项式重排以匹配分配展开 (wy + wz) + (xy + xz)。
   gather : ∀ w x y z →
            (w * y + x * z) + (w * z + x * y)
@@ -267,13 +282,18 @@ private
       w * z + (x * z + x * y) ∎
 
 ------------------------------------------------------------------------
+-- Structural identities of the scalar
+--
+-- 标量的结构恒等式
 
 -- Conjugation preserves the squared modulus.
+--
 -- 共轭保持平方模。
 norm²-conj : ∀ (u : ℂ) → norm² (conj u) ≡ norm² u
 norm²-conj (a , b) = cong (a * a +_) (-‿*- b b)
 
 -- Multiplicativity of the squared modulus: |uv|² = |u|²|v|².
+--
 -- 平方模的乘法性：|uv|² = |u|²|v|²。
 norm²-mul : ∀ (u v : ℂ) → norm² (u *ᶜ v) ≡ norm² u * norm² v
 norm²-mul (a , b) (c , d) = begin
@@ -313,7 +333,7 @@ norm²-mul (a , b) (c , d) = begin
   V-eq : V ≡ a²d² + b²c²
   V-eq = cong₂ _+_ (sq-comm a d) (sq-comm b c)
 
-  expand :(a * a + b * b) * (c * c + d * d)
+  expand : (a * a + b * b) * (c * c + d * d)
          ≡ (a²c² + a²d²) + (b²c² + b²d²)
   expand = begin
     (a * a + b * b) * (c * c + d * d)
@@ -324,11 +344,13 @@ norm²-mul (a , b) (c , d) = begin
     (a²c² + a²d²) + (b²c² + b²d²) ∎
 
 -- Unit-modulus complex numbers are the phases.
+--
 -- 单位模复数即相位。
 Unit : ℂ → Set
 Unit z = norm² z ≡ 1ℚ
 
 -- Phases are closed under multiplication: |uv| = |u||v| = 1.
+--
 -- 相位对乘法封闭：|uv| = |u||v| = 1。
 unit-norm-mul : ∀ u v → Unit u → Unit v → Unit (u *ᶜ v)
 unit-norm-mul u v hu hv

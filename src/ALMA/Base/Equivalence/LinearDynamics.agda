@@ -1,15 +1,14 @@
 ------------------------------------------------------------------------
--- Degeneration: ScaleInvariant at Obs = ⊤. The non-trivial theory on
--- this position is Coalgebra, obtained by adding x ≡ y as base case.
+-- Degeneration at Obs = ⊤
 --
---   Iteration   the free monoid action of ℕ on X induced by f
---   Coalgebra   the final coalgebra equality of f
+-- ScaleInvariant at Obs = ⊤. The non-trivial theory on this position
+-- is Coalgebra, obtained by adding x ≡ y as base case. The module
+-- contains Iteration and Coalgebra.
 --
--- 退化：Obs = ⊤ 处的 ScaleInvariant。该位置上的非平凡理论是
--- Coalgebra，由加上 base case x ≡ y 得到。
+-- 退化到 Obs = ⊤
 --
---   Iteration   由 f 诱导的 ℕ 在 X 上的自由幺半群作用
---   Coalgebra   f 的最终 coalgebra 相等
+-- Obs = ⊤ 处的 ScaleInvariant。该位置上的非平凡理论是 Coalgebra，
+-- 由加上 base case x ≡ y 得到。模块包含 Iteration 与 Coalgebra。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -32,14 +31,25 @@ open import ALMA.Base.IndexedMType using (snd)
 open import ALMA.Base.Equivalence.ScaleInvariant using (ScaleInvariant)
 
 ------------------------------------------------------------------------
--- The alias; ScaleInvariant's universe depends only on Obs, not on X.
--- 别名；ScaleInvariant 的 universe 只依赖 Obs，不依赖 X。
+-- Alias
+--
+-- ScaleInvariant's universe depends only on Obs, not on X.
+--
+-- 别名
+--
+-- ScaleInvariant 的 universe 只依赖 Obs，不依赖 X。
+
 LinearDynamics : {a : _} {X : Set a} → (f : X → X) → X → X → Set lzero
 LinearDynamics {a} {X} f = ScaleInvariant {Obs = ⊤ {lzero}} (λ x _ → f x)
 
 ------------------------------------------------------------------------
--- Iteration: the free monoid action of ℕ on X induced by f
--- 迭代：由 f 诱导的 ℕ 在 X 上的自由幺半群作用
+-- Iteration
+--
+-- The free monoid action of ℕ on X induced by f.
+--
+-- 迭代
+--
+-- 由 f 诱导的 ℕ 在 X 上的自由幺半群作用。
 
 module Iteration
     {a : _} {X : Set a}
@@ -56,6 +66,7 @@ module Iteration
   ^-suc x n = refl
 
   -- Bridges the two syntactic forms x ^[ suc n ] and (f x) ^[ n ].
+  --
   -- 桥接两种语法形式 x ^[ suc n ] 与 (f x) ^[ n ]。
   ^-suc-shift : ∀ x n → x ^[ suc n ] ≡ (f x) ^[ n ]
   ^-suc-shift x zero    = refl
@@ -76,8 +87,13 @@ module Iteration
       ∎
 
 ------------------------------------------------------------------------
--- Coalgebra: the final coalgebra equality of f
--- Coalgebra：f 的最终 coalgebra 相等
+-- Coalgebra
+--
+-- The final coalgebra equality of f.
+--
+-- Coalgebra
+--
+-- f 的最终 coalgebra 相等。
 
 module Coalgebra
     {a : _} {X : Set a}
@@ -86,6 +102,7 @@ module Coalgebra
   open Iteration f
 
   -- Sync x y iff all iterates agree.
+  --
   -- Sync x y 当且仅当所有迭代一致。
   Sync : X → X → Set a
   Sync x y = ∀ n → x ^[ n ] ≡ y ^[ n ]
@@ -99,6 +116,7 @@ module Coalgebra
 
   -- Coinductive characterisation; ^-suc-shift converts between
   -- x ^[ suc n ] and (f x) ^[ n ].
+  --
   -- 余归纳刻画；^-suc-shift 在 x ^[ suc n ] 与 (f x) ^[ n ] 之间转换。
   sync-char : ∀ {x y} → Sync x y → (x ≡ y) × Sync (f x) (f y)
   sync-char {x} {y} p =
@@ -127,6 +145,7 @@ module Coalgebra
 
   -- Sync is the largest relation R with
   -- R x y → x ≡ y × R (f x) (f y).
+  --
   -- Sync 是满足 R x y → x ≡ y × R (f x) (f y) 的最大关系 R。
   sync-final
     : (R : X → X → Set a)
@@ -147,12 +166,14 @@ module Coalgebra
   sync-refl x = IsEquivalence.refl sync-isEquivalence
 
   -- Fixed points of f
+  --
   -- f 的不动点
   IsFixed : X → Set a
   IsFixed x = f x ≡ x
 
   -- Periodic points: return to themselves after some positive number
   -- of iterations.
+  --
   -- 周期点：经过某个正数次迭代后回到自身。
   IsPeriodic : X → Set a
   IsPeriodic x = Σ ℕ (λ n → Σ (0 < n) (λ _ → x ^[ n ] ≡ x))
@@ -161,6 +182,7 @@ module Coalgebra
   fixed→periodic {x} fx = 1 , (s≤s z≤n , fx)
 
   -- If x has period p, every iterate x^[k] has period p.
+  --
   -- 若 x 的周期为 p，则每个迭代 x^[k] 的周期也是 p。
   periodic-stable
     : ∀ {x} → IsPeriodic x
@@ -196,9 +218,14 @@ module Coalgebra
         ∎
 
 ------------------------------------------------------------------------
--- Truncation: no layer condition, so every depth is trivially
--- inhabited; the flat truncation at the empty observation limit.
--- 截断：无 layer 条件，每个深度都平凡可居；这是空观察极限处的平坦截断。
+-- Truncation
+--
+-- No layer condition, so every depth is trivially inhabited; the flat
+-- truncation at the empty observation limit.
+--
+-- 截断
+--
+-- 无 layer 条件，每个深度都平凡可居；这是空观察极限处的平坦截断。
 
 module LinearDynamics-Depth
     {a : _} {X : Set a} {f : X → X} where

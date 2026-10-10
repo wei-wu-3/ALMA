@@ -1,10 +1,14 @@
 ------------------------------------------------------------------------
--- Scale invariance: LayeredEq at the trivial layer ⊤. This is the
--- coinductive form of scale invariance / transformation invariance /
--- renormalisation-group fixed points.
+-- Scale invariance
 --
--- 尺度不变性：平凡层 ⊤ 处的 LayeredEq。这是尺度不变性 / 变换不变性 /
--- 重整化群不动点的余归纳形式。
+-- LayeredEq at the trivial layer ⊤. This is the coinductive form of
+-- scale invariance / transformation invariance / renormalisation-group
+-- fixed points.
+--
+-- 尺度不变性
+--
+-- 平凡层 ⊤ 处的 LayeredEq。这是尺度不变性 / 变换不变性 / 重整化群
+-- 不动点的余归纳形式。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -21,8 +25,12 @@ open import ALMA.Base.Equivalence.Core using (LayeredEq)
 
 ------------------------------------------------------------------------
 -- Degeneration: trivialise layer
+--
 -- ScaleInvariant is LayeredEq at the trivial layer ⊤.
--- 退化：把 layer 平凡化。ScaleInvariant 是平凡层 ⊤ 处的 LayeredEq。
+--
+-- 退化：把 layer 平凡化
+--
+-- ScaleInvariant 是平凡层 ⊤ 处的 LayeredEq。
 
 ScaleInvariant
     : {a b : Level} {X : Set a} {Obs : Set b}
@@ -31,6 +39,7 @@ ScaleInvariant step x y = LayeredEq {c = lzero} _ step (λ _ _ → ⊤) x y
 
 ------------------------------------------------------------------------
 -- Scale invariance and renormalisation-group fixed points
+--
 -- 尺度不变性与重整化群不动点
 
 module ScaleInvariance
@@ -41,6 +50,7 @@ module ScaleInvariance
   where
 
   -- Forward direction: rewrite the composite step via comm and recurse.
+  --
   -- 正向：经 comm 重写复合 step 并递归。
   scale-invariant : ∀ x p → ScaleInvariant step x (scale x p)
   scale-invariant x p .fst = tt
@@ -51,6 +61,7 @@ module ScaleInvariance
   IsFixedPoint x = ∀ p → scale x p ≡ x
 
   -- comm preserves the fixed-point property along step.
+  --
   -- comm 保证不动点性质沿 step 保持。
   fixed-point-preserved
     : ∀ x → IsFixedPoint x → ∀ ob → IsFixedPoint (step x ob)

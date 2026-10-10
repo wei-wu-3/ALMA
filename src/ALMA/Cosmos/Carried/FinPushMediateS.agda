@@ -1,16 +1,20 @@
 ------------------------------------------------------------------------
 -- Universal property of the Fin push colimit among deterministic
--- setoid systems. The tower is deterministic (one edge per node), so a
--- competing cocone is a deterministic system (TrivDetˢ J stepZ) with an
--- index trajectory q satisfying q (s∞ v) ≡ stepZ (q v). The mediating
+-- setoid systems
+--
+-- The tower is deterministic (one edge per node), so a competing
+-- cocone is a deterministic system (TrivDetˢ J stepZ) with an index
+-- trajectory q satisfying q (s∞ v) ≡ stepZ (q v). The mediating
 -- forward simulation med follows the unique edges, generalised to an
 -- arbitrary target index and graph witness. Its target tree is the
 -- unique deterministic tree up to _≈Mˢ_.
 --
--- Fin push 余极限在确定性 setoid 系统中的泛性质。塔是确定性的（每节点
--- 一条边），故竞争余锥即一个确定性系统（TrivDetˢ J stepZ）连同满足
--- q (s∞ v) ≡ stepZ (q v) 的索引轨迹 q。mediate 前向模拟沿唯一边推进，
--- 并泛化到任意目标索引与图见证。其目标树在 _≈Mˢ_ 意义下唯一。
+-- Fin push 余极限在确定性 setoid 系统中的泛性质
+--
+-- 塔是确定性的（每节点一条边），故竞争余锥即一个确定性系统
+-- （TrivDetˢ J stepZ）连同满足 q (s∞ v) ≡ stepZ (q v) 的索引轨迹 q。
+-- mediate 前向模拟沿唯一边推进，并泛化到任意目标索引与图见证。其目标
+-- 树在 _≈Mˢ_ 意义下唯一。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}
@@ -42,11 +46,15 @@ module Mediate
   open LS.LimitSystemS t embed-compat using (s∞; orbit∞; L∞)
 
   ----------------------------------------------------------------------
-  -- A competing deterministic cocone: a target deterministic system on
-  -- J with transition stepZ and an index trajectory q over the source
-  -- dynamics s∞.
-  -- 竞争确定性余锥：J 上以 stepZ 为转移的目标确定性系统，以及覆盖源
-  -- 动力 s∞ 的索引轨迹 q。
+  -- A competing deterministic cocone
+  --
+  -- A target deterministic system on J with transition stepZ and an
+  -- index trajectory q over the source dynamics s∞.
+  --
+  -- 竞争确定性余锥
+  --
+  -- J 上以 stepZ 为转移的目标确定性系统，以及覆盖源动力 s∞ 的索引轨迹
+  -- q。
 
   module Cocone
     {j : Level} (J : Set j) (stepZ : J → J)
@@ -58,12 +66,14 @@ module Mediate
     Z = TrivDetˢ J stepZ
 
     -- Deterministic orbit in Z.
+    --
     -- Z 中的确定性轨道。
     orbitZ : (w : J) → M (A Z) (E Z) w
     orbitZ w .M.here = tt
     orbitZ w .M.below w' (_ , eq) = orbitZ w'
 
     -- Layer relation: the target index is the q-image of the source.
+    --
     -- 层关系：目标索引为源索引的 q 像。
     R : ℕ → J → Set j
     R v w = w ≡ q v
@@ -74,6 +84,7 @@ module Mediate
 
     -- The mediating forward simulation, generalised to an arbitrary
     -- target index w with graph witness r.
+    --
     -- mediate 前向模拟，泛化到带图见证 r 的任意目标索引 w。
     med : (v : ℕ) (w : J) (r : w ≡ q v)
         → PushSimˢ L∞ Z R H r (orbit∞ v) (orbitZ w)
@@ -83,23 +94,30 @@ module Mediate
       where
         -- stepZ w ≡ q y, from the graph witness r, the source edge and
         -- the cocone coherence.
+        --
         -- stepZ w ≡ q y，由图见证 r、源边与余锥相容式得到。
         r' : stepZ w ≡ q y
         r' = trans (cong stepZ r)
               (trans (sym (q-coh v)) (sym (cong q eq)))
 
     -- The canonical mediating simulation at the q-image of each node.
+    --
     -- 每个节点 q 像处的规范 mediate 模拟。
     mediate : (v : ℕ)
             → PushSimˢ L∞ Z R H refl (orbit∞ v) (orbitZ (q v))
     mediate v = med v (q v) refl
 
     --------------------------------------------------------------------
-    -- Uniqueness: the deterministic Z-tree at w is unique up to _≈Mˢ_.
-    -- The mediating simulation has no branch to choose; its layer and
-    -- label witnesses are propositions.
-    -- 唯一性：w 处的确定性 Z-树在 _≈Mˢ_ 意义下唯一；mediate 模拟无分支
-    -- 可选，其层与标签见证均为命题。
+    -- Uniqueness
+    --
+    -- The deterministic Z-tree at w is unique up to _≈Mˢ_. The
+    -- mediating simulation has no branch to choose; its layer and label
+    -- witnesses are propositions.
+    --
+    -- 唯一性
+    --
+    -- w 处的确定性 Z-树在 _≈Mˢ_ 意义下唯一；mediate 模拟无分支可选，
+    -- 其层与标签见证均为命题。
     det-unique-Z : (w : J) (u₁ u₂ : M (A Z) (E Z) w)
                  → _≈Mˢ_ (≈A Z) (≈E Z) u₁ u₂
     det-unique-Z w u₁ u₂ ._≈Mˢ_.here-eq = refl
