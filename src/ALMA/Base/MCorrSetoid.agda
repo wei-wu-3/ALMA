@@ -4,14 +4,13 @@
 -- MCorr hard-wires propositional equality in three places (FiberAdj
 -- η/ε, the bisimulation here-eq, and the FMap graph witness /
 -- relocation); this module replaces the edge/label equality by a
--- carried equivalence on the manifest carrier, without K and without
--- dependent subst.
+-- carried equivalence on the manifest carrier.
 --
 -- setoid 参数化的携带式对应
 --
 -- MCorr 在三处硬编码命题相等（FiberAdj 的 η/ε、互模拟的 here-eq、
 -- FMap 图见证/重定位）；本模块把边/标签等价替换为建立在外显载体上的、
--- 被携带的等价关系，不用 K，也不用依赖 subst。
+-- 被携带的等价关系。
 ------------------------------------------------------------------------
 
 {-# OPTIONS --safe --cubical-compatible --guardedness --exact-split --double-check #-}

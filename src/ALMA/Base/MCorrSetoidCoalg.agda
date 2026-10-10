@@ -8,8 +8,7 @@
 -- guarded corecursion supplies existence and the carried bisimulation
 -- _≈Mˢ_ supplies uniqueness. Nothing here assumes determinism: the
 -- child map carries the edge witness e rather than the constructive
--- container edge (p , refl), and no equality is matched, so there is
--- no J or subst.
+-- container edge (p , refl), and no equality is matched.
 --
 -- The deterministic container terminal coalgebra (Cosmos/M) is the
 -- specialisation at E i a j = Σ Pos λ p → j ≡ nextOf i a p, where the
@@ -21,7 +20,7 @@
 -- F X i = Σ (A i) λ a → (j : I) → E i a j → X j 的最大不动点；受保护
 -- 余递归给存在性，携带式互模拟 _≈Mˢ_ 给唯一性。此处不假设确定性：
 -- child 映射携带边见证 e，而非容器的构造性边 (p , refl)，且不匹配任何
--- 等式，故无 J、无 subst。
+-- 等式。
 --
 -- 确定性容器终余代数（Cosmos/M）是
 -- E i a j = Σ Pos λ p → j ≡ nextOf i a p、携带边恒为 (p , refl) 处的

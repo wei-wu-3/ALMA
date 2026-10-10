@@ -8,8 +8,7 @@
 -- well-foundedness makes every tree finite. Structural recursion gives
 -- the catamorphism; the finite bisimulation _≈Wˢ_ gives the equality at
 -- which folds are unique once the target is a setoid algebra. Nothing
--- matches an equality: the edge witness e is carried as data, so there
--- is no J or subst.
+-- matches an equality: the edge witness e is carried as data.
 --
 -- Wˣ is the inductive dual of the coinductive Mˣ in MCorrSetoidCoalg,
 -- and embed : Wˣ → Mˣ is the finite-tree inclusion μF → νF. Because
@@ -25,7 +24,7 @@
 -- 的最小不动点是有限（良基）树的索引 W 型 Wˣ：每个节点携带一个标签与
 -- 一个边索引的子节点族，良基性使每棵树有限。结构递归给出 catamorphism；
 -- 有限互模拟 _≈Wˢ_ 给出“目标为 setoid 代数时折叠唯一”所处的相等。此处
--- 不匹配任何等式：边见证 e 作为数据携带，故无 J、无 subst。
+-- 不匹配任何等式：边见证 e 作为数据携带。
 --
 -- Wˣ 是 MCorrSetoidCoalg 中余归纳 Mˣ 的归纳对偶，embed : Wˣ → Mˣ 即
 -- 有限树嵌入（μF → νF）。由于每个 F 层都把子节点作为数据暴露，μF 即
